@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>(예시) 물과 식용유의 온도 변화 비교</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="../../lib/sim.css">
+<style>
+  .sim-main { grid-template-columns: 1fr 360px; }
+  .left { display: grid; grid-template-rows: auto 1fr; gap: 14px; min-height: 0; }
+  .right { display: flex; flex-direction: column; gap: 14px; min-height: 0; }
+  .table-wrap { overflow: auto; max-height: 220px; }
+  .readout { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .readout div { background: var(--bg); border-radius: 10px; padding: 8px 10px; }
+  .readout b { display: block; font-size: 22px; font-variant-numeric: tabular-nums; }
+  .w { color: var(--cool); } .o { color: #d98a00; }
+</style>
+</head>
+<body>
+<header class="sim-header">
+  <h1>물과 식용유의 온도 변화 비교</h1>
+  <span class="unit">예시 시뮬레이터 · 같은 세기로 가열할 때 온도가 어떻게 변할까?</span>
+</header>
+<main class="sim-main">
+  <section class="left">
+    <div class="panel"><canvas id="scene" width="1280" height="380" aria-label="가열 장치"></canvas></div>
+    <div class="panel" style="min-height:0"><canvas id="graph" width="1280" height="400" aria-label="시간-온도 그래프"></canvas></div>
+  </section>
+  <aside class="right">
+    <div class="panel controls">
+      <h2>실험 조건</h2>
+      <div class="control">
+        <label for="mass">질량 (물과 식용유 각각) <output id="massOut">200 g</output></label>
+        <input id="mass" type="range" min="100" max="300" step="50" value="200">
+      </div>
+      <div class="hint">두 가열 장치는 1초에 100 J씩 같은 양의 열을 공급해요. 처음 온도는 20 ℃입니다.</div>
+      <div class="btn-row">
+        <button id="play" class="primary">가열 시작</button>
+        <button id="rec">측정값 기록</button>
+        <button id="reset">처음부터</button>
+      </div>
+      <div class="readout">
+        <div>가열 시간<b id="tOut">0 s</b></div>
+        <div>공급한 열량<b id="qOut">0 J</b></div>
+        <div class="w">물 온도<b id="wOut">20.0 ℃</b></div>
+        <div class="o">식용유 온도<b id="oOut">20.0 ℃</b></div>
+      </div>
+    </div>
+    <div class="panel" style="flex:1; min-height:0">
+      <h2>측정 기록</h2>
+      <div class="table-wrap">
+        <table class="data">
+          <thead><tr><th>시간(s)</th><th>물(℃)</th><th>식용유(℃)</th></tr></thead>
+          <tbody id="rows"><tr><td colspan="3" class="hint" style="text-align:left">[측정값 기록]을 눌러 표를 채워 보세요.</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </aside>
+</main>
+<script src="../../lib/sim-bridge.js"></script>
+<script>
+(function () {
+  // 단순화: 공급한 열은 모두 액체에 흡수된다고 가정(열 손실 없음)
+  var P = 100, T0 = 20, TMAX = 300, SPEED = 10;          // W, ℃, s, 실제 1초 = 실험 10초
+  var C = { water: 4.2, oil: 2.0 };                       // J/(g·℃)
+  var mass = 200, t = 0, running = false, last = null, records = [];
+
+  var $ = function (id) { return document.getElementById(id); };
+  var scene = $('scene').getContext('2d'), graph = $('graph').getContext('2d');
+
+  function temp(c) { return T0 + P * t / (mass * c); }
+
+  SimBridge.init('sample-specific-heat');
+  SimBridge.onLock = function () { running = false; };
+
+  function pushState() {
+    SimBridge.setState({
+      mass: mass, time: Math.round(t),
+      tempWater: +temp(C.water).toFixed(1), tempOil: +temp(C.oil).toFixed(1),
+      recordCount: records.length
+    });
+  }
+
+  // ---------- 장치 그림 ----------
+  function beaker(ctx, x, label, color, T, heating) {
+    var w = 260, h = 230, y = 56, level = 60 + mass / 300 * 110;
+    // 가열판
+    ctx.fillStyle = '#9aa3b2'; roundRect(ctx, x - 40, y + h + 12, w + 80, 34, 8); ctx.fill();
+    ctx.fillStyle = heating ? '#ff6a3d' : '#c9ced8';
+    roundRect(ctx, x - 10, y + h + 4, w + 20, 12, 6); ctx.fill();
+    if (heating) { ctx.fillStyle = 'rgba(255,106,61,.18)'; roundRect(ctx, x - 30, y + h - 6, w + 60, 24, 12); ctx.fill(); }
+    // 액체
+    ctx.fillStyle = color; ctx.fillRect(x + 4, y + h - level, w - 8, level - 4);
+    // 기포(물만, 고온일 때 약간)
+    // 비커
+    ctx.strokeStyle = '#4b5567'; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + h); ctx.lineTo(x + w, y + h); ctx.lineTo(x + w, y); ctx.stroke();
+    // 온도계
+    var tx = x + w - 50, ty = y - 40, th = 250;
+    ctx.fillStyle = '#fff'; ctx.strokeStyle = '#4b5567'; ctx.lineWidth = 3;
+    roundRect(ctx, tx, ty, 22, th, 11); ctx.fill(); ctx.stroke();
+    var frac = Math.min(1, (T - 0) / 110);
+    ctx.fillStyle = '#e5533d';
+    ctx.fillRect(tx + 7, ty + th - 22 - frac * (th - 40), 8, frac * (th - 40) + 10);
+    ctx.beginPath(); ctx.arc(tx + 11, ty + th - 6, 14, 0, Math.PI * 2); ctx.fill();
+    // 글자
+    ctx.fillStyle = '#1d2433'; ctx.font = '600 30px ' + font; ctx.textAlign = 'center';
+    ctx.fillText(label, x + w / 2 - 20, y + h + 82);
+    ctx.font = '600 34px ' + font; ctx.fillStyle = '#1d2433';
+    ctx.fillText(T.toFixed(1) + ' ℃', x + w / 2 - 30, y + 40);
+  }
+  var font = getComputedStyle(document.body).fontFamily;
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+  }
+  function drawScene() {
+    var ctx = scene; ctx.clearRect(0, 0, 1280, 380);
+    var heating = running && t < TMAX;
+    beaker(ctx, 170, '물 ' + mass + ' g', 'rgba(47,128,237,.28)', temp(C.water), heating);
+    beaker(ctx, 770, '식용유 ' + mass + ' g', 'rgba(242,180,40,.45)', temp(C.oil), heating);
+  }
+
+  // ---------- 그래프 ----------
+  var G = { l: 110, r: 1240, t: 24, b: 320 };
+  function gx(s) { return G.l + s / TMAX * (G.r - G.l); }
+  function gy(T) { return G.b - T / 100 * (G.b - G.t); }
+  function drawGraph() {
+    var ctx = graph; ctx.clearRect(0, 0, 1280, 400);
+    ctx.font = '24px ' + font; ctx.lineWidth = 1.5;
+    for (var T = 0; T <= 100; T += 20) {
+      ctx.strokeStyle = '#e3e7ee'; ctx.beginPath(); ctx.moveTo(G.l, gy(T)); ctx.lineTo(G.r, gy(T)); ctx.stroke();
+      ctx.fillStyle = '#5b6577'; ctx.textAlign = 'right'; ctx.fillText(T, G.l - 14, gy(T) + 8);
+    }
+    for (var s = 0; s <= TMAX; s += 60) {
+      ctx.fillStyle = '#5b6577'; ctx.textAlign = 'center'; ctx.fillText(s, gx(s), G.b + 34);
+    }
+    ctx.strokeStyle = '#4b5567'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(G.l, G.t); ctx.lineTo(G.l, G.b); ctx.lineTo(G.r, G.b); ctx.stroke();
+    ctx.fillStyle = '#1d2433'; ctx.textAlign = 'center'; ctx.fillText('가열 시간 (s)', (G.l + G.r) / 2, G.b + 66);
+    ctx.save(); ctx.translate(32, (G.t + G.b) / 2); ctx.rotate(-Math.PI / 2); ctx.fillText('온도 (℃)', 0, 0); ctx.restore();
+    line(ctx, C.water, '#2f80ed'); line(ctx, C.oil, '#e09a00');
+    records.forEach(function (r) { dot(ctx, r.time, r.water, '#2f80ed'); dot(ctx, r.time, r.oil, '#e09a00'); });
+    ctx.textAlign = 'left'; ctx.font = '600 24px ' + font;
+    ctx.fillStyle = '#2f80ed'; ctx.fillText('● 물', G.l + 24, G.t + 24);
+    ctx.fillStyle = '#e09a00'; ctx.fillText('● 식용유', G.l + 120, G.t + 24);
+  }
+  function line(ctx, c, color) {
+    ctx.strokeStyle = color; ctx.lineWidth = 4; ctx.beginPath();
+    ctx.moveTo(gx(0), gy(T0)); ctx.lineTo(gx(t), gy(T0 + P * t / (mass * c))); ctx.stroke();
+  }
+  function dot(ctx, s, T, color) {
+    ctx.fillStyle = '#fff'; ctx.strokeStyle = color; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(gx(s), gy(T), 8, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  }
+
+  // ---------- 화면 갱신 ----------
+  function render() {
+    $('tOut').textContent = Math.round(t) + ' s';
+    $('qOut').textContent = (P * Math.round(t)).toLocaleString('ko-KR') + ' J';
+    $('wOut').textContent = temp(C.water).toFixed(1) + ' ℃';
+    $('oOut').textContent = temp(C.oil).toFixed(1) + ' ℃';
+    $('play').textContent = running ? '일시 정지' : (t >= TMAX ? '가열 끝' : (t > 0 ? '계속 가열' : '가열 시작'));
+    $('play').disabled = t >= TMAX;
+    $('mass').disabled = t > 0;
+    drawScene(); drawGraph();
+  }
+  function tick(now) {
+    if (running) {
+      if (last != null) t = Math.min(TMAX, t + (now - last) / 1000 * SPEED);
+      last = now;
+      if (t >= TMAX) { running = false; pushState(); }
+      render();
+      requestAnimationFrame(tick);
+    } else last = null;
+  }
+
+  $('play').onclick = function () {
+    running = !running;
+    if (running) requestAnimationFrame(tick); else pushState();
+    render();
+  };
+  $('reset').onclick = function () {
+    running = false; t = 0; records = []; SimBridge.clearLog(); renderRows(); pushState(); render();
+  };
+  $('rec').onclick = function () {
+    var r = { time: Math.round(t), water: +temp(C.water).toFixed(1), oil: +temp(C.oil).toFixed(1) };
+    if (records.some(function (x) { return x.time === r.time; })) return;
+    records.push(r); SimBridge.log(r); renderRows(); pushState(); render();
+  };
+  $('mass').oninput = function () {
+    mass = +this.value; $('massOut').textContent = mass + ' g'; pushState(); render();
+  };
+  function renderRows() {
+    var tb = $('rows');
+    if (!records.length) { tb.innerHTML = '<tr><td colspan="3" class="hint" style="text-align:left">[측정값 기록]을 눌러 표를 채워 보세요.</td></tr>'; return; }
+    tb.innerHTML = records.map(function (r) {
+      return '<tr><td>' + r.time + '</td><td>' + r.water.toFixed(1) + '</td><td>' + r.oil.toFixed(1) + '</td></tr>';
+    }).join('');
+  }
+
+  pushState(); render();
+})();
+</script>
+</body>
+</html>

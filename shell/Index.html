@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; font-family: "Pretendard","Noto Sans KR","Malgun Gothic",system-ui,sans-serif; color: #1d2433; }
+  body { display: flex; flex-direction: column; background: #f6f7f9; }
+  .bar { display: flex; align-items: center; gap: 12px; padding: 8px 16px; background: #fff; border-bottom: 1px solid #d9dee7; }
+  .bar .who { color: #5b6577; font-size: 14px; }
+  .bar .spacer { flex: 1; }
+  button { font: inherit; font-weight: 600; border-radius: 10px; border: 1px solid #d9dee7; background: #fff; padding: 8px 16px; cursor: pointer; }
+  button.primary { background: #1f6feb; border-color: #1f6feb; color: #fff; }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  .stage { flex: 1; position: relative; min-height: 0; }
+  iframe { width: 100%; height: 100%; border: 0; display: block; background: #fff; }
+  .drawer { position: absolute; top: 0; right: 0; bottom: 0; width: 400px; max-width: 92vw; background: #fff;
+            border-left: 1px solid #d9dee7; box-shadow: -8px 0 24px rgba(0,0,0,.08); padding: 16px 18px;
+            overflow: auto; transform: translateX(100%); transition: transform .2s; }
+  .drawer.open { transform: none; }
+  .q { padding: 12px 0; border-bottom: 1px solid #eef0f4; }
+  .q p { margin: 0 0 8px; font-weight: 600; }
+  .q label { display: block; padding: 4px 0; }
+  .q input[type=text], .q input[type=number], .q textarea { width: 100%; font: inherit; padding: 8px 10px; border: 1px solid #d9dee7; border-radius: 8px; }
+  .q textarea { min-height: 90px; }
+  .msg { padding: 12px; border-radius: 10px; background: #e7f6ee; color: #1a8f5a; font-weight: 600; margin-top: 12px; }
+  .err { background: #fdecea; color: #c0392b; }
+</style>
+</head>
+<body>
+  <div class="bar">
+    <strong id="title">과학 시뮬레이터 활동</strong>
+    <span class="who" id="who">확인 중…</span>
+    <span class="spacer"></span>
+    <button id="toggle" class="primary" disabled>문제 풀기</button>
+  </div>
+  <div class="stage">
+    <iframe id="sim" title="시뮬레이터"></iframe>
+    <aside class="drawer" id="drawer">
+      <h3 style="margin:0 0 4px">문제</h3>
+      <div class="who">시뮬레이터를 조작하면서 답을 찾아보세요.</div>
+      <form id="form"></form>
+      <button id="submit" class="primary" style="margin-top:14px; width:100%" disabled>제출하기</button>
+      <div id="result"></div>
+    </aside>
+  </div>
+<script>
+  var UNIT = <?= unit ?>;
+  var SIM_BASE = <?= simBase ?>;
+  var SIM_ORIGIN = new URL(SIM_BASE).origin;
+  var simPayload = {};
+  var $ = function (id) { return document.getElementById(id); };
+
+  window.addEventListener('message', function (e) {
+    if (e.origin !== SIM_ORIGIN || !e.data || e.data.source !== 'science-sim') return;
+    simPayload = e.data.payload || {};
+  });
+  function toSim(type) { $('sim').contentWindow.postMessage({ source: 'science-shell', type: type }, SIM_ORIGIN); }
+
+  if (!UNIT) {
+    $('who').textContent = '단원 주소가 없어요. 선생님이 주신 링크로 다시 들어와 주세요.';
+  } else {
+    $('sim').src = SIM_BASE + 'sims/' + encodeURIComponent(UNIT) + '/';
+    google.script.run.withSuccessHandler(start).withFailureHandler(fail).getUnit(UNIT);
+  }
+
+  function start(data) {
+    $('who').textContent = data.me.label;
+    var html = '';
+    data.questions.forEach(function (q) {
+      var name = 'q' + q.no;
+      html += '<div class="q"><p>' + esc(q.no) + '. ' + esc(q.text) + '</p>';
+      if (q.type === '객관식') {
+        q.choices.forEach(function (c, i) {
+          html += '<label><input type="radio" name="' + name + '" value="' + (i + 1) + '"> ' + esc(c) + '</label>';
+        });
+      } else if (q.type === '수치') {
+        html += '<input type="number" step="any" name="' + name + '"> ' + esc(q.unitLabel);
+      } else if (q.type === '서술') {
+        html += '<textarea name="' + name + '"></textarea>';
+      } else {
+        html += '<input type="text" name="' + name + '">';
+      }
+      html += '</div>';
+    });
+    $('form').innerHTML = html || '<p class="who">이 단원은 아직 문제가 없어요.</p>';
+    $('toggle').disabled = false;
+    $('submit').disabled = !data.questions.length || data.submitted;
+    if (data.submitted) note('이미 제출했어요.', false);
+  }
+
+  $('toggle').onclick = function () { $('drawer').classList.toggle('open'); };
+  $('submit').onclick = function () {
+    var answers = {};
+    new FormData($('form')).forEach(function (v, k) { answers[k.slice(1)] = v; });
+    $('submit').disabled = true;
+    toSim('get-state');
+    setTimeout(function () {
+      google.script.run.withSuccessHandler(function (r) {
+        toSim('lock');
+        note('제출 완료! 점수: ' + r.score + ' / ' + r.total + (r.review ? ' (서술형은 선생님이 다시 확인해요)' : ''), false);
+      }).withFailureHandler(function (e) { $('submit').disabled = false; fail(e); }).submit(UNIT, answers, simPayload);
+    }, 300);
+  };
+
+  function note(text, isErr) { $('result').innerHTML = '<div class="msg' + (isErr ? ' err' : '') + '">' + esc(text) + '</div>'; }
+  function fail(e) { note('문제가 생겼어요: ' + (e && e.message ? e.message : e), true); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+</script>
+</body>
+</html>

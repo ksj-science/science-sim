@@ -1,0 +1,11 @@
+[
+  {
+    "id": "sample-specific-heat",
+    "grade": 0,
+    "chapter": "예시",
+    "title": "물과 식용유의 온도 변화 비교",
+    "summary": "같은 세기로 가열할 때 두 액체의 온도 변화를 비교하는 예시 시뮬레이터",
+    "path": "sims/sample-specific-heat/",
+    "status": "예시"
+  }
+]

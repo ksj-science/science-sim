@@ -1,0 +1,58 @@
+/* 하남중 과학 시뮬레이터 공통 스타일 — 크롬북 1366×768 기준 */
+:root {
+  --bg: #f6f7f9;
+  --panel: #ffffff;
+  --ink: #1d2433;
+  --muted: #5b6577;
+  --line: #d9dee7;
+  --accent: #1f6feb;
+  --accent-soft: #e6efff;
+  --warm: #e5533d;
+  --cool: #2f80ed;
+  --good: #1a8f5a;
+  --radius: 12px;
+  --font: "Pretendard", "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  font-family: var(--font);
+  color: var(--ink);
+  background: var(--bg);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-tap-highlight-color: transparent;
+}
+.sim-header {
+  display: flex; align-items: baseline; gap: 12px;
+  padding: 12px 20px; background: var(--panel); border-bottom: 1px solid var(--line);
+}
+.sim-header h1 { font-size: 18px; margin: 0; }
+.sim-header .unit { color: var(--muted); font-size: 13px; }
+.sim-main { display: grid; gap: 14px; padding: 14px 20px; }
+.panel {
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 14px 16px;
+}
+.panel h2 { font-size: 15px; margin: 0 0 10px; }
+.controls { display: flex; flex-direction: column; gap: 14px; }
+.control label { display: flex; justify-content: space-between; font-size: 14px; color: var(--muted); }
+.control output { color: var(--ink); font-weight: 600; }
+input[type=range] { width: 100%; accent-color: var(--accent); height: 28px; }
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+button {
+  font: inherit; font-weight: 600; border-radius: 10px; border: 1px solid var(--line);
+  background: var(--panel); color: var(--ink); padding: 9px 16px; cursor: pointer; min-height: 40px;
+}
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+button:disabled { opacity: .45; cursor: not-allowed; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.seg button { border: 0; border-radius: 0; min-height: 36px; }
+.seg button[aria-pressed=true] { background: var(--accent-soft); color: var(--accent); }
+table.data { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+table.data th, table.data td { border-bottom: 1px solid var(--line); padding: 6px 8px; text-align: right; }
+table.data th { color: var(--muted); font-weight: 600; }
+table.data th:first-child, table.data td:first-child { text-align: left; }
+.hint { color: var(--muted); font-size: 13px; }
+canvas { display: block; width: 100%; height: auto; }
+.sim-locked button, .sim-locked input { pointer-events: none; opacity: .5; }
