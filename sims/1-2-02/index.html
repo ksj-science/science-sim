@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>변이와 생물의 다양성</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="../../lib/sim.css">
+<style>
+  html, body { height: 100%; overflow: hidden; }
+  body { display: flex; flex-direction: column; }
+  .sim-main { flex: 1; min-height: 0; grid-template-columns: 1fr 400px; padding: 12px 16px; gap: 12px; }
+  .left { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+  .right { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+
+  /* 단계 표시줄 */
+  .steps { display: flex; gap: 6px; }
+  .steps li { flex: 1; list-style: none; background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+              padding: 5px 8px; font-size: 13px; color: var(--muted); text-align: center; white-space: nowrap; }
+  .steps li b { display: inline-block; width: 20px; height: 20px; line-height: 20px; border-radius: 50%; background: var(--line);
+                color: #fff; font-size: 12px; margin-right: 4px; }
+  .steps li.on { border-color: #7b3fbf; color: #4a1f7a; background: #f4ecfc; font-weight: 600; }
+  .steps li.on b { background: #7b3fbf; }
+  .steps li.done b { background: #b79ad9; }
+  .steps { margin: 0; padding: 0; }
+
+  .scene-wrap { position: relative; flex: 1; min-height: 0; border-radius: var(--radius); overflow: hidden;
+                border: 1px solid var(--line); background: #bfe8f7; }
+  #scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .caption { position: absolute; left: 12px; top: 10px; right: 12px; background: rgba(255,255,255,.92); border-radius: 10px;
+             padding: 6px 12px; font-size: 15px; font-weight: 600; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  .caption .no { color: #7b3fbf; font-size: 18px; margin-right: 6px; }
+  .tag { position: absolute; top: 56px; font-size: 13px; font-weight: 700; padding: 2px 10px; border-radius: 999px;
+         background: rgba(255,255,255,.85); transition: opacity .6s; }
+  #tagL { left: 14px; color: #2f6b1f; } #tagR { right: 14px; color: #8a5a1c; }
+  .note { font-size: 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px;
+          min-height: 44px; }
+  .note b { color: #7b3fbf; }
+
+  /* 오른쪽 패널 */
+  .panel { padding: 10px 14px; }
+  .panel h2 { margin-bottom: 6px; }
+  .mode { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); margin-bottom: 8px; }
+  .mode .seg button { font-size: 13px; padding: 6px 10px; min-height: 32px; }
+  .btn-row button { flex: 1 1 auto; padding: 8px 10px; }
+  .gen { font-size: 14px; color: var(--muted); margin-top: 8px; display: flex; justify-content: space-between; }
+  .gen b { color: var(--ink); font-size: 18px; font-variant-numeric: tabular-nums; }
+  table.data td, table.data th { padding: 4px 6px; }
+  .sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; border: 1px solid #8a8f98; vertical-align: -1px; margin-right: 4px; }
+  .charts { flex: 1; min-height: 0; display: grid; grid-template-rows: auto 1fr 1fr; gap: 4px; }
+  .chart-box { position: relative; min-height: 0; }
+  .chart-box canvas { position: absolute; inset: 0; width: 100% !important; height: 100% !important; }
+
+  /* 장면 요소 */
+  .rb { transition: transform .7s ease, opacity .5s; }
+  .rb.pop { animation: pop .5s ease; }
+  @keyframes pop { from { opacity: 0; } to { opacity: 1; } }
+  .ring { fill: none; stroke-width: 3; opacity: 0; transition: opacity .6s; }
+  .merged .ring { opacity: .9; }
+  #river { transition: opacity 1s; }
+  #sand { transition: opacity 1.2s; }
+</style>
+</head>
+<body>
+<header class="sim-header">
+  <h1>변이와 생물의 다양성</h1>
+  <span class="unit">과학1 Ⅱ-2 생물의 다양성 · 토끼의 종류는 어떻게 다양해졌을까?</span>
+</header>
+<main class="sim-main">
+  <section class="left">
+    <ol class="steps" id="steps">
+      <li data-s="1"><b>1</b>다양한 변이</li>
+      <li data-s="2"><b>2</b>서식지 나뉨</li>
+      <li data-s="3"><b>3</b>천적과 생존</li>
+      <li data-s="4"><b>4</b>자손 남기기</li>
+      <li data-s="5"><b>5</b>다시 만남</li>
+    </ol>
+    <div class="scene-wrap">
+      <svg id="scene" viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid slice" aria-label="토끼가 사는 서식지">
+        <defs>
+          <!-- 토끼: 털색은 --fur 로 바꿈 -->
+          <symbol id="rabbit" viewBox="-40 -78 80 84" overflow="visible">
+            <ellipse cx="0" cy="2" rx="26" ry="5" fill="rgba(0,0,0,.15)"/>
+            <path d="M-13,-50 C-20,-80 -6,-84 -5,-52 Z" fill="var(--fur)" stroke="#6b6b6b" stroke-width="1.5"/>
+            <path d="M-11,-54 C-15,-74 -8,-76 -8,-54 Z" fill="var(--ear)"/>
+            <path d="M3,-52 C4,-84 18,-80 11,-50 Z" fill="var(--fur)" stroke="#6b6b6b" stroke-width="1.5"/>
+            <path d="M6,-54 C7,-76 14,-74 10,-54 Z" fill="var(--ear)"/>
+            <ellipse cx="-4" cy="-14" rx="22" ry="17" fill="var(--fur)" stroke="#6b6b6b" stroke-width="1.5"/>
+            <circle cx="-25" cy="-12" r="7" fill="var(--fur)" stroke="#6b6b6b" stroke-width="1.5"/>
+            <circle cx="10" cy="-36" r="15" fill="var(--fur)" stroke="#6b6b6b" stroke-width="1.5"/>
+            <circle cx="16" cy="-39" r="2.6" fill="#222"/>
+            <circle cx="24" cy="-33" r="2" fill="#d77a8a"/>
+            <path d="M6,-2 l0,-8 M14,-2 l0,-9" stroke="#6b6b6b" stroke-width="1.5"/>
+          </symbol>
+          <!-- 매 -->
+          <symbol id="hawkSym" viewBox="-80 -40 160 80" overflow="visible">
+            <path d="M-6,-6 C-30,-36 -60,-30 -78,-22 C-58,-16 -40,-8 -14,6 Z" fill="#7a5532" stroke="#4a321c" stroke-width="2"/>
+            <path d="M6,-6 C30,-36 60,-30 78,-22 C58,-16 40,-8 14,6 Z" fill="#8b6239" stroke="#4a321c" stroke-width="2"/>
+            <ellipse cx="0" cy="4" rx="12" ry="22" fill="#6e4b2b" stroke="#4a321c" stroke-width="2"/>
+            <path d="M-9,24 L0,40 L9,24 Z" fill="#6e4b2b" stroke="#4a321c" stroke-width="2"/>
+            <circle cx="0" cy="-16" r="9" fill="#7a5532" stroke="#4a321c" stroke-width="2"/>
+            <path d="M-3,-10 L0,-3 L3,-10 Z" fill="#e8b23a"/>
+            <circle cx="-3" cy="-18" r="1.8" fill="#111"/><circle cx="3" cy="-18" r="1.8" fill="#111"/>
+          </symbol>
+          <clipPath id="rightOfRiver"><path id="sandClip" d=""/></clipPath>
+        </defs>
+
+        <!-- 하늘·산 -->
+        <rect width="1000" height="560" fill="#c6ecf8"/>
+        <path d="M0,215 C90,150 170,170 250,200 C330,150 420,140 520,195 C620,140 720,150 800,190 C880,160 950,165 1000,185 L1000,260 L0,260 Z" fill="#9fd1bf"/>
+        <path d="M0,232 C120,190 220,205 320,228 C440,195 560,200 680,226 C790,200 900,205 1000,222 L1000,270 L0,270 Z" fill="#82c19d"/>
+        <!-- 풀밭(전체) -->
+        <path d="M0,240 C200,226 400,236 600,232 C780,228 900,236 1000,232 L1000,560 L0,560 Z" fill="#a5d77d"/>
+        <g fill="#b6e08f" opacity=".9">
+          <path d="M0,300 C150,285 300,300 430,292 L430,312 C300,322 150,312 0,322 Z"/>
+          <path d="M0,410 C120,398 260,412 440,402 L440,420 C260,432 120,420 0,430 Z"/>
+          <path d="M560,340 C700,330 850,344 1000,332 L1000,352 C850,362 700,352 560,360 Z"/>
+          <path d="M560,470 C720,460 860,474 1000,462 L1000,480 C860,492 720,482 560,490 Z"/>
+        </g>
+        <g fill="#6fae52">
+          <ellipse cx="60" cy="250" rx="40" ry="14"/><ellipse cx="300" cy="246" rx="30" ry="11"/>
+          <ellipse cx="760" cy="244" rx="36" ry="12"/><ellipse cx="940" cy="250" rx="34" ry="12"/>
+        </g>
+        <!-- 마른 땅(강 오른쪽) -->
+        <g id="sand" opacity="0" clip-path="url(#rightOfRiver)">
+          <rect x="0" y="228" width="1000" height="340" fill="#e4d2a3"/>
+          <g fill="#d6c08a"><path d="M560,320 C700,310 850,322 1000,312 L1000,330 C850,340 700,332 560,340 Z"/>
+            <path d="M560,450 C720,440 860,454 1000,442 L1000,458 C860,470 720,462 560,470 Z"/></g>
+          <g fill="#a9a9a2" stroke="#85857e" stroke-width="2">
+            <path d="M640,268 q16,-14 32,0 z"/><path d="M880,300 q20,-18 40,0 z"/><path d="M930,520 q18,-16 36,0 z"/>
+          </g>
+          <g stroke="#b28f4e" stroke-width="2" fill="none">
+            <path d="M700,272 l-4,-10 M704,272 l0,-12 M708,272 l4,-10"/>
+            <path d="M960,390 l-4,-10 M964,390 l0,-12 M968,390 l4,-10"/>
+            <path d="M610,420 l-4,-10 M614,420 l0,-12 M618,420 l4,-10"/>
+          </g>
+          <g stroke="#6f5434" stroke-width="5" fill="none" stroke-linecap="round">
+            <path d="M820,262 L820,236 M820,246 L808,232 M820,242 L834,228"/>
+          </g>
+        </g>
+        <!-- 강 -->
+        <g id="river" opacity="0">
+          <path id="riverBank" d="" fill="none" stroke="#b9895a" stroke-width="86" stroke-linejoin="round"/>
+          <path id="riverWater" d="" fill="none" stroke="#7fd0ea" stroke-width="72" stroke-linejoin="round"/>
+          <path id="riverShine" d="" fill="none" stroke="#bff0ff" stroke-width="3" stroke-dasharray="18 26"/>
+        </g>
+        <g id="rabbits"></g>
+        <use id="hawk" href="#hawkSym" width="160" height="80" x="-80" y="-40" style="transform: translate(500px,-150px)"/>
+      </svg>
+      <div class="caption" id="caption"></div>
+      <span class="tag" id="tagL" style="opacity:0">왼쪽 무리 · 풀밭</span>
+      <span class="tag" id="tagR" style="opacity:0">오른쪽 무리 · 마른 땅</span>
+    </div>
+    <div class="note" id="note"></div>
+  </section>
+
+  <aside class="right">
+    <div class="panel">
+      <h2>실험 조작</h2>
+      <div class="mode">처음 무리
+        <div class="seg" id="modeSeg">
+          <button data-m="var" aria-pressed="true">변이가 있음</button>
+          <button data-m="none" aria-pressed="false">변이가 없다면? (모두 흰색)</button>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button id="bRiver" class="primary">강 생기기</button>
+        <button id="bGen1">1세대 진행</button>
+        <button id="bGen10">10세대 한꺼번에</button>
+      </div>
+      <div class="btn-row" style="margin-top:8px">
+        <button id="bMerge">강 사라지기</button>
+        <button id="bReset">처음부터</button>
+      </div>
+      <div class="gen"><span>강이 생긴 뒤 지난 세대</span><b id="genOut">0세대</b></div>
+    </div>
+    <div class="panel charts">
+      <table class="data">
+        <thead><tr><th>털색</th><th>왼쪽(풀밭)</th><th>오른쪽(마른 땅)</th></tr></thead>
+        <tbody id="countRows"></tbody>
+      </table>
+      <div class="chart-box"><canvas id="chartL" aria-label="왼쪽 무리 세대별 털색 수 그래프"></canvas></div>
+      <div class="chart-box"><canvas id="chartR" aria-label="오른쪽 무리 세대별 털색 수 그래프"></canvas></div>
+    </div>
+  </aside>
+</main>
+<script src="../../lib/vendor/chartjs-4.4.6/chart.umd.js"></script>
+<script src="../../lib/sim-bridge.js"></script>
+<script>
+(function () {
+  'use strict';
+  // ---------------- 모델 (단순화 내용은 단원설계서/1-2-02.md 참고) ----------------
+  var COLORS = ['white', 'gray', 'brown'];
+  var NAME = { white: '흰색', gray: '회색', brown: '갈색' };
+  var FUR = { white: '#fbfbf7', gray: '#aeb2b5', brown: '#9c7752' };
+  var EAR = { white: '#f3b6c0', gray: '#e7a9b4', brown: '#c99a86' };
+  var LINE = { white: '#9aa0a6', gray: '#4f6d7a', brown: '#9c6a3a' };
+  // 매에게 잡힐 확률: 배경과 털색이 비슷할수록 낮음
+  var CATCH = {
+    grass: { white: 0.7, brown: 0.45, gray: 0.05 },
+    sand:  { white: 0.7, gray: 0.45, brown: 0.05 }
+  };
+  var CAP = 16;          // 한 무리가 살 수 있는 최대 수(먹이·공간 한계)
+  var MERGE_GEN = 10;    // 이 세대 이상 지나야 강이 사라질 수 있음
+
+  var mode = 'var', stage = 1, generation = 0, merged = false, busy = false;
+  var pop = [];          // {id, color, side:'L'|'R'|null, x, y, el}
+  var history = { L: [], R: [] };
+  var nextId = 1;
+  var noVar = { tried: false, survivors: null };
+  var lastVarResult = null;   // 변이 있음 실험의 마지막 결과(그래프·상태용)
+
+  var $ = function (id) { return document.getElementById(id); };
+  var svgNS = 'http://www.w3.org/2000/svg';
+
+  // ---------------- 강 모양 ----------------
+  var RIVER = 'M505,226 C470,290 560,330 525,390 C495,440 455,480 500,570';
+  $('riverBank').setAttribute('d', RIVER);
+  $('riverWater').setAttribute('d', RIVER);
+  $('riverShine').setAttribute('d', RIVER);
+  $('sandClip').setAttribute('d', RIVER + ' L1000,570 L1000,226 Z');
+
+  // 토끼가 설 수 있는 자리 (강을 피함)
+  var AREA = {
+    all: { x0: 105, x1: 895, y0: 290, y1: 535 },
+    L:   { x0: 100, x1: 405, y0: 290, y1: 535 },
+    R:   { x0: 610, x1: 895, y0: 290, y1: 535 }
+  };
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  function place(r, areaKey) {
+    var a = AREA[areaKey], best = null, bestD = -1;
+    for (var k = 0; k < 24; k++) {           // 다른 토끼와 겹치지 않는 자리 고르기
+      var x = rnd(a.x0, a.x1), y = rnd(a.y0, a.y1), d = 1e9;
+      pop.forEach(function (o) { if (o !== r && o.x != null) d = Math.min(d, Math.hypot(o.x - x, (o.y - y) * 1.4)); });
+      if (d > bestD) { bestD = d; best = [x, y]; }
+      if (d > 85) break;
+    }
+    r.x = best[0]; r.y = best[1];
+  }
+  function scaleOf(y) { return 0.62 + (y - 290) / 245 * 0.38; }
+
+  function makeEl(r) {
+    var g = document.createElementNS(svgNS, 'g');
+    g.setAttribute('class', 'rb');
+    var ring = document.createElementNS(svgNS, 'ellipse');
+    ring.setAttribute('class', 'ring'); ring.setAttribute('cx', 0); ring.setAttribute('cy', 2);
+    ring.setAttribute('rx', 34); ring.setAttribute('ry', 9);
+    var u = document.createElementNS(svgNS, 'use');
+    u.setAttribute('href', '#rabbit'); u.setAttribute('x', -40); u.setAttribute('y', -78);
+    u.setAttribute('width', 80); u.setAttribute('height', 84);
+    u.style.setProperty('--fur', FUR[r.color]); u.style.setProperty('--ear', EAR[r.color]);
+    g.appendChild(ring); g.appendChild(u);
+    r.el = g; r.ring = ring;
+    return g;
+  }
+  function posEl(r) {
+    var flip = (r.id % 2) ? -1 : 1;
+    r.el.style.transform = 'translate(' + r.x.toFixed(1) + 'px,' + r.y.toFixed(1) + 'px) scale(' + (scaleOf(r.y) * flip).toFixed(3) + ',' + scaleOf(r.y).toFixed(3) + ')';
+    r.ring.setAttribute('stroke', r.side === 'L' ? '#2b7bd6' : '#e07a1f');
+  }
+  function sortZ() {
+    var layer = $('rabbits');
+    pop.slice().sort(function (a, b) { return a.y - b.y; }).forEach(function (r) { layer.appendChild(r.el); });
+  }
+
+  // ---------------- 화면 갱신 ----------------
+  var CAPTIONS = {
+    1: '다양한 변이를 가진 한 종류의 토끼가 살고 있어요.',
+    2: '서식지에 강이 생겨 두 무리로 나누어 살게 되었어요.',
+    3: '각 서식지에서 매가 눈에 잘 띄는 토끼를 잡아가요.',
+    4: '살아남은 토끼는 자신과 같은 털색의 자손을 남겨요.',
+    5: '매우 오랜 시간이 지나 강이 사라지고 두 무리가 다시 만났어요.'
+  };
+  function setStage(s) {
+    stage = s;
+    $('caption').innerHTML = '<span class="no">' + s + '</span>' + CAPTIONS[s];
+    Array.prototype.forEach.call($('steps').children, function (li) {
+      var n = +li.dataset.s;
+      li.classList.toggle('on', n === s);
+      li.classList.toggle('done', n < s);
+    });
+  }
+  function count(side) {
+    var o = { white: 0, gray: 0, brown: 0 };
+    pop.forEach(function (r) { if (!side || r.side === side) o[r.color]++; });
+    return o;
+  }
+  function renderTable() {
+    var split = stage >= 2 && !merged, L = count('L'), R = count('R'), A = count(null);
+    $('countRows').innerHTML = COLORS.map(function (c) {
+      var sw = '<span class="sw" style="background:' + FUR[c] + '"></span>';
+      if (stage === 1) return '<tr><td>' + sw + NAME[c] + '</td><td colspan="2" style="text-align:center">' + A[c] + '마리 (한 무리)</td></tr>';
+      return '<tr><td>' + sw + NAME[c] + '</td><td>' + L[c] + '마리</td><td>' + R[c] + '마리</td></tr>';
+    }).join('');
+    $('genOut').textContent = generation + '세대';
+  }
+  function renderButtons() {
+    var none = mode === 'none';
+    $('bRiver').disabled = busy || stage !== 1;
+    $('bGen1').disabled = busy || stage < 2 || merged || popEmpty();
+    $('bGen10').disabled = busy || stage < 2 || merged || popEmpty();
+    $('bMerge').disabled = busy || merged || none || generation < MERGE_GEN;
+    $('bReset').disabled = busy;
+    Array.prototype.forEach.call($('modeSeg').children, function (b) {
+      b.setAttribute('aria-pressed', String(b.dataset.m === mode));
+      b.disabled = busy || stage !== 1;
+    });
+    $('bMerge').title = none ? '변이가 없는 실험에서는 쓰지 않아요' : (generation < MERGE_GEN ? MERGE_GEN + '세대 이상 지나야 해요' : '');
+  }
+  function popEmpty() { return pop.length === 0; }
+  function note(html) { $('note').innerHTML = html; }
+
+  // ---------------- 그래프 (Chart.js) ----------------
+  Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
+  Chart.defaults.font.size = 11;
+  Chart.defaults.animation = false;
+  function makeChart(id, title) {
+    return new Chart($(id), {
+      type: 'line',
+      data: { labels: [], datasets: COLORS.map(function (c) {
+        return { label: NAME[c], data: [], borderColor: LINE[c], backgroundColor: FUR[c], borderWidth: 2.5,
+                 pointRadius: 3, pointBorderColor: LINE[c], pointBackgroundColor: FUR[c], tension: 0.15 };
+      }) },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          title: { display: true, text: title, padding: { top: 0, bottom: 2 }, font: { size: 12, weight: '600' }, color: '#1d2433' },
+          legend: { position: 'right', labels: { boxWidth: 10, boxHeight: 10, padding: 6 } },
+          tooltip: { enabled: true }
+        },
+        scales: {
+          x: { title: { display: true, text: '세대', padding: 0 }, grid: { display: false } },
+          y: { min: 0, max: CAP, ticks: { stepSize: 4 }, title: { display: true, text: '마리', padding: 0 } }
+        }
+      }
+    });
+  }
+  var chartL = makeChart('chartL', '왼쪽 무리(풀밭)의 털색별 수');
+  var chartR = makeChart('chartR', '오른쪽 무리(마른 땅)의 털색별 수');
+  function renderCharts() {
+    [[chartL, history.L], [chartR, history.R]].forEach(function (p) {
+      var ch = p[0], h = p[1];
+      ch.data.labels = h.map(function (_, i) { return i; });
+      COLORS.forEach(function (c, k) { ch.data.datasets[k].data = h.map(function (o) { return o[c]; }); });
+      ch.update();
+    });
+  }
+  function snapshot() { history.L.push(count('L')); history.R.push(count('R')); }
+
+  function render() { renderTable(); renderButtons(); }
+
+  // ---------------- SimBridge ----------------
+  SimBridge.init('1-2-02');
+  SimBridge.onLock = function () { busy = true; renderButtons(); };
+  function pushState() {
+    var s = {
+      stage: stage, generation: generation, merged: merged,
+      noVariationTried: noVar.tried, noVariationSurvivors: noVar.survivors
+    };
+    if (mode === 'var') {
+      s.left = count('L'); s.right = count('R');
+      if (stage === 1) { s.left = null; s.right = null; }
+    } else if (lastVarResult) {      // 변이 없음 실험 중에는 앞선 '변이 있음' 결과를 그대로 둠
+      s.left = lastVarResult.left; s.right = lastVarResult.right;
+    }
+    s.mode = mode === 'var' ? '변이 있음' : '변이 없음';
+    if (mode === 'var' && stage >= 2) lastVarResult = { left: s.left, right: s.right };
+    SimBridge.setState(s);
+  }
+
+  // ---------------- 단계 1: 처음 무리 ----------------
+  function reset() {
+    pop.forEach(function (r) { r.el.remove(); });
+    pop = []; history = { L: [], R: [] }; generation = 0; merged = false;
+    $('scene').classList.remove('merged');
+    $('river').style.opacity = 0; $('sand').style.opacity = 0;
+    $('tagL').style.opacity = 0; $('tagR').style.opacity = 0;
+    var list = [];
+    if (mode === 'var') COLORS.forEach(function (c) { for (var i = 0; i < 8; i++) list.push(c); });
+    else for (var i = 0; i < 24; i++) list.push('white');
+    list.forEach(function (c) {
+      var r = { id: nextId++, color: c, side: null };
+      pop.push(r); place(r, 'all'); $('rabbits').appendChild(makeEl(r)); posEl(r);
+    });
+    sortZ(); setStage(1); renderCharts();
+    note(mode === 'var'
+      ? '같은 종류의 토끼인데 털색이 서로 달라요. 이런 차이를 <b>변이</b>라고 해요. [강 생기기]를 눌러 보세요.'
+      : '<b>변이가 없다면?</b> 모든 토끼의 털색이 흰색으로 같아요. 환경이 달라지면 어떻게 될지 [강 생기기]를 눌러 보세요.');
+    render(); pushState();
+  }
+
+  // ---------------- 단계 2: 강이 생겨 무리가 나뉨 ----------------
+  function makeRiver() {
+    // 털색마다 3~5마리가 왼쪽으로(나머지는 오른쪽) — 우연히 나뉨
+    COLORS.forEach(function (c) {
+      var group = pop.filter(function (r) { return r.color === c; });
+      shuffle(group);
+      var k = mode === 'var' ? 3 + Math.floor(Math.random() * 3) : Math.round(group.length / 2);
+      group.forEach(function (r, i) { r.side = i < k ? 'L' : 'R'; });
+    });
+    pop.forEach(function (r) { r.x = null; });
+    pop.forEach(function (r) { place(r, r.side); posEl(r); });
+    sortZ();
+    $('river').style.opacity = 1; $('sand').style.opacity = 1;
+    $('tagL').style.opacity = 1; $('tagR').style.opacity = 1;
+    setStage(2); snapshot(); renderCharts();
+    note('강 왼쪽은 <b>초록 풀밭</b>, 오른쪽은 <b>모래가 많은 마른 땅</b>이에요. 각 무리에서 어떤 털색이 매의 눈에 잘 띌까요? [1세대 진행]을 눌러 보세요.');
+    render(); pushState();
+  }
+
+  // ---------------- 단계 3·4: 한 세대 ----------------
+  function selectSide(side) {
+    var hab = side === 'L' ? 'grass' : 'sand';
+    var members = pop.filter(function (r) { return r.side === side; });
+    var caught = members.filter(function (r) { return Math.random() < CATCH[hab][r.color]; });
+    return { caught: caught, survivors: members.filter(function (r) { return caught.indexOf(r) < 0; }) };
+  }
+  function reproduce(side, survivors) {
+    var babies = survivors.map(function (p) { return { id: nextId++, color: p.color, side: side, parent: p }; });
+    var all = survivors.concat(babies);
+    shuffle(all);
+    var removed = all.splice(CAP);                    // 먹이·공간이 부족하면 일부만 살아남음
+    removed.forEach(function (r) { if (r.el) dropRabbit(r); });
+    return all.filter(function (r) { return !r.el; });  // 새로 태어나 남은 자손
+  }
+  function dropRabbit(r) {
+    var i = pop.indexOf(r); if (i >= 0) pop.splice(i, 1);
+    r.el.style.opacity = 0;
+    setTimeout(function () { r.el.remove(); }, 500);
+  }
+  function addBabies(babies) {
+    babies.forEach(function (b) {
+      pop.push(b);
+      var p = b.parent;
+      b.x = null; place(b, b.side);
+      $('rabbits').appendChild(makeEl(b));
+      // 부모 곁에서 나타나 제자리로
+      b.el.style.transition = 'none';
+      var fx = b.x, fy = b.y; b.x = p.x; b.y = p.y; posEl(b);
+      b.el.getBoundingClientRect();
+      b.el.style.transition = ''; b.el.classList.add('pop');
+      b.x = fx; b.y = fy; posEl(b);
+      delete b.parent;
+    });
+    sortZ();
+  }
+
+  function oneGeneration(animate, done) {
+    var L = selectSide('L'), R = selectSide('R');
+    var caught = L.caught.concat(R.caught);
+    setStage(3);
+    var finish = function () {
+      setStage(4);
+      var babies = reproduce('L', L.survivors).concat(reproduce('R', R.survivors));
+      addBabies(babies);
+      generation++; snapshot();
+      if (animate) { renderCharts(); renderTable(); }
+      setTimeout(done, animate ? 750 : 0);
+    };
+    if (animate) hawkHunt(caught, finish);
+    else { caught.forEach(dropRabbit); finish(); }
+  }
+
+  // 매가 잡힌 토끼를 하나씩 채어 감
+  function hawkHunt(list, done) {
+    var hawk = $('hawk');
+    shuffle(list);
+    var i = 0;
+    function next() {
+      if (i >= list.length) {
+        hawk.style.transition = 'transform .5s ease-in';
+        hawk.style.transform = 'translate(1150px,-160px)';
+        setTimeout(function () { hawk.style.transition = 'none'; hawk.style.transform = 'translate(-150px,-150px)'; done(); }, list.length ? 450 : 250);
+        return;
+      }
+      var r = list[i++];
+      var speed = Math.max(180, 420 - list.length * 18);
+      hawk.style.transition = 'transform ' + speed + 'ms ease-in';
+      hawk.style.transform = 'translate(' + r.x + 'px,' + (r.y - 70) + 'px)';
+      setTimeout(function () {
+        hawk.style.transition = 'transform ' + speed + 'ms ease-out';
+        hawk.style.transform = 'translate(' + r.x + 'px,150px)';
+        r.el.style.transition = 'transform ' + speed + 'ms ease-out, opacity ' + speed + 'ms';
+        r.el.style.transform = 'translate(' + r.x + 'px,210px) scale(.5)';
+        r.el.style.opacity = 0;
+        var k = pop.indexOf(r); if (k >= 0) pop.splice(k, 1);
+        setTimeout(function () { r.el.remove(); next(); }, speed);
+      }, speed);
+    }
+    hawk.style.transition = 'none';
+    hawk.style.transform = 'translate(-150px,-150px)';
+    hawk.getBoundingClientRect();
+    next();
+  }
+
+  function runGenerations(n) {
+    busy = true; render();
+    var animate = n === 1, k = 0;
+    (function step() {
+      if (k >= n || popEmpty()) {
+        busy = false; renderCharts(); afterGenerations(); render(); pushState(); return;
+      }
+      k++;
+      oneGeneration(animate, function () { renderTable(); step(); });
+    })();
+  }
+
+  function afterGenerations() {
+    var L = count('L'), R = count('R');
+    if (mode === 'none') {
+      var total = pop.length;
+      if (generation >= MERGE_GEN || total === 0) { noVar.tried = true; noVar.survivors = total; }
+      if (total === 0) note('<b>토끼가 모두 사라졌어요.</b> 모든 토끼의 털색이 같아서 바뀐 환경에서 살아남기에 유리한 토끼가 없었어요.');
+      else note(generation + '세대가 지났어요. 남은 토끼: 왼쪽 ' + (L.white) + '마리, 오른쪽 ' + (R.white) + '마리. ' +
+        (generation < MERGE_GEN ? '세대를 더 진행해 보세요.' : '<b>변이가 없으니 무리가 크게 줄었어요.</b> [처음부터]로 결과를 비교해 보세요.'));
+      return;
+    }
+    var msg = generation + '세대가 지났어요. 각 무리에서 어떤 털색이 늘고, 어떤 털색이 줄었는지 그래프를 보세요.';
+    if (generation >= MERGE_GEN) msg += ' <b>충분한 시간이 지났어요.</b> [강 사라지기]를 눌러 보세요.';
+    note(msg);
+  }
+
+  // ---------------- 단계 5: 강이 사라짐 ----------------
+  function mergeGroups() {
+    merged = true;
+    $('river').style.opacity = 0; $('sand').style.opacity = 0;
+    $('tagL').style.opacity = 0; $('tagR').style.opacity = 0;
+    $('scene').classList.add('merged');
+    pop.forEach(function (r) { r.x = null; });
+    pop.forEach(function (r) { place(r, 'all'); posEl(r); });
+    sortZ(); setStage(5);
+    note('두 무리가 다시 만났지만 서로 짝짓기하여 자손을 남기지 않아요. 오랜 시간 변화가 쌓여 <b>서로 다른 종류의 토끼</b>가 되었어요. ' +
+         '<span style="color:#2b7bd6">●</span> 왼쪽 무리 출신 <span style="color:#e07a1f">●</span> 오른쪽 무리 출신 · <span class="hint">실제로는 아주 오랜 시간이 걸려요.</span>');
+    render(); pushState();
+  }
+
+  function shuffle(a) {
+    for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; }
+    return a;
+  }
+
+  // ---------------- 이벤트 ----------------
+  $('bRiver').onclick = makeRiver;
+  $('bGen1').onclick = function () { runGenerations(1); };
+  $('bGen10').onclick = function () { runGenerations(10); };
+  $('bMerge').onclick = mergeGroups;
+  $('bReset').onclick = reset;
+  Array.prototype.forEach.call($('modeSeg').children, function (b) {
+    b.onclick = function () { if (stage === 1 && !busy) { mode = b.dataset.m; reset(); } };
+  });
+
+  reset();
+})();
+</script>
+</body>
+</html>
