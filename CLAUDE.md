@@ -37,3 +37,6 @@
 ## 웹앱(껍데기)
 - 코드는 `shell/`에 보관하고 학교 계정 Apps Script에 반영합니다. 단원 추가만으로는 다시 배포할 필요가 없게 유지합니다.
 - 학생 학번은 학교 계정 이메일(`26` + 학번 4자리 `@hanam.ms.kr`)에서 읽습니다.
+- 배포된 웹앱(학교 도메인 전용): https://script.google.com/a/macros/hanam.ms.kr/s/AKfycbzNCp2pNjEVYoyiP6BIRW1OlwCzK7UzEk6t4SjiN3qEW84WEQqXF_Ybe1WEnS8z_jzR/exec — 단원 주소는 뒤에 `?unit=<단원ID>`
+- Apps Script 프로젝트 "과학 시뮬레이터 웹앱", 결과 시트 "과학 시뮬레이터 결과"(문항·정답·결과 탭) — 모두 학교 계정(hanam.ms.kr) 드라이브. 작업은 학교 계정 크롬 프로필에서.
+- 문항·정답을 시트에 넣을 때는 탭 구분 텍스트를 클립보드로 붙여넣기(직접 타이핑하면 Tab이 먹지 않음).
