@@ -182,7 +182,7 @@
   }
   stars.forEach(function (s) {
     s.sd = Math.sin(s.dec * D2R); s.cd = Math.cos(s.dec * D2R); s.a = s.ra * 15 * D2R;
-    var t = rnd(); s.col = t < 0.2 ? '255,214,170' : t < 0.45 ? '190,215,255' : '255,255,255';
+    var t = rnd(); s.ci = t < 0.2 ? 0 : t < 0.45 ? 1 : 2; s.col = ['255,214,170', '190,215,255', '255,255,255'][s.ci];
   });
 
   // ---------- 상태 ----------
@@ -207,11 +207,11 @@
   }
 
   function fit(cv) {
-    var r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+    var r = cv.getBoundingClientRect(), dpr = Math.min(1.5, window.devicePixelRatio || 1);   // 너무 큰 캔버스는 느려짐
     var w = Math.max(10, Math.round(r.width)), h = Math.max(10, Math.round(r.height));
     if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
     var ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    return { ctx: ctx, w: w, h: h };
+    return { ctx: ctx, w: w, h: h, dpr: dpr };
   }
   function enu(H, s) {   // H: 시간각(rad) → 지평 좌표 (동, 북, 위)
     var cH = Math.cos(H);
@@ -247,20 +247,100 @@
     if (z < 0.02) return null;
     return [cam.cx + dot(v, cam.R) / z * cam.fpx, cam.cy - dot(v, cam.U) / z * cam.fpx, cam.d > 1 ? dot(p, cam.q) > 1 / cam.d : true, z];
   }
+  // 별 위치 캐시: 0.1시간 간격마다 모든 별의 (동,북,위) 좌표를 한 번만 계산해 두고 재사용
+  var posCache = new Map(), cacheKey = '';
+  function fillPos(t, out) {
+    var L = lst(t) * 15 * D2R;
+    for (var i = 0; i < stars.length; i++) {
+      var s = stars[i], H = L - s.a, cH = Math.cos(H), o = i * 3;
+      out[o] = -s.cd * Math.sin(H); out[o + 1] = s.sd * cphi - s.cd * cH * sphi; out[o + 2] = s.sd * sphi + s.cd * cH * cphi;
+    }
+    return out;
+  }
+  function posAt(j) {
+    var key = latDeg + '|' + sense;
+    if (key !== cacheKey) { posCache.clear(); cacheKey = key; }
+    var jm = ((j % 240) + 240) % 240;          // 하루(24시간 = 240칸)마다 같은 위치 → 캐시는 최대 240개
+    var a = posCache.get(jm);
+    if (!a) { a = fillPos(jm * 0.1, new Float32Array(stars.length * 3)); posCache.set(jm, a); }
+    return a;
+  }
+  var curBuf = null;
+  function posNow() { return fillPos(hours, curBuf || (curBuf = new Float32Array(stars.length * 3))); }
+  function projInto(cam, x, y, z, out) {
+    var vx = x - cam.C[0], vy = y - cam.C[1], vz = z - cam.C[2];
+    var zc = vx * cam.F[0] + vy * cam.F[1] + vz * cam.F[2];
+    if (zc < 0.02) return false;
+    var k = cam.fpx / zc;
+    out[0] = cam.cx + (vx * cam.R[0] + vy * cam.R[1] + vz * cam.R[2]) * k;
+    out[1] = cam.cy - (vx * cam.U[0] + vy * cam.U[1] + vz * cam.U[2]) * k;
+    out[2] = cam.d > 1 ? (x * cam.q[0] + y * cam.q[1] + z * cam.q[2]) > 1 / cam.d : true;
+    return true;
+  }
+  // 궤적 그리기: 그리드 칸 j0~j1 사이 선분을 색·밝기·앞뒤별로 묶어 한 번에 그림
+  var TCOLS = ['255,214,170', '190,215,255', '255,255,255'], TMAGS = [0.2, 0.45, 0.75];
+  var trail = { key: '', done: 0 }, trailCanvas = null;
+  function trailBuf(dpr, w, h) {
+    if (!trailCanvas) trailCanvas = document.createElement('canvas');
+    var W = Math.round(w * dpr), H = Math.round(h * dpr);
+    if (trailCanvas.width !== W || trailCanvas.height !== H) { trailCanvas.width = W; trailCanvas.height = H; trail.key = ''; }
+    return trailCanvas;
+  }
+  function strokeTrails(ctx, cam, j0, j1, stride, alpha, wIn, w, h, endArr) {
+    var frames = [];
+    for (var j = j0; j < j1; j += stride) frames.push(posAt(j));
+    frames.push(posAt(j1));
+    if (endArr) frames.push(endArr);
+    if (frames.length < 2) return;
+    var paths = new Array(36), A = [0, 0, 0, 0], B = [0, 0, 0, 0], M = 50, hideBelow = wIn >= 1;
+    for (var i = 0; i < stars.length; i++) {
+      var st = stars[i], cons = st.cons || st.polaris ? 1 : 0;
+      if (!cons && wIn <= 0.02) continue;
+      var ml = st.mag < 0.3 ? 0 : st.mag < 0.6 ? 1 : 2, have = false, az = 0, o3 = i * 3;
+      for (var k = 0; k < frames.length; k++) {
+        var arr = frames[k], x = arr[o3], y = arr[o3 + 1], z = arr[o3 + 2];
+        var ok = projInto(cam, x, y, z, B);
+        if (ok && have && !(hideBelow && z < -0.03 && az < -0.03) &&
+            !((A[0] < -M && B[0] < -M) || (A[0] > w + M && B[0] > w + M) || (A[1] < -M && B[1] < -M) || (A[1] > h + M && B[1] > h + M)) &&
+            Math.abs(B[0] - A[0]) < w && Math.abs(B[1] - A[1]) < h) {
+          var dim = (A[2] && B[2] && (wIn > 0 || z + az > 0)) ? 0 : 1;
+          var key = ((st.ci * 3 + ml) * 2 + dim) * 2 + cons;
+          var P2 = paths[key] || (paths[key] = new Path2D());
+          P2.moveTo(A[0], A[1]); P2.lineTo(B[0], B[1]);
+        }
+        if (ok) { A[0] = B[0]; A[1] = B[1]; A[2] = B[2]; az = z; have = true; } else have = false;
+      }
+    }
+    ctx.lineCap = 'butt';
+    for (var kk = 0; kk < 36; kk++) {
+      if (!paths[kk]) continue;
+      var c = kk % 2, d = (kk >> 1) % 2, m = Math.floor(kk / 4) % 3, ci = Math.floor(kk / 12);
+      ctx.strokeStyle = 'rgba(' + TCOLS[ci] + ',' + (alpha * (0.35 + 0.65 * TMAGS[m]) * (c ? 1 : wIn) * (d ? 0.38 : 1)).toFixed(3) + ')';
+      ctx.lineWidth = (0.6 + TMAGS[m] * 1.3) * lerp(0.8, 1, wIn);
+      ctx.stroke(paths[kk]);
+    }
+  }
+  // 같은 모양이 이어지는 선분은 한 번에 그림
   function polyline(g, cam, pts, styleFn) {
-    var prev = null, pp = null;
+    var prev = null, pp = null, curKey = null, open = false;
+    function flush() { if (open) { g.stroke(); open = false; } }
     for (var i = 0; i < pts.length; i++) {
       var p = pts[i], sp = proj(cam, p);
       if (sp && prev && Math.abs(sp[0] - prev[0]) < cam.w && Math.abs(sp[1] - prev[1]) < cam.h) {
         var st = styleFn(pp, p, prev[2] && sp[2]);
         if (st) {
-          g.strokeStyle = st.c; g.lineWidth = st.w; g.setLineDash(st.dash || []);
-          g.beginPath(); g.moveTo(prev[0], prev[1]); g.lineTo(sp[0], sp[1]); g.stroke();
-        }
-      }
+          var key = st.c + st.w + (st.dash ? 'd' : '');
+          if (key !== curKey || !open) {
+            flush(); curKey = key;
+            g.strokeStyle = st.c; g.lineWidth = st.w; g.setLineDash(st.dash || []);
+            g.beginPath(); g.moveTo(prev[0], prev[1]); open = true;
+          }
+          g.lineTo(sp[0], sp[1]);
+        } else flush();
+      } else flush();
       prev = sp; pp = p;
     }
-    g.setLineDash([]);
+    flush(); g.setLineDash([]);
   }
 
   function drawView() {
@@ -344,35 +424,53 @@
       circles.forEach(function (c) { polyline(g, cam, c, gold(false)); });
     }
 
-    // 별의 궤적과 지금 위치
-    g.lineCap = 'round';
-    var n = Math.min(150, Math.max(1, Math.ceil(span / 0.06)));
-    for (i = 0; i < stars.length; i++) {
-      var st = stars[i], trailW = st.cons || st.polaris ? 1 : Math.max(wIn, 0.0);
-      var bright = 0.35 + 0.65 * st.mag;
-      if (span > 0.01 && trailW > 0.02) {
-        var pts = [];
-        for (k = 0; k <= n; k++) pts.push(enu(lst(from + span * k / n) * 15 * D2R - st.a, st));
-        var groups = 5;
-        for (var gq = 0; gq < groups; gq++) {
-          var seg = pts.slice(Math.floor(n * gq / groups), Math.floor(n * (gq + 1) / groups) + 1);
-          var al = (0.12 + 0.75 * (gq + 1) / groups) * bright * trailW;
-          polyline(g, cam, seg, function (a, b, front) {
-            var up = a[2] + b[2] > 0 ? 1 : 0.4;
-            return { c: 'rgba(' + st.col + ',' + (al * (front ? 1 : 0.35) * up).toFixed(3) + ')', w: (st.polaris ? 2 : 0.6 + st.mag * 1.3) * lerp(0.8, 1, wIn) };
-          });
-        }
+    // 별의 궤적: 긴 노출 사진처럼 '궤적 버퍼'에 쌓아 두고, 매 장면에는 새로 생긴 부분만 더 그림.
+    // (시점·관측 위치·궤적 시작이 바뀔 때만 버퍼를 다시 그림)
+    var tEnd = Math.min(hours, trailFrom + 24);
+    var jStart = Math.ceil(trailFrom * 10), jEnd = Math.floor(tEnd * 10);
+    var camKey = [w, h, viewAz.toFixed(3), camEl.toFixed(3), zoom.toFixed(4), lookUp.toFixed(3), latDeg, sense, trailFrom.toFixed(4)].join('|');
+    var buf = trailBuf(o.dpr, w, h), bctx = buf.getContext('2d');
+    if (camKey !== trail.key || jEnd < trail.done) {
+      bctx.setTransform(1, 0, 0, 1, 0, 0); bctx.clearRect(0, 0, buf.width, buf.height);
+      bctx.setTransform(o.dpr, 0, 0, o.dpr, 0, 0);
+      trail.key = camKey; trail.done = jStart;
+      if (jEnd > jStart) strokeTrails(bctx, cam, jStart, jEnd, Math.max(1, Math.ceil((jEnd - jStart) / 120)), 0.42, wIn, w, h);
+      trail.done = jEnd;
+    } else if (jEnd > trail.done) {
+      strokeTrails(bctx, cam, trail.done, jEnd, 1, 0.42, wIn, w, h);
+      trail.done = jEnd;
+    }
+    g.drawImage(buf, 0, 0, w, h);
+    // 머리 부분(최근 1시간)은 더 밝게 → 별이 움직이는 방향이 보임
+    var cur = posNow();
+    if (hours - trailFrom > 0.05) {
+      var hs = Math.max(jStart, Math.ceil((hours - 1) * 10));
+      strokeTrails(g, cam, hs, Math.floor(hours * 10), 1, 0.9, wIn, w, h, cur);
+    }
+    // 별의 지금 위치
+    var dots = new Array(18), tmpB = [0, 0, 0, 0], hideBelow = wIn >= 1;
+    for (i = 1; i < stars.length; i++) {
+      var st = stars[i], ml = st.mag < 0.3 ? 0 : st.mag < 0.6 ? 1 : 2;
+      var cx3 = cur[i * 3], cy3 = cur[i * 3 + 1], cz3 = cur[i * 3 + 2];
+      if (hideBelow && cz3 < -0.03) continue;
+      if (projInto(cam, cx3, cy3, cz3, tmpB) && tmpB[0] > -5 && tmpB[0] < w + 5 && tmpB[1] > -5 && tmpB[1] < h + 5) {
+        var dk = (st.ci * 3 + ml) * 2 + ((tmpB[2] && (cz3 > 0 || wIn > 0)) ? 0 : 1);
+        var D = dots[dk] || (dots[dk] = new Path2D()), rad = (0.6 + st.mag * 1.8) * lerp(0.8, 1.2, wIn);
+        D.moveTo(tmpB[0] + rad, tmpB[1]); D.arc(tmpB[0], tmpB[1], rad, 0, 7);
       }
-      var p = enu(L0 - st.a, st), sp = proj(cam, p);
-      if (sp && sp[0] > -5 && sp[0] < w + 5 && sp[1] > -5 && sp[1] < h + 5) {
-        var a2 = (0.45 + 0.55 * st.mag) * (sp[2] ? 1 : 0.35) * (p[2] > 0 || wIn > 0 ? 1 : 0.45);
-        g.fillStyle = st.polaris ? '#ffe38a' : 'rgba(' + st.col + ',' + a2.toFixed(2) + ')';
-        g.beginPath(); g.arc(sp[0], sp[1], st.polaris ? 3.8 : (0.6 + st.mag * 1.8) * lerp(0.8, 1.2, wIn), 0, 7); g.fill();
-        if (st.polaris) {
-          g.font = '600 13px ' + ff; g.textAlign = 'left'; g.fillText('북극성', sp[0] + 8, sp[1] - 6);
-          if (wOut > 0) { g.font = '12px ' + ff; g.fillStyle = 'rgba(255,255,255,' + (.85 * wOut) + ')'; g.fillText('천구의 북극', sp[0] + 8, sp[1] + 9); }
-        }
-      }
+    }
+    for (var dk2 = 0; dk2 < 18; dk2++) {
+      if (!dots[dk2]) continue;
+      var ml3 = Math.floor(dk2 / 2) % 3, ci3 = Math.floor(dk2 / 6);
+      g.fillStyle = 'rgba(' + TCOLS[ci3] + ',' + ((0.45 + 0.55 * TMAGS[ml3]) * (dk2 % 2 ? 0.35 : 1)).toFixed(2) + ')';
+      g.fill(dots[dk2]);
+    }
+    // 북극성
+    var pz = proj(cam, [cur[0], cur[1], cur[2]]);
+    if (pz && pz[0] > -5 && pz[0] < w + 5 && pz[1] > -5 && pz[1] < h + 5) {
+      g.fillStyle = '#ffe38a'; g.beginPath(); g.arc(pz[0], pz[1], 3.8, 0, 7); g.fill();
+      g.font = '600 13px ' + ff; g.textAlign = 'left'; g.fillText('북극성', pz[0] + 8, pz[1] - 6);
+      if (wOut > 0) { g.font = '12px ' + ff; g.fillStyle = 'rgba(255,255,255,' + (.85 * wOut) + ')'; g.fillText('천구의 북극', pz[0] + 8, pz[1] + 9); }
     }
     // 천구의 남극
     if (wOut > 0) {
@@ -457,37 +555,45 @@
   }
 
   // ---------- ② 북극 위에서 본 지구 ----------
-  var topGeom = null;
+  var topGeom = null, topBg = null, topBgKey = '';
   function drawTop() {
     var o = fit($('top')), g = o.ctx, w = o.w, h = o.h;
     var cx = w / 2, cy = h / 2, R = Math.min(w, h) / 2 - 6, re = R * 0.34;
     var ff = getComputedStyle(document.body).fontFamily;
     topGeom = { cx: cx, cy: cy };
     g.clearRect(0, 0, w, h);
-    var bg = g.createRadialGradient(cx, cy, re, cx, cy, R);
-    bg.addColorStop(0, '#152a52'); bg.addColorStop(1, '#0a1530');
-    g.fillStyle = bg; g.beginPath(); g.arc(cx, cy, R, 0, 7); g.fill();
-    g.strokeStyle = 'rgba(160,200,255,.35)'; g.lineWidth = 1; g.setLineDash([4, 4]);
-    g.beginPath(); g.arc(cx, cy, R - 1, 0, 7); g.stroke(); g.setLineDash([]);
-    function rad(dec) { return re + 10 + (R - re - 16) * (90 - dec) / 140; }
-    function pos(s) { var r = rad(s.dec), a = s.a; return [cx + r * Math.cos(a), cy - r * Math.sin(a)]; }
-    stars.forEach(function (s) {
-      if (s.polaris || s.dec < -50) return;
-      var p = pos(s); g.fillStyle = 'rgba(255,255,255,' + (0.3 + 0.6 * s.mag).toFixed(2) + ')';
-      g.beginPath(); g.arc(p[0], p[1], 0.5 + s.mag * 1.6, 0, 7); g.fill();
-    });
-    g.font = '11px ' + ff; g.textAlign = 'center';
-    CONS.forEach(function (c) {
-      if (c.stars[0][1] < -50) return;
-      var P = c.idx.map(function (j) { return pos(stars[j]); });
-      g.strokeStyle = 'rgba(140,190,255,.6)';
-      c.lines.forEach(function (ln) { g.beginPath(); g.moveTo(P[ln[0]][0], P[ln[0]][1]); g.lineTo(P[ln[1]][0], P[ln[1]][1]); g.stroke(); });
-      var mx = 0, my = 0; P.forEach(function (p) { mx += p[0]; my += p[1]; });
-      mx /= P.length; my /= P.length;
-      var dx = mx - cx, dy = my - cy, dl = Math.hypot(dx, dy);
-      g.fillStyle = 'rgba(190,215,255,.9)';
-      g.fillText(c.name, mx + dx / dl * 16, my + dy / dl * 16 + 4);
-    });
+    // 별자리 구(움직이지 않음)는 크기가 바뀔 때만 그려 두고 재사용
+    var bkey = w + 'x' + h + 'x' + o.dpr;
+    if (topBgKey !== bkey) {
+      topBgKey = bkey; topBg = topBg || document.createElement('canvas');
+      topBg.width = Math.round(w * o.dpr); topBg.height = Math.round(h * o.dpr);
+      var b = topBg.getContext('2d'); b.setTransform(o.dpr, 0, 0, o.dpr, 0, 0);
+      var bg = b.createRadialGradient(cx, cy, re, cx, cy, R);
+      bg.addColorStop(0, '#152a52'); bg.addColorStop(1, '#0a1530');
+      b.fillStyle = bg; b.beginPath(); b.arc(cx, cy, R, 0, 7); b.fill();
+      b.strokeStyle = 'rgba(160,200,255,.35)'; b.lineWidth = 1; b.setLineDash([4, 4]);
+      b.beginPath(); b.arc(cx, cy, R - 1, 0, 7); b.stroke(); b.setLineDash([]);
+      function rad(dec) { return re + 10 + (R - re - 16) * (90 - dec) / 140; }
+      function pos(s) { var r = rad(s.dec), a = s.a; return [cx + r * Math.cos(a), cy - r * Math.sin(a)]; }
+      stars.forEach(function (s) {
+        if (s.polaris || s.dec < -50) return;
+        var p = pos(s); b.fillStyle = 'rgba(255,255,255,' + (0.3 + 0.6 * s.mag).toFixed(2) + ')';
+        b.beginPath(); b.arc(p[0], p[1], 0.5 + s.mag * 1.6, 0, 7); b.fill();
+      });
+      b.font = '11px ' + ff; b.textAlign = 'center';
+      CONS.forEach(function (c) {
+        if (c.stars[0][1] < -50) return;
+        var P = c.idx.map(function (j) { return pos(stars[j]); });
+        b.strokeStyle = 'rgba(140,190,255,.6)';
+        c.lines.forEach(function (ln) { b.beginPath(); b.moveTo(P[ln[0]][0], P[ln[0]][1]); b.lineTo(P[ln[1]][0], P[ln[1]][1]); b.stroke(); });
+        var mx = 0, my = 0; P.forEach(function (p) { mx += p[0]; my += p[1]; });
+        mx /= P.length; my /= P.length;
+        var dx = mx - cx, dy = my - cy, dl = Math.hypot(dx, dy);
+        b.fillStyle = 'rgba(190,215,255,.9)';
+        b.fillText(c.name, mx + dx / dl * 16, my + dy / dl * 16 + 4);
+      });
+    }
+    g.drawImage(topBg, 0, 0, w, h);
     // 지구
     var ang = lst(hours) * 15 * D2R;
     var eg = g.createRadialGradient(cx - re * .3, cy - re * .3, re * .1, cx, cy, re);
@@ -580,7 +686,6 @@
   function setHours(v) {
     hours = Math.max(0, v);
     if (hours < trailFrom) trailFrom = hours;
-    if (hours - trailFrom > 24) trailFrom = hours - 24;
   }
 
   // 재생: [멈춤]을 누를 때까지 계속
