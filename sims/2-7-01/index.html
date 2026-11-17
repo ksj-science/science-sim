@@ -21,6 +21,8 @@
   .canvas-box canvas { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 10px; touch-action: none; }
   .title-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
   .title-row h2 { margin: 0; }
+  #sky { cursor: grab; } #sky.grabbing, #cel.grabbing { cursor: grabbing; } #cel { cursor: grab; }
+  canvas[hidden] { display: none; }
 
   /* ① 방향 정하기 */
   .place { display: grid; grid-template-columns: 190px 1fr; gap: 10px; align-items: center; }
@@ -90,16 +92,25 @@
       </div>
     </div>
     <div class="panel fill">
-      <h2>② 우주에서 본 지구 <span class="hint" style="font-weight:400">— 북극 위에서 내려다본 모습</span></h2>
-      <div class="canvas-box"><canvas id="top" aria-label="북극 위에서 내려다본 지구와 별자리 구"></canvas></div>
-      <div class="hint" style="margin-top:4px">지구를 손가락(마우스)으로 돌려 보세요. 가운데 흰 점은 자전축(북극성 방향)이고, 바깥의 별자리 구는 움직이지 않아요.</div>
+      <div class="title-row">
+        <h2>② 모형으로 보기</h2>
+        <div class="seg" id="tabSeg">
+          <button data-v="top" aria-pressed="true">지구 모형</button>
+          <button data-v="cel" aria-pressed="false">천구</button>
+        </div>
+      </div>
+      <div class="canvas-box">
+        <canvas id="top" aria-label="북극 위에서 내려다본 지구와 별자리 구"></canvas>
+        <canvas id="cel" aria-label="관측자를 중심으로 한 천구" hidden></canvas>
+      </div>
+      <div class="hint" id="tabHint" style="margin-top:4px"></div>
     </div>
   </section>
   <section class="col right">
     <div class="panel fill">
       <div class="title-row">
-        <h2>③ 우리나라의 관측자가 본 밤하늘</h2>
-        <div class="opt"><span class="lab">바라보는 방향</span>
+        <h2>③ 우리나라의 관측자가 본 밤하늘 <span class="hint" style="font-weight:400">— 하늘을 좌우로 끌어서 둘러보세요</span></h2>
+        <div class="opt"><span class="lab">바로 보기</span>
           <div class="seg" id="dirSeg">
             <button data-v="북" aria-pressed="true">북쪽</button>
             <button data-v="동" aria-pressed="false">동쪽</button>
@@ -174,7 +185,13 @@
   });
 
   // ---------- 상태 ----------
-  var hours = 0, trailFrom = 0, sense = 1, viewDir = '북', playing = false, last = null;
+  var hours = 0, trailFrom = 0, sense = 1, viewAz = 0, viewDir = '북', playing = false, last = null;
+  var lastH = 0, tab = 'top', celB = 125, celEl = 22, celSeen = false;
+  var WIND = ['북', '북동', '동', '남동', '남', '남서', '서', '북서'];
+  function norm(a) { a %= 360; return a < 0 ? a + 360 : a; }
+  function angDiff(a, b) { var d = norm(a - b); return d > 180 ? d - 360 : d; }
+  function cardinal(az) { return ['북', '동', '남', '서'][Math.round(norm(az) / 90) % 4]; }
+  function windName(az) { return WIND[Math.round(norm(az) / 45) % 8]; }
   var viewed = {}, placed = ['', '', '', ''];
   function lst(h) { return LST0 + sense * h; }      // 시
 
@@ -195,7 +212,7 @@
     return [-s.cd * Math.sin(H), s.sd * cphi - s.cd * cH * sphi, s.sd * sphi + s.cd * cH * cphi];
   }
   function camera(w, h) {
-    var A0 = AZ[viewDir] * D2R, S = (w / 2) / (2 * Math.tan(55 * D2R / 2));
+    var A0 = viewAz * D2R, S = (w / 2) / (2 * Math.tan(55 * D2R / 2));
     var c = 2 * Math.atan(0.36 * h / (2 * S));       // 지평선이 화면 아래 86% 높이에 오도록
     var f = [Math.cos(c) * Math.sin(A0), Math.cos(c) * Math.cos(A0), Math.sin(c)];
     var r = [Math.cos(A0), -Math.sin(A0), 0];
@@ -264,7 +281,7 @@
     });
     g.textAlign = 'left';
     // 땅(산 능선)
-    var A0 = AZ[viewDir] * D2R;
+    var A0 = viewAz * D2R, ff = getComputedStyle(document.body).fontFamily;
     g.fillStyle = '#0a0f12'; g.beginPath();
     var first = true;
     for (var d = -80; d <= 80; d += 1) {
@@ -273,15 +290,22 @@
       if (first) { g.moveTo(p2[0], p2[1]); first = false; } else g.lineTo(p2[0], p2[1]);
     }
     g.lineTo(w + 10, h + 10); g.lineTo(-10, h + 10); g.closePath(); g.fill();
-    // 방향 글자
-    g.fillStyle = '#fff'; g.textAlign = 'center'; g.font = '700 24px ' + getComputedStyle(document.body).fontFamily;
-    g.fillText(viewDir, w / 2, h - 18);
-    g.font = '600 15px ' + getComputedStyle(document.body).fontFamily; g.fillStyle = 'rgba(255,255,255,.75)';
-    g.textAlign = 'left'; g.fillText('← ' + SIDE[viewDir][0], 14, h - 20);
-    g.textAlign = 'right'; g.fillText(SIDE[viewDir][1] + ' →', w - 14, h - 20);
+    // 방위 글자 (지평선 아래 땅 위에)
+    g.textAlign = 'center';
+    for (var k8 = 0; k8 < 8; k8++) {
+      var azk = k8 * 45, dd = angDiff(azk, viewAz);
+      if (Math.abs(dd) > 60) continue;
+      var pk = proj(cam, azAlt(azk * D2R, 0));
+      if (!pk || pk[0] < 18 || pk[0] > w - 18) continue;
+      var big = k8 % 2 === 0;
+      g.fillStyle = big ? '#fff' : 'rgba(255,255,255,.6)';
+      g.font = (big ? '700 24px ' : '600 15px ') + ff;
+      g.fillText(WIND[k8], pk[0], Math.min(h - 14, pk[1] + (big ? 40 : 34)));
+      g.fillRect(pk[0] - 0.75, pk[1] + 6, 1.5, big ? 10 : 6);
+    }
     g.textAlign = 'left';
-    g.fillStyle = 'rgba(255,255,255,.8)'; g.font = '13px ' + getComputedStyle(document.body).fontFamily;
-    g.fillText(viewDir + '쪽 하늘 · 궤적 ' + Math.max(0, span).toFixed(1) + '시간', 12, 20);
+    g.fillStyle = 'rgba(255,255,255,.8)'; g.font = '13px ' + ff;
+    g.fillText(windName(viewAz) + '쪽 하늘 (방위각 ' + Math.round(norm(viewAz)) + '°) · 궤적 ' + Math.max(0, span).toFixed(1) + '시간', 12, 20);
   }
 
   // ---------- 북극 위에서 본 지구 ----------
@@ -350,17 +374,133 @@
     var L = re * 0.42;
     g.font = '700 12px ' + ff; g.textAlign = 'center'; g.textBaseline = 'middle';
     Object.keys(dirs).forEach(function (d) {
-      var a = dirs[d], on = d === viewDir, len = d === '북' ? L * 0.8 : L;
+      var a = dirs[d], len = d === '북' ? L * 0.8 : L;
       var x1 = ox + len * Math.cos(a), y1 = oy - len * Math.sin(a);
-      arrow(g, ox, oy, x1, y1, on ? '#ff7a45' : 'rgba(255,255,255,.55)', on ? 3 : 1.6);
-      g.fillStyle = on ? '#ffb08a' : '#fff';
+      arrow(g, ox, oy, x1, y1, 'rgba(255,255,255,.55)', 1.6);
+      g.fillStyle = '#fff';
       g.fillText(d, ox + (len + 10) * Math.cos(a), oy - (len + 10) * Math.sin(a));
     });
+    var va = ang + Math.PI - viewAz * D2R;
+    arrow(g, ox, oy, ox + L * 1.15 * Math.cos(va), oy - L * 1.15 * Math.sin(va), '#ff7a45', 3);
     g.fillStyle = '#e5533d'; g.strokeStyle = '#fff'; g.lineWidth = 1.5;
     g.beginPath(); g.arc(ox, oy, 4.5, 0, 7); g.fill(); g.stroke();
     g.textBaseline = 'alphabetic';
     g.font = '12px ' + ff; g.textAlign = 'right'; g.fillStyle = '#ffcf4d'; g.fillText('지구의 자전 ' + (sense > 0 ? '↺' : '↻'), w - 8, 16);
+    g.fillStyle = '#ff9a70'; g.fillText('주황 화살표: 바라보는 방향', w - 8, h - 8);
     g.textAlign = 'left';
+  }
+
+  // ---------- 천구 (관측자 중심) ----------
+  var celStars = stars.filter(function (s, i) { s.cons = i > 0 && i <= CONS.reduce(function (m, c) { return Math.max(m, c.idx[c.idx.length - 1]); }, 0); return s.cons || s.mag > 0.6; });
+  function drawCel() {
+    var o = fit($('cel')), g = o.ctx, w = o.w, h = o.h, ff = getComputedStyle(document.body).fontFamily;
+    var cx = w / 2, cy = h / 2 + 6, Rc = Math.min(w, h) / 2 - 30;
+    var b = celB * D2R, el = celEl * D2R;
+    var q = [Math.cos(el) * Math.sin(b), Math.cos(el) * Math.cos(b), Math.sin(el)];
+    var r = [-Math.cos(b), Math.sin(b), 0], f = [-q[0], -q[1], -q[2]];
+    var u = [r[1] * f[2] - r[2] * f[1], r[2] * f[0] - r[0] * f[2], r[0] * f[1] - r[1] * f[0]];
+    function dot(a, c) { return a[0] * c[0] + a[1] * c[1] + a[2] * c[2]; }
+    function P(p, k) { k = k || 1; return [cx + dot(p, r) * Rc * k, cy - dot(p, u) * Rc * k, dot(p, q)]; }
+    var bg = g.createLinearGradient(0, 0, 0, h);
+    bg.addColorStop(0, '#081226'); bg.addColorStop(1, '#122a52');
+    g.fillStyle = bg; g.fillRect(0, 0, w, h);
+    var sg = g.createRadialGradient(cx - Rc * .3, cy - Rc * .4, Rc * .1, cx, cy, Rc);
+    sg.addColorStop(0, 'rgba(120,180,255,.22)'); sg.addColorStop(1, 'rgba(60,120,220,.38)');
+    g.fillStyle = sg; g.beginPath(); g.arc(cx, cy, Rc, 0, 7); g.fill();
+    g.strokeStyle = 'rgba(170,210,255,.6)'; g.lineWidth = 1.2; g.stroke();
+    // 곡선: 앞면/뒷면, 지평선 위/아래를 구분해 그림
+    function curve(pts, col, wd, pass) {
+      for (var i = 0; i < pts.length - 1; i++) {
+        var a = pts[i], c = pts[i + 1], front = a.s[2] + c.s[2] > 0, up = a.p[2] + c.p[2] > -0.002;
+        if ((pass === 'back') === front) continue;
+        g.setLineDash(front && up ? [] : [4, 4]);
+        g.strokeStyle = 'rgba(' + col + ',' + (front ? (up ? 1 : 0.45) : (up ? 0.45 : 0.22)) + ')';
+        g.lineWidth = wd; g.beginPath(); g.moveTo(a.s[0], a.s[1]); g.lineTo(c.s[0], c.s[1]); g.stroke();
+      }
+      g.setLineDash([]);
+    }
+    function circleDec(dec) {
+      var s = { sd: Math.sin(dec * D2R), cd: Math.cos(dec * D2R) }, pts = [];
+      for (var i = 0; i <= 120; i++) { var p = enu(i / 120 * 2 * Math.PI, s); pts.push({ p: p, s: P(p) }); }
+      return pts;
+    }
+    var horizon = []; for (var i = 0; i <= 120; i++) { var hp = [Math.sin(i / 120 * 2 * Math.PI), Math.cos(i / 120 * 2 * Math.PI), 0]; horizon.push({ p: hp, s: P(hp) }); }
+    var decs = [70, 45, 20, 0, -25], circles = decs.map(circleDec);
+    var pole = [0, Math.cos(LAT), Math.sin(LAT)], L0 = lst(hours) * 15 * D2R;
+    // 바라보는 하늘 (파란 창)
+    var patch = [], A = viewAz * D2R;
+    for (var k = 0; k <= 10; k++) patch.push(azAlt(A + (-28 + 5.6 * k) * D2R, 4 * D2R));
+    for (k = 10; k >= 0; k--) patch.push(azAlt(A + (-28 + 5.6 * k) * D2R, 42 * D2R));
+    function drawPatch(back) {
+      var front = dot(azAlt(A, 23 * D2R), q) > 0;
+      if (front === back) return;
+      g.fillStyle = front ? 'rgba(60,170,255,.45)' : 'rgba(60,170,255,.2)';
+      g.beginPath(); patch.forEach(function (p, i) { var s = P(p); if (i) g.lineTo(s[0], s[1]); else g.moveTo(s[0], s[1]); }); g.closePath(); g.fill();
+    }
+    // 1) 뒷면
+    drawPatch(true);
+    circles.forEach(function (c) { curve(c, '255,200,70', 1.6, 'back'); });
+    curve(horizon, '200,230,255', 1.2, 'back');
+    // 2) 지평면
+    g.fillStyle = 'rgba(110,190,240,.33)'; g.beginPath();
+    horizon.forEach(function (o, i) { if (i) g.lineTo(o.s[0], o.s[1]); else g.moveTo(o.s[0], o.s[1]); }); g.fill();
+    // 자전축(연장선)과 지구
+    var pa = P(pole, 1.18), pb = P(pole, -1.18);
+    g.strokeStyle = 'rgba(255,255,255,.75)'; g.lineWidth = 1.3; g.setLineDash([5, 4]);
+    g.beginPath(); g.moveTo(pb[0], pb[1]); g.lineTo(pa[0], pa[1]); g.stroke(); g.setLineDash([]);
+    var eg = g.createRadialGradient(cx - 3, cy - 3, 1, cx, cy, 10);
+    eg.addColorStop(0, '#7cc0ff'); eg.addColorStop(1, '#1c4f8f');
+    g.fillStyle = eg; g.beginPath(); g.arc(cx, cy, 9, 0, 7); g.fill();
+    var head = P([0, 0, 1], 0.07);
+    g.strokeStyle = '#ff7a45'; g.lineWidth = 2; g.beginPath(); g.moveTo(cx, cy - 8); g.lineTo(head[0], head[1] - 8); g.stroke();
+    g.fillStyle = '#ff7a45'; g.beginPath(); g.arc(head[0], head[1] - 10, 2.5, 0, 7); g.fill();
+    // 3) 앞면
+    drawPatch(false);
+    curve(horizon, '200,230,255', 1.4, 'front');
+    circles.forEach(function (c) { curve(c, '255,200,70', 1.8, 'front'); });
+    // 별의 궤적과 지금 위치
+    var span = hours - trailFrom;
+    celStars.forEach(function (s) {
+      if (s.polaris) return;
+      if (span > 0.01 && s.cons) {
+        var pts = [], n = Math.max(2, Math.ceil(span / 0.25));
+        for (var k = 0; k <= n; k++) { var p = enu(lst(trailFrom + span * k / n) * 15 * D2R - s.a, s); pts.push({ p: p, s: P(p) }); }
+        g.globalAlpha = 0.6; curve(pts, '255,255,255', 0.9, 'front'); curve(pts, '255,255,255', 0.9, 'back'); g.globalAlpha = 1;
+      }
+      var p = enu(L0 - s.a, s), sp = P(p), fr = sp[2] > 0, up = p[2] > 0;
+      g.fillStyle = 'rgba(255,255,255,' + ((fr ? 1 : 0.4) * (up ? 1 : 0.45) * (0.5 + 0.5 * s.mag)).toFixed(2) + ')';
+      g.beginPath(); g.arc(sp[0], sp[1], 0.8 + s.mag * 1.8, 0, 7); g.fill();
+    });
+    // 일주 운동 방향 화살표 (적도 위, 가장 잘 보이는 곳)
+    var best = 0, bv = -9, se = { sd: 0, cd: 1 };
+    for (var hh = 0; hh < 2 * Math.PI; hh += 0.05) { var pe = enu(hh, se), v = dot(pe, q) + pe[2]; if (v > bv) { bv = v; best = hh; } }
+    var a1 = P(enu(best - sense * 0.18, se)), a2 = P(enu(best + sense * 0.18, se));
+    arrow(g, a1[0], a1[1], a2[0], a2[1], '#ffb020', 3);
+    // 북극성
+    var ps = P(pole);
+    g.fillStyle = '#ffe38a'; g.beginPath(); g.arc(ps[0], ps[1], 4.5, 0, 7); g.fill();
+    g.font = '600 13px ' + ff; g.textAlign = 'left';
+    g.fillText('북극성', ps[0] + 9, ps[1] - 4);
+    g.font = '12px ' + ff; g.fillStyle = 'rgba(255,255,255,.85)';
+    g.fillText('천구의 북극', ps[0] + 9, ps[1] + 11);
+    g.fillText('지구 자전축', pb[0] + 6, pb[1] + 4);
+    // 방위
+    g.textAlign = 'center'; g.font = '700 14px ' + ff;
+    [['북', 0], ['동', 90], ['남', 180], ['서', 270]].forEach(function (d) {
+      var s = P(azAlt(d[1] * D2R, 0), 1.12);
+      g.fillStyle = d[0] === viewDir ? '#ff9a70' : '#fff'; g.fillText(d[0], s[0], s[1] + 5);
+    });
+    // 이름표
+    var c0 = circles[2], lab = c0.reduce(function (m, o) { return (o.s[2] > 0 ? o.s[0] : -1e9) > (m.s[2] > 0 ? m.s[0] : -1e9) ? o : m; });
+    g.font = '12px ' + ff; g.fillStyle = '#ffcf4d'; g.textAlign = 'right';
+    g.fillText('별의 일주 운동', Math.min(w - 8, lab.s[0] + 30), lab.s[1] - 10);
+    g.textAlign = 'left';
+    g.fillStyle = 'rgba(255,255,255,.85)';
+    g.fillText('관측자', cx + 12, cy + 16);
+    g.fillStyle = 'rgba(200,230,255,.85)'; g.textAlign = 'left';
+    g.fillText('천구', 10, 18);
+    g.fillStyle = '#8fd0ff'; g.fillText('파란 창: 바라보는 하늘', 10, h - 10);
+    g.textAlign = 'right'; g.fillStyle = 'rgba(255,255,255,.75)'; g.fillText('지평면', w - 10, h - 10);
   }
 
   // ---------- 상태 전송 ----------
@@ -368,7 +508,7 @@
   function pushState(force) {
     var st = {
       dirPlaced: placed.join(','), dirPlacedDone: placed.every(Boolean),
-      viewDir: viewDir, hours: Math.round(hours * 10) / 10,
+      viewDir: viewDir, viewAz: Math.round(norm(viewAz)), celSeen: celSeen, hours: Math.round(hours * 10) / 10,
       rotateSense: sense > 0 ? 'ccw' : 'cw',
       viewedDirs: ['북', '동', '남', '서'].filter(function (d) { return viewed[d]; }).join(',')
     };
@@ -388,8 +528,13 @@
     $('play').textContent = playing ? '❚❚ 멈춤' : '▶ 재생';
   }
   function render() {
-    if (hours - trailFrom >= 2) viewed[viewDir] = true;
-    drawSky(); drawTop(); updateUI();
+    viewDir = cardinal(viewAz);
+    if (hours !== lastH && hours - trailFrom >= 2 && Math.abs(angDiff(viewAz, AZ[viewDir])) <= 30) viewed[viewDir] = true;
+    lastH = hours;
+    document.querySelectorAll('#dirSeg button').forEach(function (b) {
+      b.setAttribute('aria-pressed', Math.abs(angDiff(viewAz, AZ[b.getAttribute('data-v')])) < 1 ? 'true' : 'false');
+    });
+    drawSky(); if (tab === 'top') drawTop(); else drawCel(); updateUI();
     if (!playing || Math.round(hours * 2) !== Math.round((hours - 0.05) * 2)) pushState();
   }
   function setHours(v) { hours = Math.max(0, Math.min(24, v)); if (hours < trailFrom) trailFrom = hours; }
@@ -422,7 +567,57 @@
       fn(b.getAttribute('data-v'));
     });
   }
-  segBind('dirSeg', function (v) { viewDir = v; render(); });
+  var turnAnim = null;
+  segBind('dirSeg', function (v) {
+    var from = viewAz, dd = angDiff(AZ[v], viewAz), t0 = null;
+    if (turnAnim) cancelAnimationFrame(turnAnim);
+    function step(ts) {
+      if (t0 === null) t0 = ts;
+      var k = Math.min(1, (ts - t0) / 450); k = k * k * (3 - 2 * k);
+      viewAz = norm(from + dd * k); render();
+      turnAnim = k < 1 ? requestAnimationFrame(step) : null;
+    }
+    turnAnim = requestAnimationFrame(step);
+  });
+  segBind('tabSeg', function (v) {
+    tab = v; $('top').hidden = v !== 'top'; $('cel').hidden = v !== 'cel';
+    if (v === 'cel') celSeen = true;
+    setTabHint(); render(); pushState();
+  });
+  function setTabHint() {
+    $('tabHint').textContent = tab === 'top'
+      ? '북극 위에서 내려다본 지구예요. 지구를 손가락(마우스)으로 돌려 보세요. 가운데 흰 점은 자전축(북극성 방향)이고, 바깥의 별자리 구는 움직이지 않아요.'
+      : '천구: 밤하늘의 별들이 붙어 있는 것처럼 보이는 가상의 구예요. 관측자가 가운데에 있고, 별은 천구의 북극(북극성 근처)을 중심으로 하루에 한 바퀴 돌아요. 끌어서 천구를 돌려 볼 수 있어요.';
+  }
+  setTabHint();
+
+  // 하늘 끌어서 둘러보기
+  var skyCv = $('sky'), skyDrag = null;
+  skyCv.addEventListener('pointerdown', function (e) {
+    if (SimBridge.locked) return;
+    if (turnAnim) { cancelAnimationFrame(turnAnim); turnAnim = null; }
+    skyDrag = e.clientX; skyCv.setPointerCapture(e.pointerId); skyCv.classList.add('grabbing');
+  });
+  skyCv.addEventListener('pointermove', function (e) {
+    if (skyDrag === null) return;
+    var w = skyCv.getBoundingClientRect().width;
+    viewAz = norm(viewAz - (e.clientX - skyDrag) * 110 / w); skyDrag = e.clientX; render();
+  });
+  ['pointerup', 'pointercancel'].forEach(function (t) { skyCv.addEventListener(t, function () { skyDrag = null; skyCv.classList.remove('grabbing'); pushState(); }); });
+
+  // 천구 끌어서 돌려 보기
+  var celCv = $('cel'), celDrag = null;
+  celCv.addEventListener('pointerdown', function (e) {
+    if (SimBridge.locked) return;
+    celDrag = [e.clientX, e.clientY]; celCv.setPointerCapture(e.pointerId); celCv.classList.add('grabbing');
+  });
+  celCv.addEventListener('pointermove', function (e) {
+    if (!celDrag) return;
+    celB = norm(celB - (e.clientX - celDrag[0]) * 0.5);
+    celEl = Math.max(5, Math.min(75, celEl + (e.clientY - celDrag[1]) * 0.4));
+    celDrag = [e.clientX, e.clientY]; render();
+  });
+  ['pointerup', 'pointercancel'].forEach(function (t) { celCv.addEventListener(t, function () { celDrag = null; celCv.classList.remove('grabbing'); }); });
   segBind('senseSeg', function (v) {
     var ns = v === 'ccw' ? 1 : -1;
     if (ns !== sense) { sense = ns; playing = false; hours = 0; trailFrom = 0; }
