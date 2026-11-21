@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>별의 밝기가 다른 까닭은 | 과학 시뮬레이터</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⭐</text></svg>" />
+  <link rel="stylesheet" href="./style.css" />
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "../../lib/vendor/three-0.170.0/build/three.module.js",
+      "three/addons/": "../../lib/vendor/three-0.170.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+<div id="app" data-mode="lamp">
+  <header id="topbar">
+    <div class="tb-left">
+      <a class="btn icon" href="../../index.html" title="목록으로" aria-label="목록으로">←</a>
+      <div class="title">
+        <h1>별의 밝기가 다른 까닭은</h1>
+        <p>15-3-7-1-01 · Ⅶ. 별과 우주 · 1. 별</p>
+      </div>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button class="tab" role="tab" id="tabLamp" data-mode="lamp" aria-selected="true">① 거리와 빛의 밝기</button>
+      <button class="tab" role="tab" id="tabStar" data-mode="star" aria-selected="false">② 겉보기 등급과 절대 등급</button>
+    </nav>
+    <div class="tb-actions">
+      <button class="btn icon" id="btnPlay" title="일시정지 (스페이스바)" aria-label="일시정지">⏸</button>
+      <div class="reset-wrap">
+        <button class="btn icon" id="btnReset" title="초기화" aria-label="초기화">↺</button>
+        <div id="resetMenu" class="popover" hidden>
+          <button class="btn" id="btnResetTab">이 탭만 처음으로</button>
+          <button class="btn warn" id="btnResetAll">모두 처음으로</button>
+        </div>
+      </div>
+      <button class="btn icon" id="btnMute" title="소리 켜기/끄기" aria-label="소리 켜기/끄기">🔊</button>
+      <button class="btn" id="btnQuality" title="그래픽 품질 바꾸기">✨ <span class="lbl">품질: 높음</span></button>
+    </div>
+  </header>
+
+  <main id="body">
+    <!-- 장면 -->
+    <section id="scene">
+      <!-- 탭 ① 3D -->
+      <div id="lampScene" class="view">
+        <div id="lampCanvasWrap"></div>
+        <div class="view-btns">
+          <span class="vb-lbl">시점</span>
+          <div class="seg">
+            <button data-view="main" aria-pressed="true">기본</button>
+            <button data-view="front" aria-pressed="false">정면</button>
+            <button data-view="side" aria-pressed="false">옆</button>
+          </div>
+        </div>
+        <div id="frontInset" class="inset">
+          <div class="inset-h">모눈종이 정면 보기 <small>(1칸 = 1 cm)</small></div>
+          <canvas id="insetCanvas" width="200" height="200" aria-label="모눈종이 위 빛 무늬"></canvas>
+          <div class="inset-f" id="insetLabel">1.0칸</div>
+        </div>
+        <div class="drag-hint" id="lampHint">👆 휴대 전화를 끌어서 앞뒤로 움직여 보세요</div>
+      </div>
+
+      <!-- 탭 ② 2D -->
+      <div id="starScene" class="view" hidden>
+        <canvas id="starCanvas" aria-label="지구에서 본 밤하늘과 거리 축"></canvas>
+        <div class="drag-hint" id="starHint">👆 아래 거리 축에서 별(★)을 끌어 보세요</div>
+      </div>
+
+      <!-- 예상 카드 (장면 위에 뜸) -->
+      <div id="predictLamp" class="predict" hidden>
+        <div class="predict-card">
+          <div class="pc-tag">먼저 예상해 보기</div>
+          <h3>휴대 전화와 모눈종이 사이 거리가 <b>2배</b>가 되면,<br />모눈종이 <b>한 칸</b>이 받는 빛의 밝기는 어떻게 될까?</h3>
+          <div class="pc-opts">
+            <button data-v="half">처음의 1/2</button>
+            <button data-v="quarter">처음의 1/4</button>
+            <button data-v="same">처음과 같다</button>
+            <button data-v="double">처음의 2배</button>
+          </div>
+          <p class="hint">고른 뒤 실험으로 확인해 보세요. 예상은 나중에 바꿀 수 있어요.</p>
+        </div>
+      </div>
+      <div id="predictStar" class="predict" hidden>
+        <div class="predict-card">
+          <div class="pc-tag">먼저 예상해 보기</div>
+          <h3>네 별 중에서 <b>실제로</b> 빛을 가장 많이 내는<br />(가장 밝은) 별은 어느 것일까?</h3>
+          <div class="pc-opts four" id="predictStarOpts"></div>
+          <p class="hint">밤하늘 창에서 보이는 밝기를 참고해 골라 보세요.</p>
+        </div>
+      </div>
+
+      <!-- 등급 계단 -->
+      <div id="stairs" class="overlay" hidden>
+        <div class="stairs-card">
+          <div class="sc-head">
+            <b>등급 계단 — 등급과 밝기 차이</b>
+            <button class="btn icon sm" id="btnStairsClose" aria-label="등급 계단 닫기">✕</button>
+          </div>
+          <p class="hint" id="stairsHint">두 등급을 차례로 눌러 보세요. 몇 배 밝은지 계단을 따라 계산해 줘요.</p>
+          <canvas id="stairsCanvas" aria-label="등급 계단"></canvas>
+          <div class="sc-btns" id="stairsBtns"></div>
+          <div class="sc-result" id="stairsResult">&nbsp;</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 패널 -->
+    <aside id="panel">
+      <!-- 탭 ① 패널 -->
+      <div id="lampPanel" class="pane">
+        <div class="col">
+          <div class="my-pred" id="lampPredLine"></div>
+          <div class="readouts three">
+            <div class="ro"><span>거리</span><b id="roD">6.0 cm</b></div>
+            <div class="ro"><span>빛을 받는 넓이</span><b id="roA">1.0칸</b><small id="roSide">한 변 1.0칸</small></div>
+            <div class="ro"><span>한 칸의 밝기</span><b id="roB">1</b><small>1칸일 때 = 1</small></div>
+          </div>
+          <div class="bbar" aria-hidden="true">
+            <div class="bbar-track"><div class="bbar-fill" id="bbarFill"></div><i class="bbar-one" title="1칸일 때"></i></div>
+            <div class="bbar-scale"><span>0</span><span>1 (1칸일 때)</span><span>2</span></div>
+          </div>
+          <div class="control">
+            <label for="dSlider">휴대 전화–모눈종이 거리 <output id="dOut">6.0 cm</output></label>
+            <input type="range" id="dSlider" min="3" max="30" step="0.5" value="6" aria-label="휴대 전화와 모눈종이 사이 거리 (cm)" />
+            <div class="scale"><span>3 cm</span><span>10</span><span>20</span><span>30 cm</span></div>
+          </div>
+          <div class="btn-line">
+            <button class="btn primary" id="btnRecord">📝 표에 기록</button>
+            <label class="toggle"><input type="checkbox" id="tBeam" checked /><span class="sw"></span>빛다발 보기</label>
+          </div>
+        </div>
+        <div class="col">
+          <details class="fold" id="cmpFold">
+            <summary>기준(1칸) 거리와 비교</summary>
+            <p id="cmpText"></p>
+          </details>
+          <div class="tbl-head"><b>기록 표</b><small id="recCount">0 / 6줄</small></div>
+          <div class="tbl-wrap">
+            <table class="data" id="recTable">
+              <thead><tr><th>거리 (cm)</th><th>넓이 (칸)</th><th>한 칸 밝기</th><th aria-label="지우기"></th></tr></thead>
+              <tbody></tbody>
+            </table>
+            <p class="empty" id="recEmpty">빛 무늬가 한 칸·네 칸·아홉 칸이 될 때 [표에 기록]을 눌러 보세요.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 탭 ② 패널 -->
+      <div id="starPanel" class="pane" hidden>
+        <div class="col">
+          <div class="my-pred" id="starPredLine"></div>
+          <div class="chips" id="starChips" role="radiogroup" aria-label="별 고르기"></div>
+          <div class="readouts three" id="starReadouts">
+            <div class="ro"><span>실제 거리</span><b id="roReal">2.6 pc</b></div>
+            <div class="ro"><span>지금 거리</span><b id="roNow">2.6 pc</b></div>
+            <div class="ro"><span>거리 배수</span><b id="roDMul">1배</b></div>
+            <div class="ro"><span>원래 겉보기 등급</span><b id="roM0">-1.4등급</b></div>
+            <div class="ro hl"><span>지금 겉보기 등급</span><b id="roM">-1.4등급</b></div>
+            <div class="ro"><span>보이는 밝기 배수</span><b id="roBMul">1배</b></div>
+            <div class="ro abs wide"><span>절대 등급 <small>(10 pc에 놓았을 때)</small></span><b id="roAbs">?</b></div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="control">
+            <label for="pcSlider">별까지의 거리 <output id="pcOut">2.6 pc</output></label>
+            <input type="range" id="pcSlider" min="0" max="1000" step="1" value="300" aria-label="별까지의 거리 (pc)" />
+            <div class="scale"><span>0.5 pc</span><span>10 pc</span><span>1000 pc</span></div>
+          </div>
+          <div class="btn-line">
+            <button class="btn primary" id="btn10pc">🚀 10 pc로 보내기</button>
+            <button class="btn" id="btnHome">↩ 원래 거리로</button>
+          </div>
+          <div class="tbl-head"><b>결과 표</b><small>10 pc에 놓아 본 별만 절대 등급이 채워져요</small></div>
+          <table class="data" id="resTable">
+            <thead><tr><th>별</th><th>겉보기 등급</th><th>절대 등급</th></tr></thead>
+            <tbody></tbody>
+          </table>
+          <button class="btn stairs-btn" id="btnStairs">🪜 등급 계단 열기 (등급과 밝기 차이)</button>
+        </div>
+      </div>
+    </aside>
+  </main>
+</div>
+<div class="toast" role="status" aria-live="polite"></div>
+
+<script src="../../lib/sim-bridge.js"></script>
+<script type="module" src="./main.js"></script>
+</body>
+</html>
