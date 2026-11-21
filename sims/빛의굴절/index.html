@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>빛의 굴절 | 과학 시뮬레이터</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔦</text></svg>" />
+  <link rel="stylesheet" href="./style.css" />
+  <script src="../../lib/vendor/chartjs-4.4.6/chart.umd.js" defer></script>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "../../lib/vendor/three-0.170.0/build/three.module.js",
+      "three/addons/": "../../lib/vendor/three-0.170.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="app">
+    <header id="topbar">
+      <a class="btn icon" href="../../index.html" title="목록으로" aria-label="목록으로">←</a>
+      <div class="title">
+        <h1>빛의 굴절</h1>
+        <p>빛이 다른 물질로 들어갈 때 어떻게 꺾일까?</p>
+      </div>
+      <div class="top-actions">
+        <button class="btn" id="btnGraph" aria-pressed="false" title="입사각-굴절각 그래프">📈 <span class="lbl">그래프</span></button>
+        <button class="btn" id="btnHelp" title="탐구 활동">❓ <span class="lbl">탐구 활동</span></button>
+        <button class="btn" id="btnQuality" title="그래픽 품질">✨ <span class="lbl">품질: 높음</span></button>
+        <button class="btn icon" id="btnMute" title="소리 켜기/끄기" aria-label="소리 켜기/끄기">🔊</button>
+      </div>
+    </header>
+
+    <main id="stage">
+      <div id="canvasWrap"></div>
+
+      <section id="readout" class="panel">
+        <div class="ro-grid">
+          <div class="ro-item inc"><span>입사각</span><b id="roInc">40.0°</b></div>
+          <div class="ro-item refr"><span>굴절각</span><b id="roRefr">28.9°</b></div>
+          <div class="ro-item refl" id="roReflWrap"><span>반사각</span><b id="roRefl">40.0°</b></div>
+        </div>
+        <div class="ro-media">
+          <div class="ro-mh"><span></span><span>물질</span><span>빛의 속력</span></div>
+          <div><i class="sw" id="sw1"></i><span id="roM1">공기</span><em id="roV1">약 300,000 km/s</em></div>
+          <div><i class="sw" id="sw2"></i><span id="roM2">물</span><em id="roV2">약 225,000 km/s</em></div>
+        </div>
+        <div class="ro-energy" id="roEnergy">
+          <span>빛의 세기</span>
+          <div class="bar"><div class="bar-t" id="barT"></div><div class="bar-r" id="barR"></div></div>
+          <small id="roEnergyTxt">굴절 98% · 반사 2%</small>
+        </div>
+        <p id="roExplain" class="explain"></p>
+        <div id="roFormula" class="formula" hidden></div>
+      </section>
+
+      <div id="playbar" class="panel">
+        <button class="btn" id="btnPlay" title="일시정지 (스페이스바)">⏸ <span class="lbl">일시정지</span></button>
+        <button class="btn primary" id="btnLaser" title="레이저 켜기/끄기">🔴 <span class="lbl">레이저 끄기</span></button>
+        <button class="btn" id="btnView" title="처음 시점으로">🎥 <span class="lbl">시점</span></button>
+        <button class="btn" id="btnReset" title="모두 처음 상태로">↺ <span class="lbl">초기화</span></button>
+      </div>
+
+      <div id="graphPanel" class="panel" hidden>
+        <div class="gp-head"><b>입사각과 굴절각</b><button class="btn icon sm" id="btnGraphClose" aria-label="그래프 닫기">✕</button></div>
+        <div class="gp-body"><canvas id="chart"></canvas></div>
+        <small id="gpNote"></small>
+      </div>
+
+      <div id="dragHint">👆 레이저를 끌어서 각도를 바꿔 보세요</div>
+    </main>
+
+    <aside id="controls" class="panel">
+      <section>
+        <h2>입사각 <output id="angleOut">40°</output></h2>
+        <input type="range" id="angle" min="0" max="89" step="1" value="40" aria-label="입사각" />
+        <div class="scale"><span>0°</span><span>30°</span><span>60°</span><span>89°</span></div>
+      </section>
+
+      <section>
+        <h2><span class="dot top"></span>위쪽 물질 (빛이 출발하는 곳)</h2>
+        <div class="chip-row" id="m1chips"></div>
+        <div class="n-row"><label for="n1">굴절률 n</label><input type="range" id="n1" min="1" max="2.5" step="0.01" value="1" /><output id="n1Out">1.00</output></div>
+      </section>
+
+      <button class="btn swap" id="btnSwap" title="위쪽과 아래쪽 물질 바꾸기">⇅ 두 물질 바꾸기</button>
+
+      <section>
+        <h2><span class="dot bottom"></span>아래쪽 물질 (빛이 들어가는 곳)</h2>
+        <div class="chip-row" id="m2chips"></div>
+        <div class="n-row"><label for="n2">굴절률 n</label><input type="range" id="n2" min="1" max="2.5" step="0.01" value="1.33" /><output id="n2Out">1.33</output></div>
+      </section>
+
+      <section>
+        <h2>레이저 색</h2>
+        <div class="chip-row" id="colorChips">
+          <button class="chip color active" data-color="red"><i style="background:#ff3b3b"></i>빨강</button>
+          <button class="chip color" data-color="green"><i style="background:#39ff6a"></i>초록</button>
+          <button class="chip color" data-color="blue"><i style="background:#4b7bff"></i>파랑</button>
+        </div>
+      </section>
+
+      <section class="toggles">
+        <h2>보기</h2>
+        <label class="toggle"><input type="checkbox" id="tNormal" checked /><span class="sw"></span>법선</label>
+        <label class="toggle"><input type="checkbox" id="tAngles" checked /><span class="sw"></span>각도 표시</label>
+        <label class="toggle"><input type="checkbox" id="tReflect" checked /><span class="sw"></span>반사되는 빛</label>
+        <label class="toggle"><input type="checkbox" id="tProtractor" checked /><span class="sw"></span>각도기</label>
+        <label class="toggle"><input type="checkbox" id="tPulse" /><span class="sw"></span>빛의 빠르기 비교</label>
+        <label class="toggle"><input type="checkbox" id="tFormula" /><span class="sw"></span>굴절 법칙 식 (심화)</label>
+      </section>
+    </aside>
+  </div>
+
+  <div id="helpModal" class="modal" hidden>
+    <div class="modal-card panel">
+      <h2>🔍 탐구 활동</h2>
+      <ol>
+        <li><b>수직으로 비추기</b> — 입사각을 <b>0°</b>로 맞춰 보세요. 빛이 꺾이나요?</li>
+        <li><b>물질 비교</b> — 아래쪽 물질을 물 → 유리 → 다이아몬드로 바꿔 보세요. 굴절각은 어떻게 변하나요?</li>
+        <li><b>빛의 빠르기</b> — ‘빛의 빠르기 비교’를 켜 보세요. 어느 물질에서 빛이 더 느린가요? 느린 물질로 들어갈 때 빛은 법선 쪽으로 꺾일까요, 멀어질까요?</li>
+        <li><b>반대로 나오기</b> — ‘두 물질 바꾸기’를 눌러 물에서 공기로 빛을 보내 보세요. 꺾이는 방향은?</li>
+        <li><b>도전!</b> — 물에서 공기로 갈 때 입사각을 점점 크게 해 보세요. 빛이 공기로 나가지 못하고 모두 반사되는 순간(전반사)을 찾아보세요.</li>
+      </ol>
+      <p class="tip">💡 마우스로 끌면 화면이 돌아가고, 휠(두 손가락)로 확대할 수 있어요. 키보드 ← → 로 입사각, 스페이스바로 일시정지.</p>
+      <button class="btn primary" id="btnHelpClose">알겠어요!</button>
+    </div>
+  </div>
+
+  <script src="../../lib/sim-bridge.js"></script>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
