@@ -103,6 +103,26 @@ def mod_repl(m):
 
 html = re.sub(r'<script\s+type="module"\s+src="([^"]+)"\s*>\s*</script>', mod_repl, html, flags=re.I)
 
+
+# 3-1) 본문에 바로 쓴 모듈(<script type="module">…</script>)도 같은 방식으로 묶음 — 문서 순서대로 실행
+def inline_mod_repl(m):
+    fake = sim_dir / f'__inline_{len(modules)}.js'
+    entry = {'id': len(modules), 'deps': []}
+    modules[fake] = entry
+
+    def repl(mm):
+        dep = resolve(mm.group(3), fake)
+        collect(dep)
+        entry['deps'].append(modules[dep]['id'])
+        return mm.group(1) + mm.group(2) + f'__PREVIEW_MOD_{modules[dep]["id"]}__' + mm.group(2)
+
+    entry['src'] = IMPORT_RE.sub(repl, m.group(1))
+    entries.append(entry['id'])
+    return ''
+
+
+html = re.sub(r'<script\s+type="module"\s*>(.*?)</script>', inline_mod_repl, html, flags=re.S | re.I)
+
 # 4) 일반 스크립트
 def js_repl(m):
     p = local(m.group(1))
