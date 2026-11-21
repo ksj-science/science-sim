@@ -159,7 +159,7 @@ function drawInset() {
   const N = 7, m = 8, cell = (size - 2 * m) / N;
   g.fillStyle = '#5f9e69'; g.fillRect(0, 0, size, size);
   g.fillStyle = '#7fcf8a'; g.fillRect(m, m, size - 2 * m, size - 2 * m);
-  // 빛 무늬 — 구멍 바로 앞 꼭짓점(왼쪽 아래에서 한 칸 안쪽)에서 위·오른쪽으로 커짐
+  // 빛 무늬 — 전등(점광원) 바로 앞 꼭짓점(왼쪽 아래에서 한 칸 안쪽)에서 위·오른쪽으로 커짐
   const d = S.lamp.d, s = sideOf(d), B = brightOf(d);
   const x0 = m + cell, y0 = size - m - cell, w = s * cell;
   const I = Math.min(1, 0.3 + 0.7 * Math.sqrt(Math.min(B, 1)));   // 어두워도 무늬가 보이게(화면 밝기는 실제 비율이 아님)
@@ -179,7 +179,7 @@ function drawInset() {
     g.beginPath(); g.moveTo(p, m); g.lineTo(p, size - m); g.stroke();
     g.beginPath(); g.moveTo(m, p); g.lineTo(size - m, p); g.stroke();
   }
-  // 구멍 바로 앞 점
+  // 전등(점광원) 바로 앞 점
   g.fillStyle = '#ff4d4d'; g.beginPath(); g.arc(x0, y0, 3, 0, Math.PI * 2); g.fill();
   if (Math.abs(s - Math.round(s)) < 1e-9) {
     g.strokeStyle = '#22c55e'; g.lineWidth = 2.5;

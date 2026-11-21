@@ -9,7 +9,8 @@ export const D_MIN = 6, D_MAX = 30, D_STEP = 0.5, D_ONE = 6; // 6 cm에서 빛 �
 const Y0 = 8;          // 빛다발 중심 높이 (cm)
 const CUP = 4;         // 종이컵 길이 (cm)
 const GRID_N = 7;      // 모눈 7×7칸
-// 종이컵 구멍은 모눈의 한 꼭짓점(왼쪽 아래에서 한 칸 안쪽) 바로 앞에 있음 → 빛 무늬가 그 꼭짓점에서 위·오른쪽으로 커짐
+// 휴대 전화 전등(점광원)은 모눈의 한 꼭짓점(왼쪽 아래에서 한 칸 안쪽) 바로 앞에 있음 → 빛이 종이컵 바닥의 정사각형 구멍을 지나
+// 그 꼭짓점에서 위·오른쪽으로 커지는 빛 무늬를 만듦. 거리 d = 전등(점광원) ~ 모눈종이
 const CORNER = -2.5;   // 모눈종이 가운데에서 그 꼭짓점까지 (cm, 가로·세로)
 const PY = Y0 - CORNER, PZ = -CORNER; // 모눈종이 가운데 위치 (y, z)
 
@@ -223,7 +224,7 @@ export function createLamp(wrap, { onDrag, onDragStart, onDragEnd, onOrbit, isLo
     new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 1, 1),
     new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 0)]);
   const okLine = new THREE.Line(okGeo, new THREE.LineBasicMaterial({ color: '#4ade80', transparent: true, opacity: 0.75 }));
-  okLine.position.set(-0.05, Y0, 0); // 꼭짓점(구멍 바로 앞)에서 시작
+  okLine.position.set(-0.05, Y0, 0); // 꼭짓점(전등 바로 앞)에서 시작
   scene.add(okLine);
 
   // 빛다발 (사각뿔)
@@ -241,36 +242,39 @@ export function createLamp(wrap, { onDrag, onDragStart, onDragEnd, onOrbit, isLo
   beamGroup.add(beam, edges);
   scene.add(beamGroup);
 
-  // 휴대 전화 + 종이컵 (원점 = 종이컵 바닥 구멍, x방향으로 빛이 나감)
+  // 휴대 전화 + 종이컵 (원점 = 휴대 전화 전등 = 점광원, x방향으로 빛이 나감)
+  // 종이컵 입구(넓은 쪽)는 전화에 붙고, 바닥(좁은 쪽, x = CUP)에 정사각형 구멍 — 구멍 한 변 = CUP/6 → 빛 무늬 한 변 = d/6
   const phone = new THREE.Group();
   const black = new THREE.MeshStandardMaterial({ color: '#16181d', roughness: 0.85 });
   const cup = new THREE.Mesh(new THREE.CylinderGeometry(2.0, 2.8, CUP, 40, 1, true), black);
   cup.rotation.z = -Math.PI / 2;
-  cup.position.set(-CUP / 2, Y0, 0);
+  cup.position.set(CUP / 2, Y0, 0);
   cup.castShadow = true;
   const cap = new THREE.Mesh(new THREE.CircleGeometry(2.0, 40), black);
-  cap.rotation.y = Math.PI / 2; cap.position.set(0, Y0, 0);
-  const hole = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.6), new THREE.MeshBasicMaterial({ color: '#fff8dc' }));
-  hole.rotation.y = Math.PI / 2; hole.position.set(0.02, Y0, 0);
+  cap.rotation.y = Math.PI / 2; cap.position.set(CUP, Y0, 0);
+  const HOLE = CUP / D_ONE;
+  const hole = new THREE.Mesh(new THREE.PlaneGeometry(HOLE, HOLE), new THREE.MeshBasicMaterial({ color: '#fff8dc' }));
+  hole.rotation.y = Math.PI / 2; hole.position.set(CUP + 0.02, Y0 + HOLE / 2, HOLE / 2);
+  // 전등(점광원) — 전화 앞면의 작은 LED
+  const led = new THREE.Mesh(new THREE.SphereGeometry(0.22, 16, 12), new THREE.MeshBasicMaterial({ color: '#fffbe6' }));
+  led.position.set(0.05, Y0, 0);
   const body = new THREE.Mesh(new THREE.BoxGeometry(0.8, 14, 7),
     new THREE.MeshStandardMaterial({ color: '#3b4252', metalness: 0.4, roughness: 0.35 }));
-  body.position.set(-CUP - 0.4, Y0, 0); body.castShadow = true;
+  body.position.set(-0.4, Y0, 0); body.castShadow = true;
   const screen = new THREE.Mesh(new THREE.PlaneGeometry(6.2, 13),
     new THREE.MeshStandardMaterial({ color: '#0b1730', emissive: '#16305e', emissiveIntensity: 0.6, roughness: 0.2 }));
-  screen.rotation.y = -Math.PI / 2; screen.position.set(-CUP - 0.81, Y0, 0);
+  screen.rotation.y = -Math.PI / 2; screen.position.set(-0.81, Y0, 0);
   const sled = new THREE.Mesh(new THREE.BoxGeometry(5, 1, 5.2),
     new THREE.MeshStandardMaterial({ color: '#4f8fd6', roughness: 0.5 }));
-  sled.position.set(-CUP - 0.4, 0.75, 0); sled.castShadow = true;
+  sled.position.set(-0.4, 0.75, 0); sled.castShadow = true;
   const clip = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.8, 7.4), sled.material);
-  clip.position.set(-CUP - 0.4, 1.6, 0); clip.castShadow = true;
-  // 자 읽는 눈금 바늘 (구멍 위치)
+  clip.position.set(-0.4, 1.6, 0); clip.castShadow = true;
+  // 자 읽는 눈금 바늘 (전등 = 점광원 위치)
   const needle = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.12, 5.6), new THREE.MeshBasicMaterial({ color: '#ff4d4d' }));
   needle.position.set(0, 0.38, 4.6);
-  const arm = new THREE.Mesh(new THREE.BoxGeometry(CUP + 0.6, 0.25, 0.5), new THREE.MeshStandardMaterial({ color: '#ff4d4d' }));
-  arm.position.set(-CUP / 2 - 0.2, 0.4, 2.2);
-  const armDown = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.25, 2), arm.material);
-  armDown.position.set(-CUP - 0.4, 0.4, 1.4);
-  phone.add(cup, cap, hole, body, screen, sled, clip, needle, arm, armDown);
+  const arm = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.25, 2.2), new THREE.MeshStandardMaterial({ color: '#ff4d4d' }));
+  arm.position.set(0, 0.4, 2.7);
+  phone.add(cup, cap, hole, led, body, screen, sled, clip, needle, arm);
   scene.add(phone);
   const pickables = [cup, cap, body, screen, sled, clip, hole];
 
@@ -285,7 +289,9 @@ export function createLamp(wrap, { onDrag, onDragStart, onDragEnd, onOrbit, isLo
   const lblPaper = makeLabel('모눈종이');
   lblPaper.position.set(0.5, PY + 7, PZ); scene.add(lblPaper);
   const lblPhone = makeLabel('휴대 전화 + 종이컵<br><small>👆 끌어서 움직이기</small>');
-  phone.add(lblPhone); lblPhone.position.set(-CUP - 0.4, Y0 + 8.6, 0);
+  phone.add(lblPhone); lblPhone.position.set(-0.4, Y0 + 8.6, 0);
+  const lblLed = makeLabel('💡 전등(점광원)', 'l3d ledlbl');
+  phone.add(lblLed); lblLed.position.set(0, Y0 + 3.4, 0);
   const lblRuler = makeLabel('자 (cm)');
   lblRuler.position.set(-29, 0.6, 9); scene.add(lblRuler);
 
@@ -314,8 +320,8 @@ export function createLamp(wrap, { onDrag, onDragStart, onDragEnd, onOrbit, isLo
     for (let i = 0; i < 4; i++) E.set([...a, ...c[i]], i * 6);
     edgeGeo.attributes.position.needsUpdate = true; edgeGeo.computeBoundingSphere();
     beamMat.opacity = 0.05 + 0.1 * Math.min(1, Math.sqrt(B));
-    // 치수선 (높이 Y0+9.5)
-    const yy = Y0 - 1.3, D = dimGeo.attributes.position.array;
+    // 치수선 (전등 ~ 모눈종이, 종이컵 아래)
+    const yy = Y0 - 3.3, D = dimGeo.attributes.position.array;
     D.set([-d, yy, 0, 0, yy, 0, -d, yy - 0.7, 0, -d, yy + 0.7, 0, 0, yy - 0.7, 0, 0, yy + 0.7, 0]);
     dimGeo.attributes.position.needsUpdate = true; dimGeo.computeBoundingSphere();
     dimLabel.position.set(-d / 2, yy - 1.6, 0);
