@@ -37,7 +37,7 @@
 <body>
 <header class="sim-header">
   <h1>일정 성분비 법칙을 입자 모형으로 설명하기</h1>
-  <span class="unit">3-1-02 · Ⅰ. 화학 반응의 규칙과 에너지 변화</span>
+  <span class="unit">15-3-1-2-01 · Ⅰ. 화학 반응의 규칙과 에너지 변화</span>
   <div class="seg" role="tablist">
     <button id="tabWater" aria-pressed="true">① 물 분자 만들기</button>
     <button id="tabPerox" aria-pressed="false">② 과산화 수소와 비교하기</button>
@@ -345,7 +345,7 @@
   $('resetWater').onclick = function () { sets.water = makeSet(); drawAtoms(); update(); };
   $('resetPerox').onclick = function () { sets.perox = makeSet(); drawAtoms(); update(); };
 
-  SimBridge.init('3-1-02');
+  SimBridge.init('15-3-1-2-01');
   SimBridge.onLock = function () { locked = true; drag = null; };
   setTab('water');
 })();

@@ -35,6 +35,12 @@
   .steps li.on .dot { background: var(--violet); transform: scale(1.12); box-shadow: 0 0 0 4px rgba(123,79,214,.18); }
   .steps .bar { width: 14px; height: 3px; background: #dfe5ee; border-radius: 2px; margin: 0 6px; }
   .steps .bar.done { background: #b9a3ea; }
+  @media (max-width: 900px) {
+    header.top { height: auto; flex-wrap: wrap; row-gap: 6px; padding: 8px 12px; }
+    .brand { flex: 1; }
+    .brand small { display: none; }
+    .steps { order: 3; flex-basis: 100%; }
+  }
   .top-btns { display: flex; gap: 8px; }
   .top-btns button { white-space: nowrap; min-height: 38px; padding: 6px 14px; border-radius: 12px; font-size: 14px; background: #fff; border: 1px solid var(--line); box-shadow: 0 2px 6px rgba(34,50,74,.06); }
   .top-btns #bChallenge { border-color: #f3c3b6; color: var(--coral-d); }
@@ -166,7 +172,7 @@
 
 <header class="top">
   <div class="brand">
-    <span class="badge">과학1 Ⅱ-2</span>
+    <span class="badge" title="단원 ID (2022 개정 과학1 Ⅱ-2)">22-1-2-2-01</span>
     <h1 class="display">토끼 무리의 대모험</h1>
     <small>변이와 생물의 다양성</small>
   </div>
@@ -238,7 +244,7 @@
 function startSim() {
   'use strict';
   /* =========================================================
-   *  모델 — 단순화한 내용은 단원설계서/1-2-02.md 참고
+   *  모델 — 단순화한 내용은 단원설계서/22-1-2-2-01.md 참고
    * ========================================================= */
   var COLORS = ['white', 'gray', 'brown'];
   var NAME = { white: '흰색', gray: '회색', brown: '갈색' };
@@ -507,7 +513,7 @@ function startSim() {
   /* =========================================================
    *  SimBridge
    * ========================================================= */
-  SimBridge.init('1-2-02');
+  SimBridge.init('22-1-2-2-01');
   SimBridge.onLock = function () { S.locked = true; S.playing = false; renderHud(); };
   function push() {
     if (S.mode === 'var' && hist.L.length && !S.merged) { S.lastVar = { left: count('L'), right: count('R') }; S.lastVarGen = S.gen; }
