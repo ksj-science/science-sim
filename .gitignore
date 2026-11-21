@@ -1,5 +1,9 @@
 # 교과서 이미지(저작권) — 절대 저장소에 올리지 않음
-inbox/
+inbox/*
+!inbox/README.md
+!inbox/done/
+inbox/done/*
+!inbox/done/.gitkeep
 *.pdf
 교과서*/
 **/교과서*.png

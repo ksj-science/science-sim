@@ -98,5 +98,5 @@
 ## 전자동 파이프라인 (`/시뮬레이터`)
 - 서브에이전트(`.claude/agents/`): `curriculum-analyst`(설계서) → `sim-builder`(구현·수정) → `qa-tester`·`science-reviewer`·`student-ux-reviewer`(병렬 검수, 코드 수정 금지, 높음/중간/낮음 + PASS/FAIL) → `activity-writer`(수업 자료).
 - 검수에서 FAIL이나 '높음'이 있으면 `sim-builder`가 고치고 검수자를 새로 불러 다시 검수(수정 최대 3회).
-- 검수자 3명은 서로 다른 Playwright 서버를 씁니다(`.mcp.json`: `playwright`=QA·제작, `playwright-science`, `playwright-ux`) — 병렬로 돌아도 브라우저가 섞이지 않게.
+- 검수자 3명은 서로 다른 Playwright 서버를 씁니다(`.mcp.json`: `playwright`=QA·제작, `playwright-science`, `playwright-ux`). 서버는 `tools/playwright-mcp.mjs`가 띄워 윈도우(학교 PC)·리눅스(클라우드 세션) 모두에서 동작 — 병렬로 돌아도 브라우저가 섞이지 않게.
 - `/시뮬레이터 모의`: 이미지 없이 설정 점검과 단계 목록만 출력.
