@@ -43,7 +43,7 @@ const DEFAULT_STATE = {
 const state = structuredClone(DEFAULT_STATE);
 state.quality = (navigator.hardwareConcurrency || 4) <= 2 ? 'low' : 'high';
 
-SimBridge.init('2-1-01'); // 제출 후 잠금은 style.css의 .sim-locked 규칙이 처리
+SimBridge.init('2-3-01'); // 제출 후 잠금은 style.css의 .sim-locked 규칙이 처리
 
 // 화면에 보이는 값 (목표값을 부드럽게 따라감)
 const disp = { angle: state.angle, n1: state.n1, n2: state.n2, laser: 1, color: new THREE.Color(LASER_COLORS.red.hex) };
@@ -666,7 +666,7 @@ function refractionDeg(a, n1, n2) {
   return s > 1 ? null : Math.asin(s) / DEG;
 }
 
-// 웹앱(껍데기)으로 보내는 상태 — 값이 바뀔 때만 보냄. 키 이름은 단원설계서/2-1-01.md 참고
+// 웹앱(껍데기)으로 보내는 상태 — 값이 바뀔 때만 보냄. 키 이름은 단원설계서/2-3-01.md 참고
 let bridgeKey = '';
 const tirSeen = new Set();
 function pushBridge() {
