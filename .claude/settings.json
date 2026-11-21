@@ -30,6 +30,7 @@
       "Bash(node tools/:*)",
       "Bash(npx -y playwright install:*)",
       "Bash(npx playwright install:*)",
+      "Bash(npx -y -p @playwright/mcp@latest playwright install:*)",
       "mcp__playwright",
       "mcp__playwright-science",
       "mcp__playwright-ux"

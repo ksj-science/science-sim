@@ -16,7 +16,7 @@ description: 교과서 이미지(채팅 첨부 또는 inbox/ 폴더)를 받아 �
    - `.claude/settings.json` 허용 목록에 Edit·Write·`npx serve`·`git add/commit/push`·`mcp__playwright*`
    - `.mcp.json`에 playwright, playwright-science, playwright-ux 서버(`node tools/playwright-mcp.mjs` — 윈도우·리눅스 공용)
    - ToolSearch로 세 서버의 `browser_navigate`가 실제로 잡히는지, 그리고 `mcp__playwright__browser_navigate`로 `about:blank`를 실제로 열 수 있는지
-     (브라우저가 없다는 오류면 ❌로 적고 "실제 실행 때 `npx -y playwright install chromium`으로 설치함"이라고 비고에 적음)
+     (브라우저가 없다는 오류면 ❌로 적고 "실제 실행 때 `npx -y -p @playwright/mcp@latest playwright install --with-deps chromium`로 설치함"이라고 비고에 적음)
    - `.gitignore`가 `inbox/` 이미지와 `.work/`를 제외하는지(`git check-ignore inbox/a.png .work/x`)
    - `inbox/`, `inbox/done/` 폴더(저장소에 `inbox/README.md`, `inbox/done/.gitkeep`이 있어 클론하면 생김)
    - 실행 환경: 로컬(윈도우) / 클라우드(리눅스). 클라우드면 github.io 접속이 막혀 있어 배포 확인은 GitHub Actions로 한다고 적음
@@ -40,7 +40,7 @@ description: 교과서 이미지(채팅 첨부 또는 inbox/ 폴더)를 받아 �
 - 로컬 서버: `npx serve -l 5173 .` 을 백그라운드로 띄웁니다(이미 떠 있으면 그대로).
 - Playwright 확인: `mcp__playwright__browser_navigate`로 `http://localhost:5173/`을 엽니다.
   - 도구가 없으면(서버 연결 실패) `node tools/playwright-mcp.mjs`가 실행되는지 Bash로 확인하고, 세션을 다시 열어야 하면 그 사실을 최종 보고에 적습니다.
-  - 브라우저가 없다는 오류면 `npx -y playwright install chromium`(리눅스에서 의존성 오류면 `npx -y playwright install --with-deps chromium`)을 실행한 뒤 다시 엽니다.
+  - 브라우저가 없다는 오류(`Browser "chrome-for-testing" is not installed` 등)면 `npx -y -p @playwright/mcp@latest playwright install --with-deps chromium`을 실행한 뒤(1~3분) 다시 엽니다. (그냥 `npx playwright install`은 MCP와 Playwright 버전이 달라 엉뚱한 브라우저를 받으므로 쓰지 않음) 윈도우에서는 `--with-deps`를 빼도 됩니다.
 - `내가 정한 것` 목록과 회차별 요약 표를 기억해 둘 곳: `.work/<ID>/진행.md`(ID가 정해진 뒤).
 
 ## 파이프라인
