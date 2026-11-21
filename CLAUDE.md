@@ -36,7 +36,7 @@
 3. `units.json` 등록 후 포털(`index.html`)에서 링크 확인
 4. 커밋 후 작업 브랜치와 `main`에 모두 푸시해 GitHub Pages에 바로 올림 (선생님이 바로 볼 수 있게 — `main` 푸시는 허락받음)
 5. 완료 보고에 바로 열리는 주소를 줌: 시뮬레이터 `https://ksj-science.github.io/science-sim/sims/<ID>/`, 웹앱 `…/exec?unit=<ID>`
-   (Pages 반영에 1~2분 걸릴 수 있음. 푸시 후 주소가 열리는지 확인)
+   (Pages 반영에 1~2분 걸림. 클라우드 작업 환경에서는 github.io 접속이 막혀 있으므로 GitHub Actions의 "pages build and deployment" 실행이 성공했는지로 확인)
 
 ## 웹앱(껍데기)
 - 코드는 `shell/`에 보관하고 학교 계정 Apps Script에 반영합니다. 단원 추가만으로는 다시 배포할 필요가 없게 유지합니다.
