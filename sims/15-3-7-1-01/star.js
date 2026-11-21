@@ -174,7 +174,7 @@ export function createStarView(canvas, { onSelect, onDrag, onDragStart, onDragEn
     g.fillText('지구에서 별까지의 거리', 12, L.skyH + 15);
     g.font = `400 13px ${font}`; g.fillStyle = '#a9b8d8';
     g.textAlign = 'right';
-    g.fillText(L.portrait ? '눈금 한 칸마다 10배' : '눈금이 한 칸 갈 때마다 거리 10배', W - 12, L.skyH + 15);
+    g.fillText(L.portrait ? '굵은 눈금 한 칸마다 거리 10배' : '굵은 눈금(1·10·100·1000 pc) 한 칸마다 거리 10배', W - 12, L.skyH + 15);
 
     // 레인
     STARS.forEach((s, i) => {
@@ -238,7 +238,7 @@ export function createStarView(canvas, { onSelect, onDrag, onDragStart, onDragEn
       g.strokeStyle = sel ? '#fff' : 'rgba(0,0,0,.4)'; g.lineWidth = sel ? 2 : 1; g.stroke();
       // 이름표: 오른쪽 공간이 없으면 왼쪽
       g.font = `700 13px ${font}`; g.textBaseline = 'middle';
-      const label = sel ? `${s.name} · ${D < 0.01 ? '1 AU' : D < 9.95 ? (Math.round(D * 10) / 10).toFixed(1) + ' pc' : Math.round(D) + ' pc'}` : s.name;
+      const label = sel ? `${s.name} · ${D < 0.01 ? '1 AU' : D < 99.95 ? (Math.round(D * 10) / 10).toFixed(1) + ' pc' : Math.round(D) + ' pc'}` : s.name;
       const tw = g.measureText(label).width;
       const right = x + 16 + tw < L.x1 + 20;
       g.textAlign = right ? 'left' : 'right';

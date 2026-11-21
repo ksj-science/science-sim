@@ -126,16 +126,16 @@
           <div class="my-pred" id="lampPredLine"></div>
           <div class="readouts three">
             <div class="ro"><span>거리</span><b id="roD">6.0 cm</b></div>
-            <div class="ro"><span>빛을 받는 넓이</span><b id="roA">1.0칸</b><small id="roSide">한 변 1.0칸</small></div>
+            <div class="ro"><span>빛을 받는 넓이</span><b id="roA">1.0칸</b><small id="roSide">한 변 1.0 cm</small></div>
             <div class="ro"><span>한 칸의 밝기</span><b id="roB">1</b><small id="roBSub">기준 (1칸일 때)</small></div>
           </div>
           <div class="bbar" aria-hidden="true">
-            <div class="bbar-track"><div class="bbar-fill" id="bbarFill"></div><i class="bbar-one" title="1칸일 때"></i></div>
-            <div class="bbar-scale"><span>0</span><span>1 (1칸일 때)</span><span>2</span></div>
+            <div class="bbar-track"><div class="bbar-fill" id="bbarFill"></div></div>
+            <div class="bbar-scale"><span>0</span><span class="bbar-title">한 칸의 밝기</span><span>1 (1칸일 때)</span></div>
           </div>
           <div class="control">
             <label for="dSlider">휴대 전화–모눈종이 거리 <output id="dOut">6.0 cm</output></label>
-            <input type="range" id="dSlider" min="3" max="30" step="0.5" value="6" aria-label="휴대 전화와 모눈종이 사이 거리 (cm)" />
+            <input type="range" id="dSlider" min="6" max="30" step="0.5" value="6" aria-label="휴대 전화와 모눈종이 사이 거리 (cm)" />
             <div class="scale" id="dScale" aria-hidden="true"></div>
           </div>
           <div class="btn-line">
@@ -176,7 +176,7 @@
         </div>
         <div class="col">
           <div class="control">
-            <label for="pcSlider">별까지의 거리 <output id="pcOut">2.6 pc</output></label>
+            <label for="pcSlider"><span>별까지의 거리 <small class="unit-note" title="pc(파섹)은 별까지의 거리를 나타내는 단위예요">pc(파섹) · 1 pc ≈ 3.26광년</small></span> <output id="pcOut">2.6 pc</output></label>
             <input type="range" id="pcSlider" min="0" max="1000" step="1" value="300" aria-label="별까지의 거리 (pc)" />
             <div class="scale" id="pcScale" aria-hidden="true"></div>
           </div>

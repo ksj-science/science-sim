@@ -4,7 +4,8 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 import { clamp } from '../../lib/utils.js';
 
-export const D_MIN = 3, D_MAX = 30, D_STEP = 0.5, D_ONE = 6; // 6 cm에서 빛 무늬 한 변 = 1칸
+// 가장 가까운 거리 = 6 cm(빛 무늬가 딱 한 칸) — 더 가까우면 빛 무늬가 한 칸보다 작아져 '한 칸이 받는 빛의 양'과 맞지 않음
+export const D_MIN = 6, D_MAX = 30, D_STEP = 0.5, D_ONE = 6; // 6 cm에서 빛 무늬 한 변 = 1칸
 const Y0 = 8;          // 빛다발 중심 높이 (cm)
 const CUP = 4;         // 종이컵 길이 (cm)
 const GRID_N = 7;      // 모눈 7×7칸
@@ -17,7 +18,7 @@ export const cellsOf = d => (d / D_ONE) ** 2;         // 빛을 받는 넓이 (�
 export const brightOf = d => (D_ONE / d) ** 2;        // 한 칸 밝기 (1칸일 때 = 1)
 
 const VIEWS = {
-  main: { pos: [-36, 30, 47], target: [-13, 5, 2] },
+  main: { pos: [-38, 30, 50], target: [-15, 5, 2] },   // 30 cm 끝(휴대 전화 이름표)까지 화면 안에
   front: { pos: [-44, 17, 12], target: [0, 10, 2] },
   side: { pos: [-15, 9, 50], target: [-15, 7, 0] },
 };
@@ -93,7 +94,8 @@ export function createLamp(wrap, { onDrag, onDragStart, onDragEnd, isLocked }) {
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.05;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.shadowMap.type = THREE.PCFShadowMap;
+    renderer.shadowMap.autoUpdate = false;   // 그림자는 물체가 움직일 때만 다시 계산(카메라 회전 때는 그대로)
     wrap.insertBefore(renderer.domElement, wrap.firstChild);
   }
   buildRenderer(true);
@@ -104,7 +106,8 @@ export function createLamp(wrap, { onDrag, onDragStart, onDragEnd, isLocked }) {
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color('#0d1424');
-  scene.fog = new THREE.Fog('#0d1424', 90, 170);
+  const fog = new THREE.Fog('#0d1424', 90, 170);
+  scene.fog = fog;
 
   const camera = new THREE.PerspectiveCamera(38, 1, 0.5, 400);
   camera.position.set(...VIEWS.main.pos);
@@ -284,6 +287,8 @@ export function createLamp(wrap, { onDrag, onDragStart, onDragEnd, isLocked }) {
   const lblRuler = makeLabel('자 (cm)');
   lblRuler.position.set(-29, 0.6, 9); scene.add(lblRuler);
 
+  scene.traverse(o => { if (o.isMesh) o.userData.cast = o.castShadow; });
+
   // 상태
   let d = 10, beamOn = true, quality = 'high', okGlow = 0, w = 1, h = 1;
   let view = 'main', tween = null;
@@ -317,20 +322,46 @@ export function createLamp(wrap, { onDrag, onDragStart, onDragEnd, isLocked }) {
     okLine.scale.set(1, s, s);
     const exact = Math.abs(s - Math.round(s)) < 1e-6;
     okLine.visible = exact;
+    if (renderer) renderer.shadowMap.needsUpdate = true;
     dirty = true;
   }
 
   function setDistance(v) { d = clamp(v, D_MIN, D_MAX); update(); }
   function flashExact() { okGlow = 1; dirty = true; }
   function setBeam(on) { beamOn = on; applyQuality(); dirty = true; }
+  // 품질 '낮음'용 가벼운 재질: PBR(MeshStandard) → Lambert(정점 단위 조명), 같은 색·무늬
+  const loCache = new Map();
+  function loMat(m) {
+    if (!m.isMeshStandardMaterial) return m;
+    if (!loCache.has(m)) {
+      const L = new THREE.MeshLambertMaterial({ color: m.color, map: m.map || null });
+      if (m.emissive) { L.emissive.copy(m.emissive); L.emissiveIntensity = m.emissiveIntensity; }
+      loCache.set(m, L);
+    }
+    return loCache.get(m);
+  }
+  scene.traverse(o => { if (o.isMesh) o.userData.hiMat = o.material; });
   function applyQuality(q = quality) {
     quality = q;
     const high = q === 'high';
     buildRenderer(high);
-    renderer.setPixelRatio(high ? Math.min(devicePixelRatio, 2) : 1);
+    // 렌더 해상도: 높음은 화면 배율 최대 1.5, 낮음은 0.75배로 그린 뒤 늘려 보여 줌(그리는 픽셀 수 약 0.56배)
+    renderer.setPixelRatio(high ? Math.min(devicePixelRatio, 1.5) : 0.75);
     renderer.shadowMap.enabled = high;
+    renderer.shadowMap.needsUpdate = true;
+    renderer.toneMapping = high ? THREE.ACESFilmicToneMapping : THREE.NoToneMapping;
     key.castShadow = high;
-    scene.traverse(o => { if (o.material && o.material.needsUpdate !== undefined) o.material.needsUpdate = true; });
+    scene.fog = high ? fog : null;
+    scene.traverse(o => {
+      if (!o.isMesh || !o.userData.hiMat) return;
+      const hm = o.userData.hiMat;
+      o.material = high ? hm : Array.isArray(hm) ? hm.map(loMat) : loMat(hm);
+      o.castShadow = high && !!o.userData.cast;
+    });
+    scene.traverse(o => {
+      const ms = Array.isArray(o.material) ? o.material : o.material ? [o.material] : [];
+      ms.forEach(m => { m.needsUpdate = true; });
+    });
     beamGroup.visible = beamOn;
     beam.visible = high;           // 낮은 품질: 반투명 면은 끄고 모서리 선만
     resize();

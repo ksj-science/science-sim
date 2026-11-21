@@ -37,20 +37,26 @@ function bigNum(v) {
 // 받침에 따라 을/를
 const eulReul = w => { const c = w.charCodeAt(w.length - 1); return c >= 0xac00 && c <= 0xd7a3 && (c - 0xac00) % 28 ? '을' : '를'; };
 // 원래 거리와 비교 (1보다 작으면 1/○)
+// 반올림해서 보여 준 값이 실제와 1% 넘게 다르면 '약'을 붙임
+const approx = (y, shown) => (Math.abs(shown - y) / y > 0.01 ? '약 ' : '');
+function bigVal(v) {             // bigNum이 실제로 보여 주는 값(‘약’ 판단용)
+  const u = v < 1e4 ? 1 : v < 1e8 ? 1e4 : v < 1e12 ? 1e8 : v < 1e16 ? 1e12 : 1e16, x = v / u;
+  return (x < 10 ? Math.round(x * 10) / 10 : Math.round(x)) * u;
+}
+// '원래 거리의 ○'·'원래 밝기의 ○' — 1보다 작으면 1/○, 크면 ○배. 아주 작은 수는 '○분의 1'로 읽기 쉽게
+function fmtRatio2(x) {
+  if (Math.abs(x - 1) < 0.005) return '1배';
+  if (x >= 1) return `${approx(x, bigVal(x))}${bigNum(x)}배`;
+  const y = 1 / x, a = approx(y, bigVal(y));
+  return y >= 1e4 ? `${a}${bigNum(y)}분의 1` : `${a}1/${bigNum(y)}`;
+}
 function fmtDistCmp(x) {
   if (Math.abs(x - 1) < 0.005) return { v: '1배', sub: '원래 자리' };
-  const sig = y => (y < 10 ? (Math.round(y * 10) / 10).toString() : bigNum(y));
-  const approx = y => { const r = y < 10 ? Math.round(y * 10) / 10 : Math.round(y); return Math.abs(r - y) / y > 0.01 ? '약 ' : ''; };
-  if (x < 1) return { v: `${approx(1 / x)}1/${sig(1 / x)}`, sub: '더 가까이' };
-  return { v: `${approx(x)}${sig(x)}배`, sub: '더 멀리' };
-}
-function fmtTimes(x) {           // 밝기 배수: 1보다 작으면 1/○배
-  if (Math.abs(x - 1) < 0.005) return '1배';
-  return x >= 1 ? `${bigNum(x)}배` : `1/${bigNum(1 / x)}배`;
+  return { v: fmtRatio2(x), sub: x < 1 ? '더 가까이' : '더 멀리' };
 }
 function fmtPc(D) {
   if (D < 0.01) return '1 AU';
-  if (D < 9.95) return `${f1(D)} pc`;
+  if (D < 99.95) return `${f1(D)} pc`;   // 10 pc 근처도 소수 첫째 자리까지(10.4 pc ≠ 10 pc)
   return `${Math.round(D)} pc`;
 }
 // 한 칸 밝기: 칸에 딱 맞으면 분수(1/4), 아니면 소수 + 가까운 분수(약 1/3)
@@ -59,8 +65,9 @@ function brightParts(d) {
   if (Math.abs(s - si) < 1e-9 && si >= 1) {
     return si === 1 ? { main: '1', sub: '기준 (1칸일 때)' } : { main: `1/${si * si}`, sub: `= ${B.toFixed(2)}` };
   }
-  if (B > 1) return { main: B.toFixed(2), sub: '빛이 모여 더 밝음' };
-  return { main: B.toFixed(2), sub: `약 1/${Math.round(1 / B)}` };
+  // 가까운 분수(약 1/3)는 반올림 차이가 작을 때(10% 이내)만 보여 줌
+  const n = Math.round(1 / B);
+  return { main: B.toFixed(2), sub: n >= 2 && Math.abs(n * B - 1) <= 0.1 ? `약 1/${n}` : '' };
 }
 function fmtBrightCell(d) {
   const p = brightParts(d);
@@ -84,7 +91,7 @@ function pushState() {
       recordCount: S.lamp.records.length,
       lampPrediction: S.lamp.pred,
       starId: S.star.sel,
-      starDistancePc: D < 0.01 ? D : +D.toFixed(2),
+      starDistancePc: D === st.dist ? D : D < 0.01 ? +D.toPrecision(3) : +D.toFixed(2),
       apparentMagNow: +fmtMag(magAt(st, D)),
       absMagFound: STARS.filter(s => S.star.found.has(s.id)).map(s => s.id),
       starPrediction: S.star.pred,
@@ -126,18 +133,18 @@ function renderLampPanel() {
   $('roD').textContent = `${f1(d)} cm`;
   $('dOut').textContent = `${f1(d)} cm`;
   $('roA').textContent = `${f1(A)}칸`;
-  $('roSide').textContent = `${f1(s)}칸 × ${f1(s)}칸`;
+  $('roSide').textContent = `한 변 ${f1(s)} cm`;
   const bp = brightParts(d);
   $('roB').textContent = bp.main;
   $('roBSub').textContent = bp.sub;
   $('roB').title = B.toFixed(3);
-  $('bbarFill').style.width = `${Math.min(B, 2) / 2 * 100}%`;
+  $('bbarFill').style.width = `${Math.min(B, 1) * 100}%`;
   if (+dSlider.value !== d) dSlider.value = d;
   paintRange(dSlider);
   $('cmpText').innerHTML = `지금 거리 <b>${f1(d)} cm</b>는 한 칸일 때의 거리 <b>${D_ONE} cm</b>의 <b>${(d / D_ONE).toFixed(2).replace(/\.?0+$/, '')}배</b>예요.`;
   const lbl = $('insetLabel');
   lbl.classList.toggle('exact', exact);
-  lbl.innerHTML = exact ? `<b>칸에 딱 맞음 · ${Math.round(A)}칸</b>` : A < 1 ? `넓이 <b>${f1(A)}칸</b> (한 칸보다 좁음)` : `넓이 <b>${f1(A)}칸</b>`;
+  lbl.innerHTML = exact ? `<b>칸에 딱 맞음 · ${Math.round(A)}칸</b>` : `넓이 <b>${f1(A)}칸</b>`;
   drawInset();
 }
 
@@ -153,13 +160,15 @@ function drawInset() {
   // 빛 무늬 — 구멍 바로 앞 꼭짓점(왼쪽 아래에서 한 칸 안쪽)에서 위·오른쪽으로 커짐
   const d = S.lamp.d, s = sideOf(d), B = brightOf(d);
   const x0 = m + cell, y0 = size - m - cell, w = s * cell;
-  const I = Math.min(1, 0.95 * Math.pow(Math.min(B, 2), 0.5));
+  const I = Math.min(1, 0.3 + 0.7 * Math.sqrt(Math.min(B, 1)));   // 어두워도 무늬가 보이게(화면 밝기는 실제 비율이 아님)
   g.save();
   g.beginPath(); g.rect(m, m, size - 2 * m, size - 2 * m); g.clip();
   g.filter = S.quality === 'high' ? `blur(${(0.4 + d * 0.06).toFixed(1)}px)` : 'none';
   g.fillStyle = `rgba(255,248,205,${I})`;
   g.fillRect(x0, y0 - w, w, w);
   g.filter = 'none';
+  g.strokeStyle = 'rgba(255,236,140,.95)'; g.lineWidth = 1.5; g.setLineDash([4, 3]);
+  g.strokeRect(x0, y0 - w, w, w); g.setLineDash([]);
   g.restore();
   // 모눈
   g.strokeStyle = 'rgba(20,80,40,.85)'; g.lineWidth = 1.4;
@@ -281,8 +290,10 @@ function renderStarPanel() {
   const dc = fmtDistCmp(D / s.dist);
   $('roDMul').textContent = dc.v; $('roDMulSub').textContent = dc.sub;
   const bm = (s.dist / D) ** 2;
-  $('roBMul').textContent = fmtTimes(bm);
-  $('roBMulSub').textContent = Math.abs(bm - 1) < 0.005 ? '그대로' : bm > 1 ? '더 밝게 보임' : '더 어둡게 보임';
+  $('roBMul').textContent = fmtRatio2(bm);
+  const dm = Math.abs(magAt(s, D) - s.m0);   // 등급 차이로도 함께 보여 줌
+  $('roBMulSub').textContent = Math.abs(bm - 1) < 0.005 ? '그대로'
+    : dm >= 0.05 ? `${f1(dm)}등급 ${bm > 1 ? '더 밝게' : '더 어둡게'}` : bm > 1 ? '더 밝게 보임' : '더 어둡게 보임';
   fitText($('roDMul')); fitText($('roBMul')); fitText($('roNow'));
   $('roM0').textContent = `${fmtMag(s.m0)}등급`;
   $('roM').textContent = `${fmtMag(magAt(s, D))}등급`;
@@ -301,7 +312,8 @@ function renderResTable() {
   const tb = $('resTable').tBodies[0];
   tb.innerHTML = STARS.map(s => {
     const f = S.star.found.has(s.id);
-    return `<tr class="${s.id === S.star.sel ? 'sel' : ''}"><td><span class="dot" style="background:${s.ui}"></span>${s.name}</td>` +
+    const mine = S.star.pred === s.id ? ' <span class="mine" title="처음에 고른 예상">내 예상</span>' : '';
+    return `<tr class="${s.id === S.star.sel ? 'sel' : ''}"><td><span class="dot" style="background:${s.ui}"></span>${s.name}${mine}</td>` +
       `<td>${fmtMag(s.m0)}</td><td class="${f ? 'found' : 'q'}">${f ? fmtMag(s.M) : '?'}</td></tr>`;
   }).join('');
 }
@@ -316,7 +328,7 @@ document.querySelectorAll('#predictStarOpts [data-v]').forEach(b => b.addEventLi
   if (locked()) return;
   S.star.pred = b.dataset.v; sound.soft();
   $('predictStar').hidden = true;
-  renderPredLines(); pushState();
+  renderPredLines(); renderResTable(); pushState();
 }));
 
 function onPcInput() {
@@ -506,7 +518,7 @@ function buildScale(el, ticks) {
     return `<span class="${cls}" style="--f:${f.toFixed(4)}">${label}</span>`;
   }).join('');
 }
-buildScale($('dScale'), [[3, '3 cm'], [10, '10'], [20, '20'], [30, '30 cm']].map(([v, l]) => [(v - D_MIN) / (D_MAX - D_MIN), l]));
+buildScale($('dScale'), [[6, '6 cm'], [10, '10'], [20, '20'], [30, '30 cm']].map(([v, l]) => [(v - D_MIN) / (D_MAX - D_MIN), l]));
 buildScale($('pcScale'), [[0.5, '0.5 pc'], [10, '10 pc'], [100, '100'], [1000, '1000 pc']].map(([v, l]) => [sliderFromPc(v) / 1000, l]));
 
 // 칸보다 긴 값은 글자를 조금 줄임
@@ -529,28 +541,53 @@ function checkCompare() {
   }
   if (sr && !S.star.cmp) {
     sound.chime();
-    toast(S.star.pred ? '세 별의 절대 등급이 모였어요! 처음 예상과 결과 표를 비교해 보세요' : '세 별의 절대 등급이 모였어요! [예상하기]로 생각을 정리하고 결과 표와 비교해 보세요', 3600);
+    toast(S.star.pred ? '시리우스·미르잠·물리펜의 절대 등급을 모두 찾았어요! 결과 표에서 \'내 예상\'과 비교해 보세요' : '시리우스·미르잠·물리펜의 절대 등급을 모두 찾았어요! [예상하기]로 생각을 정리하고 결과 표와 비교해 보세요', 3600);
   }
   S.lamp.cmp = lr; S.star.cmp = sr;
   renderPredLines();
 }
 
 // 알림(토스트)은 장면 영역 위쪽 가운데에 — 등급 자·제목을 가리지 않게
+// 탭 ①: 장면 아래쪽(정면 보기 창 왼쪽, 실험대 위) — 이름표들은 장면 위·가운데에 있음
+// 탭 ②: 밤하늘 창 오른쪽 위(별 이름표가 없는 곳)
 function placeToast() {
   const t = document.querySelector('.toast'), r = $('scene').getBoundingClientRect();
   if (!t || !r.width) return;
-  t.style.left = `${r.left + r.width / 2}px`;
-  t.style.top = `${r.top + 84}px`;
-  t.style.maxWidth = `${Math.max(260, r.width - 40)}px`;
+  if (S.mode === 'lamp') {
+    const inset = $('frontInset').getBoundingClientRect();
+    const right = inset.width ? inset.left - 12 : r.right - 12, left = r.left + 12;
+    t.style.left = `${(left + right) / 2}px`;
+    t.style.top = 'auto';
+    t.style.bottom = `${Math.max(8, innerHeight - r.bottom + 14)}px`;
+    t.style.maxWidth = `${Math.max(240, right - left)}px`;
+  } else {
+    const portrait = innerWidth < innerHeight, rulerW = r.width < 700 ? 116 : 130, skyW = r.width - rulerW;
+    // 세로 화면: 밤하늘 제목 오른쪽 맨 위(별들이 아래쪽에 모여 있음)
+    const left = r.left + (portrait ? 252 : skyW * 0.5), right = r.left + skyW - 10;
+    t.style.left = `${(left + right) / 2}px`;
+    t.style.bottom = 'auto';
+    t.style.top = `${r.top + (portrait ? 6 : 36)}px`;
+    t.style.maxWidth = `${Math.max(240, right - left)}px`;
+  }
 }
 
 // ---------------- 공통 ----------------
+// 예상 옆에 실험 값만 나란히 (맞았는지는 학생이 판단)
+function lampExpLine() {
+  const r = S.lamp.records.map(x => x.d);
+  let pair = null;
+  for (const a of r) { const b = r.find(x => Math.abs(x - 2 * a) < 1e-9); if (b) { pair = [a, b]; break; } }
+  const bt = d => brightParts(d).main;
+  return pair
+    ? `<span class="vs">↔ 실험: <b>${f1(pair[0])} cm</b>일 때 <b>${bt(pair[0])}</b> → <b>${f1(pair[1])} cm</b>일 때 <b>${bt(pair[1])}</b></span>`
+    : '<span class="vs">↔ 실험: 거리가 2배인 두 줄을 기록하면 여기에 나와요</span>';
+}
 function renderPredLines() {
   const lp = $('lampPredLine'), sp = $('starPredLine');
   const lc = S.lamp.cmp, sc = S.star.cmp;
   lp.classList.toggle('compare', lc); sp.classList.toggle('compare', sc);
   lp.innerHTML = S.lamp.pred
-    ? `<span>${lc ? '<em>기록 표와 비교!</em> ' : ''}내 예상: ${lc ? '' : '거리 2배 → 한 칸 밝기 '}<b>${LAMP_PRED[S.lamp.pred]}</b></span><button class="btn" data-open="predictLamp">바꾸기</button>`
+    ? `<span>${lc ? '<em>기록 표와 비교!</em> ' : ''}내 예상: 거리 2배 → 한 칸 밝기 <b>${LAMP_PRED[S.lamp.pred]}</b>${lc ? lampExpLine() : ''}</span><button class="btn" data-open="predictLamp">바꾸기</button>`
     : `<span>${lc ? '<em>기록이 모였어요.</em> ' : ''}아직 예상을 고르지 않았어요</span><button class="btn" data-open="predictLamp">예상하기</button>`;
   const ps = S.star.pred && byId(S.star.pred);
   sp.innerHTML = ps
@@ -576,8 +613,9 @@ function setMode(mode, quiet = false) {
   document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', String(t.dataset.mode === mode)));
   $('lampScene').hidden = mode !== 'lamp'; $('lampPanel').hidden = mode !== 'lamp';
   $('starScene').hidden = mode !== 'star'; $('starPanel').hidden = mode !== 'star';
-  $('predictLamp').hidden = !(mode === 'lamp' && !S.lamp.pred);
-  $('predictStar').hidden = !(mode === 'star' && !S.star.pred);
+  $('predictLamp').hidden = !(mode === 'lamp' && !S.lamp.pred && !locked());
+  $('predictStar').hidden = !(mode === 'star' && !S.star.pred && !locked());
+  placeToast();
   if (mode !== 'star') $('stairs').hidden = true;
   if (mode === 'lamp') { lamp.resize(); }
   else { S.star.visited = true; starView.layout(); renderStarPanel(); }
@@ -679,6 +717,7 @@ Bridge.onLock = () => {
   lamp.cancelDrag(); starView.cancelDrag(); stopAnim();
   document.querySelectorAll('#app input').forEach(i => { i.disabled = true; });
   setMenu(false);
+  $('predictLamp').hidden = true; $('predictStar').hidden = true;   // 잠긴 뒤에는 닫을 수 없으므로 예상 카드를 치움
 };
 
 // ---------------- 크기 변화 ----------------
