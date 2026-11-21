@@ -80,7 +80,7 @@ function makeLabel(html, cls = 'l3d') {
   return new CSS2DObject(el);
 }
 
-export function createLamp(wrap, { onDrag, onDragStart, onDragEnd, isLocked }) {
+export function createLamp(wrap, { onDrag, onDragStart, onDragEnd, onOrbit, isLocked }) {
   // 렌더러 — 품질 '낮음'에서는 안티에일리어싱을 끈 새 렌더러로 바꿈(만들 때만 정할 수 있음)
   let renderer = null, rendererAA = null;
   function buildRenderer(aa) {
@@ -126,6 +126,8 @@ export function createLamp(wrap, { onDrag, onDragStart, onDragEnd, isLocked }) {
   controls.update();
   let dirty = true;                       // 장면이 바뀌었을 때만 다시 그림
   controls.addEventListener('change', () => { dirty = true; });
+  // 손으로 카메라를 돌리거나 확대하면 시점 버튼 눌림 해제
+  controls.addEventListener('start', () => { tween = null; onOrbit && onOrbit(); });
 
   // 조명 (어둑한 실험실)
   scene.add(new THREE.HemisphereLight('#bcd2ff', '#3a2c20', 0.55));

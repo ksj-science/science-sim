@@ -77,7 +77,7 @@ export function createStarView(canvas, { onSelect, onDrag, onDragStart, onDragEn
   function vis(m) {
     const t = clamp((6.5 - m) / 8.5, 0, 1);
     const k = clamp(Math.min(L.skyH / 420, 1), 0.7, 1);
-    return { t, core: (1.3 + 7.5 * Math.pow(t, 1.4)) * k, glow: (4 + 30 * t * t) * k, a: 0.25 + 0.75 * Math.pow(t, 0.6), over: m < -2, hidden: m > NAKED_EYE };
+    return { t, core: (1.3 + 7.5 * Math.pow(t, 1.4)) * k, glow: (4 + 30 * t * t) * k, a: 0.25 + 0.75 * Math.pow(t, 0.6), over: m < -2, hidden: Math.round(m * 10) / 10 > NAKED_EYE };   // 표시한(반올림) 등급 기준
   }
 
   function drawStarGlow(x, y, s, m, sel) {
@@ -153,9 +153,12 @@ export function createStarView(canvas, { onSelect, onDrag, onDragStart, onDragEn
       g.font = `600 13px ${font}`;
       let half = g.measureText(l2).width / 2;
       if (v.over) { g.font = `600 12.5px ${font}`; half = Math.max(half, g.measureText(l3).width / 2); }
+      const nm = s.id === 'sun' ? `${s.name} (비교를 위해 함께 표시)` : s.name;   // 태양은 밤하늘에 실제로 같이 보이지 않음
+      g.font = `700 14px ${font}`;
+      half = Math.max(half, g.measureText(nm).width / 2);
       const lx = clamp(x, half + 8, L.skyW - half - 8);
-      g.font = `700 14px ${font}`; g.fillStyle = s.ui;
-      g.fillText(s.name, lx, ty);
+      g.fillStyle = s.ui;
+      g.fillText(nm, lx, ty);
       g.font = `600 13px ${font}`; g.fillStyle = '#e9f0fb';
       g.fillText(l2, lx, ty + 17);
       if (v.over) {

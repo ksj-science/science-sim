@@ -20,6 +20,7 @@ const S = {
   star: { sel: 'sirius', dist: {}, found: new Set(), pred: '', anim: null, touched: false, visited: false, cmp: false },
   stairs: { pick: [], last: null, anim: null },
 };
+let syncTabs = () => {}, syncChips = () => {};   // ←/→ 키 이동용 tabindex 맞추기 (아래에서 채움)
 const resetStarDist = () => STARS.forEach(s => { S.star.dist[s.id] = s.dist; });
 resetStarDist();
 
@@ -105,6 +106,7 @@ const lamp = createLamp($('lampCanvasWrap'), {
   onDrag: v => setLampD(v),
   onDragStart: () => { hideHint('lampHint'); sound.click(); },
   onDragEnd: () => {},
+  onOrbit: () => document.querySelectorAll('.view-btns [data-view]').forEach(x => x.setAttribute('aria-pressed', 'false')),
   isLocked: locked,
 });
 const dSlider = $('dSlider');
@@ -294,6 +296,7 @@ function renderStarPanel() {
   const dm = Math.abs(magAt(s, D) - s.m0);   // 등급 차이로도 함께 보여 줌
   $('roBMulSub').textContent = Math.abs(bm - 1) < 0.005 ? '그대로'
     : dm >= 0.05 ? `${f1(dm)}등급 ${bm > 1 ? '더 밝게' : '더 어둡게'}` : bm > 1 ? '더 밝게 보임' : '더 어둡게 보임';
+  fitSub($('roBMulSub'));
   fitText($('roDMul')); fitText($('roBMul')); fitText($('roNow'));
   $('roM0').textContent = `${fmtMag(s.m0)}등급`;
   $('roM').textContent = `${fmtMag(magAt(s, D))}등급`;
@@ -306,6 +309,7 @@ function renderStarPanel() {
   $('btnHome').disabled = atHome && !S.star.anim;
   $('btn10pc').disabled = at10 && !S.star.anim;
   renderResTable();
+  syncChips();
 }
 
 function renderResTable() {
@@ -521,6 +525,12 @@ function buildScale(el, ticks) {
 buildScale($('dScale'), [[6, '6 cm'], [10, '10'], [20, '20'], [30, '30 cm']].map(([v, l]) => [(v - D_MIN) / (D_MAX - D_MIN), l]));
 buildScale($('pcScale'), [[0.5, '0.5 pc'], [10, '10 pc'], [100, '100'], [1000, '1000 pc']].map(([v, l]) => [sliderFromPc(v) / 1000, l]));
 
+// 보조 글이 칸보다 길면 '더'를 빼서 한 줄에 (그래도 길면 CSS에서 줄바꿈)
+function fitSub(el) {
+  el.style.whiteSpace = 'nowrap';
+  if (el.clientWidth && el.scrollWidth > el.clientWidth + 1) el.textContent = el.textContent.replace(' 더 ', ' ');
+  el.style.whiteSpace = '';
+}
 // 칸보다 긴 값은 글자를 조금 줄임
 function fitText(b) {
   b.classList.remove('long');
@@ -533,6 +543,11 @@ function lampReady() {
   return r.length >= 3 || r.some(a => r.some(b => Math.abs(b - 2 * a) < 1e-9));
 }
 const starReady = () => ['sirius', 'mirzam', 'muliphein'].every(id => S.star.found.has(id));
+// 절대 등급을 찾은 별 이름 (태양도 찾았으면 함께)
+const foundNames = () => {
+  const n = STARS.filter(s => S.star.found.has(s.id)).map(s => s.name);
+  return n.length === STARS.length ? `네 별(${n.join('·')})` : n.join('·');
+};
 function checkCompare() {
   const lr = lampReady(), sr = starReady();
   if (lr && !S.lamp.cmp) {
@@ -541,8 +556,13 @@ function checkCompare() {
   }
   if (sr && !S.star.cmp) {
     sound.chime();
-    toast(S.star.pred ? '시리우스·미르잠·물리펜의 절대 등급을 모두 찾았어요! 결과 표에서 \'내 예상\'과 비교해 보세요' : '시리우스·미르잠·물리펜의 절대 등급을 모두 찾았어요! [예상하기]로 생각을 정리하고 결과 표와 비교해 보세요', 3600);
+    toast(S.star.pred ? `${foundNames()}의 절대 등급을 찾았어요! 결과 표에서 '내 예상'과 비교해 보세요` : `${foundNames()}의 절대 등급을 찾았어요! [예상하기]로 생각을 정리하고 결과 표와 비교해 보세요`, 3600);
   }
+  else if (sr && S.star.found.size === STARS.length && !S.star.cmpAll) {
+    sound.chime();
+    toast(`${foundNames()}의 절대 등급을 모두 찾았어요! 결과 표에서 비교해 보세요`, 3600);
+  }
+  S.star.cmpAll = sr && S.star.found.size === STARS.length;
   S.lamp.cmp = lr; S.star.cmp = sr;
   renderPredLines();
 }
@@ -620,9 +640,26 @@ function setMode(mode, quiet = false) {
   if (mode === 'lamp') { lamp.resize(); }
   else { S.star.visited = true; starView.layout(); renderStarPanel(); }
   if (!quiet) sound.whoosh();
+  syncTabs();
   pushState();
 }
 document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => { if (t.dataset.mode !== S.mode) setMode(t.dataset.mode); }));
+// 탭·별 고르기: ←/→(↑/↓) 키로 옆 항목으로 이동 (선택된 것만 Tab으로 들어옴)
+function arrowNav(sel, isOn) {
+  const items = () => [...document.querySelectorAll(sel)];
+  const sync = () => items().forEach(b => b.tabIndex = isOn(b) ? 0 : -1);
+  items().forEach(b => b.addEventListener('keydown', e => {
+    const k = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
+    if (!k) return;
+    e.preventDefault();
+    const list = items(), n = list[(list.indexOf(b) + k + list.length) % list.length];
+    n.focus(); n.click(); sync();
+  }));
+  items().forEach(b => b.addEventListener('click', () => requestAnimationFrame(sync)));
+  return sync;
+}
+syncTabs = arrowNav('.tab', b => b.getAttribute('aria-selected') === 'true');
+syncChips = arrowNav('#starChips .chip', b => b.getAttribute('aria-checked') === 'true');
 
 function setPaused(p) {
   S.paused = p;
@@ -736,12 +773,13 @@ const fps = new FpsMonitor(() => {
   applyQuality('low');
   toast('화면이 느려서 그래픽 품질을 \'낮음\'으로 바꿨어요 (✨ 버튼으로 되돌릴 수 있어요)', 5000);
   const b = $('btnQuality'); b.classList.remove('pulse'); void b.offsetWidth; b.classList.add('pulse');
-}, { threshold: 30, window: 4 });
+}, { threshold: 30, window: 2 });
 let last = performance.now();
+const warmUntil = last + 1500;   // 처음 불러오는 동안(셰이더 준비)은 재지 않음
 function loop(now) {
-  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  const raw = (now - last) / 1000, dt = Math.min(0.05, raw); last = now;
   if (!document.hidden) {
-    fps.update(dt);
+    if (raw < 1 && now > warmUntil) fps.update(raw);   // 실제 프레임 간격으로 2초마다 평균 (끌기·조작 중 포함, 탭 전환 등 긴 멈춤은 제외)
     stepAnim(dt);
     stepStairs(dt);
     if (S.mode === 'lamp') lamp.render(dt);

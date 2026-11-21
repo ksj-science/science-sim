@@ -36,6 +36,7 @@ button, input { font-family: inherit; }
 .btn:focus-visible, .tab:focus-visible, .chip:focus-visible, .pc-opts button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 .btn.icon { width: 44px; padding: 0; font-size: 19px; }
 .btn.icon.sm { width: 36px; min-height: 36px; font-size: 16px; }
+#btnStairsClose { width: 44px; min-height: 44px; }
 .btn.primary { background: var(--accent); color: #04223a; border-color: transparent; }
 .btn.primary:hover { background: #7cc6ff; }
 .btn.warn { color: #ffd2cc; border-color: rgba(255,122,107,.5); }
@@ -198,6 +199,7 @@ button, input { font-family: inherit; }
 #starPanel .ro b { font-size: 17px; }
 /* 좁은 칸에서는 이름이 잘리지 않고 두 줄로 */
 #starPanel .ro span { white-space: normal; word-break: keep-all; line-height: 1.25; overflow: visible; }
+#starPanel .ro small { white-space: normal; word-break: keep-all; overflow: visible; line-height: 1.25; }
 #starPanel .ro b.long { font-size: 14px; line-height: 1.55; }
 .ro.flash { animation: flash 1s ease-out; }
 @keyframes flash { 0% { box-shadow: 0 0 0 0 rgba(255,204,77,.9); } 100% { box-shadow: 0 0 0 6px rgba(255,204,77,0); } }
@@ -207,6 +209,7 @@ button, input { font-family: inherit; }
 .bbar-one { position: absolute; left: 50%; top: -2px; bottom: -2px; width: 2px; background: var(--gold); }
 .bbar-scale { display: flex; justify-content: space-between; font-size: 13px; color: var(--dim); margin-top: 2px; }
 .bbar-scale .bbar-title { color: #d4def0; font-weight: 600; }
+.bbar-note { margin: 3px 0 0; font-size: 12.5px; line-height: 1.35; color: #b4c2da; word-break: keep-all; }
 .unit-note { font-size: 12.5px; color: #b4c2da; font-weight: 400; margin-left: 4px; white-space: nowrap; }
 
 .control label { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; color: var(--dim); }
@@ -314,7 +317,7 @@ table.data td .mine { display: inline-block; margin-left: 6px; padding: 0 6px; b
   .inset canvas { width: 134px; height: 134px; }
   .chips { grid-template-columns: repeat(2, 1fr); }
   .chip { min-height: 40px; }
-  .tbl-head small { display: none; }
+  .tbl-head small:not(#recCount) { display: none; }
   table.data th, table.data td { height: 30px; }
   .drag-hint { font-size: 13px; }
   /* 터치 영역 넓히기 */
