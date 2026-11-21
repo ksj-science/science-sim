@@ -309,6 +309,17 @@ function makeLabel(cls, html = '') {
 function setLabel(l, html) { if (l.html !== html) { l.el.innerHTML = html; l.html = html; } }
 function showLabel(l, on) { l.obj.visible = on; }
 
+// 반지름 r 위에서 법선 양쪽에 놓인 두 라벨(폭 wPx)이 겹치지 않으려면 법선에서 몇 ° 벌려야 하는지
+const _pa = new THREE.Vector3(), _pb = new THREE.Vector3();
+function labelSpreadDeg(r, wPx) {
+  _pa.set(0, r, 0).project(camera);
+  _pb.set(1, r, 0).project(camera);
+  const pxPerUnit = Math.abs(_pb.x - _pa.x) * wrap.clientWidth / 2;
+  if (!pxPerUnit || !wPx) return 22;
+  const half = (wPx / 2 + 8) / pxPerUnit; // 라벨 반폭 + 여백을 장면 단위로
+  return Math.min(68, Math.max(22, Math.asin(Math.min(1, half / r)) / DEG));
+}
+
 const lblInc = makeLabel('inc');
 const lblRefr = makeLabel('refr');
 const lblRefl = makeLabel('refl');
@@ -887,10 +898,14 @@ function update(dt) {
   showLabel(lblRefr, showAng && !tir && hitting);
   showLabel(lblRefl, showAng && reflVisible && hitting);
   const polar = (deg, r) => tmpV.set(Math.cos(deg * DEG) * r, Math.sin(deg * DEG) * r, 0);
-  // 라벨이 겹치지 않도록 각 호의 바깥쪽 옆에 둔다
-  lblInc.obj.position.copy(polar(90 + Math.max(a1 / 2, 22), 1.95));
+  // 라벨이 겹치지 않도록 각 호의 바깥쪽 옆에 둔다.
+  // 입사각·반사각 라벨은 법선 양쪽 같은 높이에 놓이므로, 화면이 좁아 서로 닿으면 법선에서 더 벌린다.
+  const upMin = lblRefl.obj.visible
+    ? labelSpreadDeg(1.95, Math.max(lblInc.el.offsetWidth, lblRefl.el.offsetWidth))
+    : 22;
+  lblInc.obj.position.copy(polar(90 + Math.max(a1 / 2, upMin), 1.95));
   lblRefr.obj.position.copy(polar(-90 + Math.max(a2 / 2, 22), 1.95));
-  lblRefl.obj.position.copy(polar(90 - Math.max(a1 / 2, 22), 1.95));
+  lblRefl.obj.position.copy(polar(90 - Math.max(a1 / 2, upMin), 1.95));
   setLabel(lblInc, `입사각 ${fmt(a1)}°`);
   setLabel(lblRefr, `굴절각 ${fmt(a2)}°`);
   setLabel(lblRefl, `반사각 ${fmt(a1)}°`);

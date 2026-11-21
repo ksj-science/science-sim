@@ -240,8 +240,9 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border-radius
 #btnLaser.off { background: rgba(255,255,255,0.08); color: var(--text); border-color: var(--panel-border); }
 
 /* 그래프 */
+/* 그래프는 왼쪽 위: 반사광·반사각 라벨(오른쪽 위)을 가리지 않음. 왼쪽 열은 측정값 패널 때문에 장면이 비켜 있는 자리 */
 #graphPanel {
-  position: absolute; right: 12px; top: 12px; width: 300px; padding: 10px 12px; z-index: 4;
+  position: absolute; left: 12px; top: 12px; width: 300px; padding: 10px 12px; z-index: 4;
   animation: fadeIn 0.25s ease;
 }
 .gp-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
@@ -282,7 +283,18 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border-radius
 .chip small { opacity: 0.75; margin-left: 3px; }
 .chip.color i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; box-shadow: 0 0 6px currentColor; }
 .btn.swap { width: 100%; margin: -4px 0; }
-.toggles { display: grid; gap: 4px; }
+.toggles { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 10px; }
+.toggles .toggle { font-size: 14px; gap: 8px; }
+.toggles .toggle.wide { grid-column: 1 / -1; }
+#controls .chip-row { flex-wrap: nowrap; gap: 5px; }
+#controls .chip-row .chip { flex: 1 1 auto; padding: 6px 4px; text-align: center; white-space: nowrap; }
+
+/* 접이식 섹션: 제목을 누르면 접히고 펼쳐짐 */
+details.fold > summary { list-style: none; cursor: pointer; user-select: none; }
+details.fold > summary::-webkit-details-marker { display: none; }
+details.fold > summary h2::after { content: "▾"; margin-left: auto; color: var(--text-dim); font-size: 13px; transition: transform 0.2s; }
+details.fold:not([open]) > summary h2 { margin-bottom: 0 !important; }
+details.fold:not([open]) > summary h2::after { transform: rotate(-90deg); }
 
 /* 모달 */
 .modal { position: fixed; inset: 0; background: rgba(4,8,16,0.6); display: grid; place-items: center; z-index: 100; padding: 16px; }
@@ -301,14 +313,16 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border-radius
     grid-template-areas: "top" "stage" "controls";
   }
   #controls {
-    max-height: 36vh;
+    max-height: 38vh;
     border-width: 1px 0 0 0;
     display: grid; grid-template-columns: 1fr 1fr; gap: 12px 18px;
     padding: 12px 14px;
   }
   #controls .btn.swap { grid-column: 1 / -1; margin: 0; }
-  .toggles { grid-template-columns: 1fr 1fr; grid-column: 1 / -1; }
-  .toggles h2 { grid-column: 1 / -1; }
+  details.fold.toggles-wrap { grid-column: 1 / -1; }
+  .toggles { grid-template-columns: repeat(3, 1fr); }
+  .toggles .toggle.wide { grid-column: auto; }
+  #controls h2 { margin-bottom: 6px; }
   #readout { width: 250px; padding: 9px 10px; font-size: 13px; }
   .ro-item b { font-size: 17px; }
   #graphPanel { width: 250px; }
@@ -325,7 +339,7 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border-radius
   .ro-item { flex-direction: row; align-items: baseline; justify-content: space-between; padding: 4px 7px; }
   .ro-item b { font-size: 15px; }
   .explain { margin-top: 6px; padding: 5px 8px; font-size: 12.5px; }
-  #graphPanel { top: auto; bottom: 70px; right: 8px; }
+  #graphPanel { top: auto; bottom: 70px; left: auto; right: 8px; }
   #topbar p { display: none; }
 }
 @media (max-height: 640px) and (min-width: 901px) {
