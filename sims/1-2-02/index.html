@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>토끼 무리의 대모험 — 변이와 생물의 다양성</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="../../lib/sim.css">
+<link rel="stylesheet" href="../../lib/vendor/jua-5.3.0/jua.css">
+<style>
+  :root {
+    --ink: #22324a; --muted: #66748a; --line: #e2e7ef; --bg: #eef3f6;
+    --coral: #ff7657; --coral-d: #e85a3c; --teal: #17a398; --violet: #7b4fd6;
+    --grassC: #2e8b3e; --sandC: #b07a2a;
+    --shadow: 0 8px 24px rgba(34, 50, 74, .10);
+    --display: "Jua", "Pretendard", "Noto Sans KR", sans-serif;
+  }
+  html, body { height: 100%; overflow: hidden; }
+  body { display: flex; flex-direction: column; background: radial-gradient(1200px 600px at 20% -10%, #fff7ec 0%, transparent 60%), var(--bg);
+         user-select: none; -webkit-user-select: none; }
+  .display { font-family: var(--display); font-weight: 400; letter-spacing: .2px; }
+
+  /* ---------- 머리줄 ---------- */
+  header.top { height: 60px; flex: none; display: flex; align-items: center; gap: 14px; padding: 0 16px; }
+  .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .brand .badge { font-size: 12px; font-weight: 700; color: #fff; background: var(--violet); border-radius: 8px; padding: 3px 8px; white-space: nowrap; }
+  .brand h1 { margin: 0; font-size: 24px; color: var(--ink); white-space: nowrap; }
+  .brand small { color: var(--muted); font-size: 13px; white-space: nowrap; }
+  .steps { flex: 1; display: flex; align-items: center; justify-content: center; gap: 0; margin: 0; padding: 0; list-style: none; }
+  .steps li { display: flex; align-items: center; gap: 6px; color: #9aa6b8; font-size: 13.5px; font-weight: 600; white-space: nowrap; }
+  .steps li .dot { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: #dfe5ee; color: #fff;
+                   font-family: var(--display); font-size: 15px; transition: background .3s, transform .3s; }
+  .steps li.done .dot { background: #b9a3ea; }
+  .steps li.on { color: var(--ink); }
+  .steps li.on .dot { background: var(--violet); transform: scale(1.12); box-shadow: 0 0 0 4px rgba(123,79,214,.18); }
+  .steps .bar { width: 14px; height: 3px; background: #dfe5ee; border-radius: 2px; margin: 0 6px; }
+  .steps .bar.done { background: #b9a3ea; }
+  .top-btns { display: flex; gap: 8px; }
+  .top-btns button { white-space: nowrap; min-height: 38px; padding: 6px 14px; border-radius: 12px; font-size: 14px; background: #fff; border: 1px solid var(--line); box-shadow: 0 2px 6px rgba(34,50,74,.06); }
+  .top-btns #bChallenge { border-color: #f3c3b6; color: var(--coral-d); }
+
+  /* ---------- 본문 ---------- */
+  main.stage-main { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 350px; gap: 12px; padding: 0 12px 12px; }
+  .scene-wrap { position: relative; min-height: 0; border-radius: 20px; overflow: hidden; box-shadow: var(--shadow); background: #bfe6f6; touch-action: none; }
+  #scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  #scene.drawing { cursor: crosshair; }
+
+  /* 임무 카드 */
+  .mission { position: absolute; top: 14px; left: 14px; width: 380px; background: rgba(255,255,255,.95); border-radius: 18px; padding: 12px 16px 14px;
+             box-shadow: var(--shadow); transition: transform .4s, opacity .4s; }
+  .mission .head { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+  .mission .avatar { width: 40px; height: 40px; border-radius: 50%; background: #fff4e6; display: grid; place-items: center; flex: none; border: 2px solid #ffd9a8; }
+  .mission .chap { font-size: 12px; font-weight: 700; color: var(--violet); }
+  .mission h2 { margin: 0; font-size: 22px; line-height: 1.15; color: var(--ink); }
+  .mission p { margin: 6px 0 0; font-size: 14.5px; line-height: 1.55; color: #3b4a61; }
+  .mission p b { color: var(--coral-d); }
+  .mission .chips { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .chip { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; padding: 3px 10px 3px 4px; border-radius: 999px; background: #f1f4f8; color: #8a96a8; transition: all .3s; }
+  .chip img { width: 22px; height: 24px; object-fit: contain; }
+  .chip.ok { background: #e3f6ec; color: #1d8a54; }
+  .chip.ok::after { content: "✓"; margin-left: 2px; }
+  .legend-ring { display: inline-block; width: 14px; height: 8px; border-radius: 50%; border: 2.5px solid; vertical-align: 0; margin: 0 3px 0 6px; }
+
+  /* 하단 조작줄 */
+  .hud { position: absolute; left: 14px; right: 14px; bottom: 12px; display: flex; align-items: center; gap: 10px; pointer-events: none; }
+  .hud > * { pointer-events: auto; }
+  .gen-badge { background: rgba(255,255,255,.95); border-radius: 16px; padding: 6px 14px; box-shadow: var(--shadow); text-align: center; min-width: 96px; }
+  .gen-badge small { display: block; font-size: 11px; color: var(--muted); font-weight: 600; }
+  .gen-badge b { font-family: var(--display); font-weight: 400; font-size: 26px; line-height: 1; color: var(--ink); }
+  .hud .grow { flex: 1; display: flex; justify-content: center; gap: 10px; }
+  .btn { font-family: var(--display); font-weight: 400; font-size: 19px; border-radius: 16px; padding: 10px 22px; min-height: 50px; border: 0;
+         background: #fff; color: var(--ink); box-shadow: var(--shadow); transition: transform .15s, box-shadow .15s, opacity .2s; }
+  .btn:hover:not(:disabled) { transform: translateY(-2px); }
+  .btn:active:not(:disabled) { transform: translateY(1px); }
+  .btn.primary { background: linear-gradient(180deg, #ff8a6b, var(--coral-d)); color: #fff; box-shadow: 0 6px 0 #c9472c, var(--shadow); }
+  .btn.primary:active:not(:disabled) { box-shadow: 0 3px 0 #c9472c; }
+  .btn.teal { background: linear-gradient(180deg, #2bbcb0, #128a80); color: #fff; box-shadow: 0 6px 0 #0d6c64, var(--shadow); }
+  .btn.pulse { animation: pulse 1.6s infinite; }
+  @keyframes pulse { 0%,100% { filter: none; } 50% { filter: brightness(1.12) drop-shadow(0 0 10px rgba(255,118,87,.6)); } }
+  .speed { display: flex; background: rgba(255,255,255,.95); border-radius: 14px; padding: 4px; box-shadow: var(--shadow); }
+  .speed button { border: 0; min-height: 38px; padding: 4px 12px; border-radius: 10px; font-size: 14px; background: transparent; color: var(--muted); }
+  .speed button[aria-pressed=true] { background: var(--ink); color: #fff; }
+  .hidden { display: none !important; }
+
+  /* 장면 위 팝업 */
+  .modal { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(24, 36, 56, .38); opacity: 0; pointer-events: none; transition: opacity .35s; }
+  .modal.show { opacity: 1; pointer-events: auto; }
+  .card { background: #fff; border-radius: 22px; padding: 22px 26px; width: 600px; max-width: calc(100% - 40px); box-shadow: 0 20px 50px rgba(20,30,50,.25);
+          transform: translateY(14px) scale(.98); transition: transform .35s; }
+  .modal.show .card { transform: none; }
+  .card h3 { margin: 0 0 6px; font-size: 27px; color: var(--ink); }
+  .card .sub { margin: 0 0 14px; color: #4a5870; font-size: 15px; line-height: 1.55; }
+  .card .actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
+  .pick-row { display: grid; grid-template-columns: 130px 1fr; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px dashed var(--line); }
+  .pick-row .lab { font-family: var(--display); font-size: 18px; }
+  .pick-row .lab small { display: block; font-family: var(--font); font-size: 12px; color: var(--muted); }
+  .picks { display: flex; gap: 8px; }
+  .pick { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px 6px; border-radius: 14px; border: 2px solid var(--line);
+          background: #fafbfd; font-size: 14px; font-weight: 600; min-height: 0; }
+  .pick img { width: 62px; height: 52px; object-fit: contain; }
+  .pick[aria-pressed=true] { border-color: var(--coral); background: #fff3ef; color: var(--coral-d); }
+  .result-row { display: grid; grid-template-columns: 120px 1fr 1fr 40px; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 14px; background: #f6f8fb; margin-bottom: 8px; font-size: 15px; }
+  .result-row .lab { font-family: var(--display); font-size: 18px; }
+  .result-row .mark { font-family: var(--display); font-size: 26px; text-align: center; }
+  .result-row .mark.o { color: #1d9a5c; } .result-row .mark.x { color: #d0573c; }
+  .flow { display: flex; align-items: stretch; gap: 6px; margin: 10px 0 4px; }
+  .flow div { flex: 1; background: #f4f0fd; border-radius: 12px; padding: 8px 6px; font-size: 13px; text-align: center; line-height: 1.35; color: #3e2e6b; }
+  .flow div b { display: block; font-family: var(--display); font-weight: 400; font-size: 16px; white-space: nowrap; color: var(--violet); }
+  .flow i { align-self: center; color: #b9a3ea; font-style: normal; font-weight: 700; }
+
+  .timelapse { position: absolute; inset: 0; display: grid; place-items: center; background: radial-gradient(circle at 50% 45%, rgba(40,30,80,.55), rgba(15,12,35,.85));
+               color: #fff; text-align: center; opacity: 0; pointer-events: none; transition: opacity .8s; }
+  .timelapse.show { opacity: 1; pointer-events: auto; }
+  .timelapse b { display: block; font-family: var(--display); font-weight: 400; font-size: 64px; letter-spacing: 1px; }
+  .timelapse span { font-size: 18px; opacity: .85; }
+  .stamp { position: absolute; left: 50%; top: 40%; transform: translate(-50%,-50%) rotate(-12deg) scale(2.2); opacity: 0;
+           font-family: var(--display); font-size: 96px; color: #d33a2c; border: 8px solid #d33a2c; border-radius: 22px; padding: 0 30px;
+           background: rgba(255,255,255,.75); pointer-events: none; white-space: nowrap; transition: transform .35s cubic-bezier(.3,1.6,.5,1), opacity .2s; }
+  .stamp.show { opacity: 1; transform: translate(-50%,-50%) rotate(-12deg) scale(1); }
+  .stamp.show.mini { left: 84%; top: 17%; transform: translate(-50%,-50%) rotate(-12deg) scale(.55); transition: all .5s ease; }
+
+  .bubble { position: absolute; transform: translate(-50%, -100%); background: #fff; border-radius: 14px; padding: 7px 12px; font-size: 14px; font-weight: 600;
+            box-shadow: 0 6px 18px rgba(20,30,50,.2); white-space: nowrap; pointer-events: none; animation: bub .25s ease; color: var(--ink); }
+  .bubble::after { content: ""; position: absolute; left: 50%; bottom: -7px; margin-left: -7px; border: 7px solid transparent; border-top-color: #fff; border-bottom: 0; }
+  @keyframes bub { from { opacity: 0; transform: translate(-50%, -80%); } }
+  .draw-hint { position: absolute; left: 50%; top: 38%; transform: translateX(-50%); pointer-events: none; text-align: center; color: #fff;
+               font-family: var(--display); font-size: 22px; text-shadow: 0 2px 6px rgba(0,0,0,.35); }
+  .draw-hint .finger { width: 54px; height: 54px; margin: 0 auto 4px; border-radius: 50%; background: rgba(255,255,255,.85); border: 3px solid #fff;
+                       box-shadow: 0 0 0 6px rgba(255,255,255,.35); animation: swipe 2s ease-in-out infinite; }
+  @keyframes swipe { 0% { transform: translateY(-40px); opacity: 0; } 15% { opacity: 1; } 80% { transform: translateY(150px); opacity: 1; } 100% { transform: translateY(170px); opacity: 0; } }
+
+  /* ---------- 옆 패널 ---------- */
+  aside.side { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+  .side-card { background: #fff; border-radius: 18px; padding: 10px 14px 10px; box-shadow: var(--shadow); min-height: 0; }
+  .grp { flex: 1; display: flex; flex-direction: column; }
+  .grp .gh { display: flex; align-items: center; gap: 8px; }
+  .grp .gh .hab { width: 26px; height: 26px; border-radius: 8px; flex: none; }
+  .grp .gh h4 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 19px; }
+  .grp .gh .tot { margin-left: auto; font-size: 13px; color: var(--muted); font-weight: 600; }
+  .grp .gh .tot b { font-size: 17px; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .picto { display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; margin: 6px 0 2px; }
+  .picto.wide { grid-template-columns: repeat(12, 1fr); }
+  
+  @keyframes popIn { from { transform: scale(.2); } }
+  .counts { display: flex; gap: 10px; font-size: 13px; color: var(--muted); font-weight: 600; }
+  .counts span b { color: var(--ink); font-variant-numeric: tabular-nums; }
+  .counts i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; border: 1px solid #8f98a6; margin-right: 3px; vertical-align: -1px; }
+  .chart-box { position: relative; flex: 1; min-height: 70px; margin-top: 4px; }
+  .chart-box canvas { position: absolute; inset: 0; width: 100% !important; height: 100% !important; }
+  .placeholder { flex: 1; display: grid; place-items: center; text-align: center; color: #9aa6b8; font-size: 14px; border: 2px dashed var(--line); border-radius: 14px; margin-top: 6px; }
+  .pred h4 { margin: 0 0 6px; font-family: var(--display); font-weight: 400; font-size: 18px; }
+  .pred-row { display: flex; align-items: center; gap: 8px; font-size: 14px; padding: 3px 0; }
+  .pred-row .nm { width: 92px; color: var(--muted); font-weight: 600; }
+  .pred-row .val { font-weight: 700; }
+  .pred-row .res { margin-left: auto; font-family: var(--display); font-size: 18px; }
+  .sim-locked .btn, .sim-locked .top-btns button { opacity: .5; pointer-events: none; }
+
+  .loading { position: absolute; inset: 0; display: grid; place-items: center; background: linear-gradient(#8ec1e6, #9ec46a); color: #fff; font-size: 26px; text-shadow: 0 2px 6px rgba(0,0,0,.3); z-index: 5; }
+  .ico { display: inline-block; vertical-align: middle; object-fit: contain; }
+  .picto img { width: 100%; height: 30px; object-fit: contain; }
+  .picto img.empty { filter: grayscale(1); opacity: .13; }
+  .picto img.new { animation: popIn .4s ease; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <span class="badge">과학1 Ⅱ-2</span>
+    <h1 class="display">토끼 무리의 대모험</h1>
+    <small>변이와 생물의 다양성</small>
+  </div>
+  <ol class="steps" id="steps"></ol>
+  <div class="top-btns">
+    <button id="bChallenge" disabled title="변이가 없다면? — 본 실험에서 10세대를 관찰하면 열려요">도전 실험</button>
+    <button id="bReset">처음부터</button>
+  </div>
+</header>
+
+<main class="stage-main">
+  <section class="scene-wrap" id="wrap">
+    <canvas id="scene" aria-label="토끼가 사는 서식지"></canvas>
+    <div class="loading" id="loading"><b class="display">토끼 마을을 그리는 중…</b></div>
+
+    <div class="mission" id="mission">
+      <div class="head">
+        <div class="avatar"><img id="avatar" class="ico" width="28" height="34" alt=""></div>
+        <div><div class="chap" id="mChap">장면 1</div><h2 class="display" id="mTitle"></h2></div>
+      </div>
+      <p id="mText"></p>
+      <div class="chips" id="mChips"></div>
+    </div>
+
+    <div class="draw-hint hidden" id="drawHint"><div class="finger"></div>위에서 아래로 쓱— 그어 보세요</div>
+
+    <div class="hud">
+      <div class="gen-badge" id="genBadge"><small>강이 생긴 뒤</small><b id="genOut">0세대</b></div>
+      <div class="grow" id="hudBtns"></div>
+      <div class="speed" id="speed">
+        <button data-sp="1" aria-pressed="true">보통</button>
+        <button data-sp="0.35" aria-pressed="false">빠르게</button>
+      </div>
+    </div>
+
+    <div class="modal" id="modal"><div class="card" id="card"></div></div>
+    <div class="timelapse" id="timelapse"><div><b id="tlYear">0년</b><span>아주 오랜 시간이 흘렀어요…</span></div></div>
+    <div class="stamp" id="stamp">멸종</div>
+  </section>
+
+  <aside class="side">
+    <div class="side-card grp" id="cardL">
+      <div class="gh"><span class="hab" id="habL"></span><h4 id="nameL">처음 무리</h4><span class="tot"><b id="totL">24</b> 마리</span></div>
+      <div class="picto" id="pictoL"></div>
+      <div class="counts" id="cntL"></div>
+      <div class="chart-box"><canvas id="chartL" aria-label="왼쪽 무리 세대별 털색 수"></canvas></div>
+    </div>
+    <div class="side-card grp" id="cardR">
+      <div class="gh"><span class="hab" style="background:linear-gradient(135deg,#efc07f,#c08647)"></span><h4>사막 무리</h4><span class="tot"><b id="totR">0</b> 마리</span></div>
+      <div id="rBody" class="hidden" style="display:flex;flex-direction:column;flex:1;min-height:0">
+        <div class="picto" id="pictoR"></div>
+        <div class="counts" id="cntR"></div>
+        <div class="chart-box"><canvas id="chartR" aria-label="오른쪽 무리 세대별 털색 수"></canvas></div>
+      </div>
+      <div class="placeholder" id="rPlace">아직 한 무리예요.<br>서식지가 나뉘면 여기에 표시돼요.</div>
+    </div>
+    <div class="side-card pred">
+      <h4>내 예측</h4>
+      <div class="pred-row"><span class="nm">풀밭 무리</span><span class="val" id="pL">아직 안 함</span><span class="res" id="rsL"></span></div>
+      <div class="pred-row"><span class="nm">사막 무리</span><span class="val" id="pR">아직 안 함</span><span class="res" id="rsR"></span></div>
+    </div>
+  </aside>
+</main>
+
+<script src="../../lib/vendor/chartjs-4.4.6/chart.umd.js"></script>
+<script src="../../lib/sim-bridge.js"></script>
+<script src="scene.js"></script>
+<script>
+function startSim() {
+  'use strict';
+  /* =========================================================
+   *  모델 — 단순화한 내용은 단원설계서/1-2-02.md 참고
+   * ========================================================= */
+  var COLORS = ['white', 'gray', 'brown'];
+  var NAME = { white: '흰색', gray: '회색', brown: '갈색' };
+  var CHART = { white: ['#a9adb3', '#d9dce0'], gray: ['#5e676f', '#8d969e'], brown: ['#6e4a2a', '#a7784a'] };
+  var SW = { white: '#f3f1ea', gray: '#8f8e8b', brown: '#86643d' };
+  // 한 세대에 매에게 잡힐 확률 — 주변과 털색이 비슷할수록 낮음
+  var CATCH = { L: { white: 0.7, brown: 0.45, gray: 0.05 }, R: { white: 0.7, gray: 0.45, brown: 0.05 } };
+  var CAP = 16, GOAL = 10;
+  var Y0 = 350, Y1 = 600, X0 = 90, X1 = 910;
+
+  var S = {
+    mode: 'var', stage: 1, gen: 0, merged: false, busy: false, playing: false, speed: 1,
+    found: {}, predict: { L: null, R: null }, resultShown: false, cross: false, same: false, mainDone: false,
+    noVarTried: false, noVarSurv: null, lastVar: null, lastVarGen: 0, locked: false
+  };
+  var pop = [], hist = { L: [], R: [] }, token = 0, selected = null;
+
+  var $ = function (id) { return document.getElementById(id); };
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  function T(ms) { return ms * S.speed; }
+
+  var SC = window.RabbitScene($('scene'), $('wrap'));
+  function ico(c, kind, w, h, extra) { return '<img class="ico" src="' + SC.icons[kind || 'front'][c] + '" width="' + (w || 22) + '" height="' + (h || 26) + '" alt="' + NAME[c] + '" ' + (extra || '') + '>'; }
+  $('avatar').src = SC.icons.front.white;
+
+  /* =========================================================
+   *  토끼 자리
+   * ========================================================= */
+  function inArea(side, x, y) {
+    if (y < Y0 || y > Y1 || x < X0 || x > X1) return false;
+    if (!SC.hasRiver() || !side) return true;
+    var rx = SC.riverX(y), m = SC.riverWidth(y) / 2 + 34;
+    return side === 'L' ? x < rx - m : x > rx + m;
+  }
+  function spot(side, near, radius) {
+    var best = null, bestD = -1;
+    for (var k = 0; k < 40; k++) {
+      var x, y;
+      if (near) { var a = rnd(0, 6.283), r = rnd(30, radius || 90); x = near.x + Math.cos(a) * r; y = near.y + Math.sin(a) * r * 0.6; }
+      else { x = rnd(X0, X1); y = rnd(Y0, Y1); }
+      if (!inArea(side, x, y)) continue;
+      var d = 1e9;
+      pop.forEach(function (o) { if (o !== near) d = Math.min(d, Math.hypot(o.x - x, (o.y - y) * 1.5)); });
+      if (d > bestD) { bestD = d; best = { x: x, y: y }; }
+      if (d > 80) break;
+    }
+    if (!best) return near ? spot(side, null) : { x: side === 'R' ? 800 : 200, y: rnd(Y0, Y1) };
+    return best;
+  }
+  function makeRabbit(color, side, at) {
+    var r = SC.newRabbit(color, at.x, at.y);
+    r.side = side; r.origin = side;
+    pop.push(r);
+    return r;
+  }
+  function detach(r) { var i = pop.indexOf(r); if (i >= 0) pop.splice(i, 1); }
+  function count(side) {
+    var o = { white: 0, gray: 0, brown: 0 };
+    pop.forEach(function (r) { if (!side || r.side === side) o[r.color]++; });
+    return o;
+  }
+  function total(o) { return o.white + o.gray + o.brown; }
+
+  // 토끼들이 가끔 깡충깡충 돌아다님
+  setInterval(function () {
+    if (S.busy || !pop.length || document.hidden) return;
+    for (var n = 0; n < 2; n++) {
+      var r = pop[Math.floor(Math.random() * pop.length)];
+      if (!r || r.hold || r.move) continue;
+      var p = spot(S.merged || !SC.hasRiver() ? null : r.side, r, 70);
+      SC.hopTo(r, p.x, p.y, 1);
+    }
+  }, 1100);
+
+  function bubble(x, y, html, ms) {
+    var p = SC.toScreen(x, y), b = document.createElement('div');
+    b.className = 'bubble'; b.innerHTML = html;
+    b.style.left = Math.max(120, Math.min($('wrap').clientWidth - 120, p.x)) + 'px'; b.style.top = Math.max(60, p.y) + 'px';
+    $('wrap').appendChild(b);
+    setTimeout(function () { b.style.transition = 'opacity .3s'; b.style.opacity = 0; setTimeout(function () { b.remove(); }, 300); }, ms || 1800);
+  }
+
+  /* =========================================================
+   *  한 세대: 매의 사냥 → 자손
+   * ========================================================= */
+  async function huntSide(side, list, tok) {
+    if (!list.length) return;
+    var gap = Math.max(420, 1300 / Math.sqrt(list.length));
+    var jobs = list.map(function (r, i) {
+      return sleep(T(i * gap)).then(function () {
+        if (tok !== token) return;
+        r.hold = true; r.move = null;
+        return SC.hunt(r, side, T).then(function () { detach(r); renderSide(); });
+      });
+    });
+    await Promise.all(jobs);
+  }
+  async function generation(tok) {
+    var caught = { L: [], R: [] }, surv = { L: [], R: [] };
+    pop.forEach(function (r) { r.move = null; (Math.random() < CATCH[r.side][r.color] ? caught : surv)[r.side].push(r); });
+    setStep(3);
+    await Promise.all([huntSide('L', shuffle(caught.L), tok), huntSide('R', shuffle(caught.R), tok)]);
+    if (tok !== token) return;
+    caught.L.concat(caught.R).forEach(detach);
+    await sleep(T(250));
+    setStep(4);
+    var births = [];
+    ['L', 'R'].forEach(function (side) {
+      var parents = surv[side];
+      var all = parents.map(function (p) { return { parent: p }; }).concat(parents.map(function (p) { return { old: p }; }));
+      shuffle(all);
+      all.splice(CAP).forEach(function (o) { if (o.old) { detach(o.old); SC.fade(o.old, T(600)); } });   // 먹이·공간 한계
+      all.forEach(function (o) { if (o.parent) births.push({ side: side, p: o.parent }); });
+    });
+    births.forEach(function (b, i) {
+      setTimeout(function () {
+        if (tok !== token) return;
+        var p = b.p, d = SC.depth(p.y);
+        SC.fx('heart', p.x, p.y - 80 * d, d * 1.1);
+        var r = makeRabbit(p.color, b.side, { x: p.x + p.dir * 6, y: p.y + 2 });
+        r.dir = p.dir; r.grow = 0.45; r.growT0 = performance.now(); r.growDur = T(1400);
+        var at = spot(b.side, p, 100);
+        SC.hopTo(r, at.x, at.y, Math.max(0.5, S.speed));
+        renderSide();
+      }, T(i * 60));
+    });
+    await sleep(T(births.length * 60 + 900));
+    if (tok !== token) return;
+    S.gen++;
+    snapshot(); renderAll(); push();
+  }
+
+  async function play(once, tok) {
+    S.playing = true; S.busy = true; renderHud();
+    await sleep(350);
+    while (S.playing && tok === token && pop.length) {
+      await generation(tok);
+      if (S.mode === 'var' && S.gen >= GOAL && !S.resultShown) break;
+      if (S.mode === 'none' && S.gen >= GOAL) break;
+      if (once) break;
+      await sleep(T(300));
+    }
+    if (tok !== token) return;
+    S.playing = false; S.busy = false;
+    setStep(4);
+    if (S.mode === 'var' && S.gen >= GOAL && !S.resultShown) { S.resultShown = true; showResults(); }
+    if (S.mode === 'none' && (S.gen >= GOAL || !pop.length)) finishNoVar();
+    renderAll(); push();
+  }
+
+  /* =========================================================
+   *  화면 갱신
+   * ========================================================= */
+  var STEPS = ['변이 관찰', '서식지 나뉨', '천적과 생존', '자손 남기기', '다른 종류로'];
+  function setStep(n) { S.stage = n; renderSteps(); }
+  function renderSteps() {
+    var h = '';
+    STEPS.forEach(function (t, i) {
+      var n = i + 1, cls = n === S.stage ? 'on' : (n < S.stage ? 'done' : '');
+      if (S.stage === 4 && n === 3) cls = 'on';
+      if (i) h += '<span class="bar ' + (n <= S.stage ? 'done' : '') + '"></span>';
+      h += '<li class="' + cls + '"><span class="dot">' + n + '</span>' + t + '</li>';
+    });
+    $('steps').innerHTML = h;
+  }
+  function mission(chap, title, text, chips) {
+    $('mChap').textContent = chap; $('mTitle').textContent = title; $('mText').innerHTML = text;
+    $('mChips').innerHTML = chips || '';
+  }
+  var hudDef = [];
+  function hud(btns) { hudDef = btns; renderHud(); }
+  function renderHud() {
+    var box = $('hudBtns'); box.innerHTML = '';
+    hudDef.forEach(function (b) {
+      if (b.show && !b.show()) return;
+      var e = document.createElement('button');
+      e.className = 'btn ' + (b.cls || ''); e.textContent = typeof b.label === 'function' ? b.label() : b.label;
+      e.disabled = S.locked || (b.enabled ? !b.enabled() : false);
+      e.onclick = function () { if (!S.locked) b.go(); };
+      box.appendChild(e);
+    });
+    var split = SC.hasRiver() && !S.merged;
+    $('speed').classList.toggle('hidden', !split);
+    $('genBadge').classList.toggle('hidden', !(split || S.merged));
+    $('genOut').textContent = S.gen + '세대';
+    $('bChallenge').disabled = S.locked || S.busy || !(S.mainDone || (S.lastVar && S.lastVarGen >= GOAL)) || S.mode === 'none';
+    $('bReset').disabled = S.locked;
+  }
+  function renderPicto(box, list, cap, wide) {
+    box.className = 'picto' + (wide ? ' wide' : '');
+    var h = '', idx = 0;
+    COLORS.forEach(function (c) { for (var i = 0; i < list[c]; i++, idx++) h += '<img src="' + SC.icons.front[c] + '" alt="">'; });
+    for (; idx < cap; idx++) h += '<img class="empty" src="' + SC.icons.front.white + '" alt="">';
+    box.innerHTML = h;
+  }
+  function countsHtml(o) {
+    return COLORS.map(function (c) { return '<span><i style="background:' + SW[c] + '"></i>' + NAME[c] + ' <b>' + o[c] + '</b></span>'; }).join('');
+  }
+  function renderSide() {
+    var split = SC.hasRiver() || S.merged || hist.L.length > 0;
+    if (!split) {
+      var A = count(null);
+      $('nameL').textContent = '처음 무리'; $('totL').textContent = total(A);
+      $('habL').style.background = 'linear-gradient(135deg,#9cc760,#4f8a2a)';
+      renderPicto($('pictoL'), A, 24, true);
+      $('cntL').innerHTML = countsHtml(A);
+      $('rBody').classList.add('hidden'); $('rPlace').classList.remove('hidden'); $('totR').textContent = 0;
+    } else {
+      var Lc = count('L'), Rc = count('R');
+      $('nameL').textContent = '풀밭 무리'; $('totL').textContent = total(Lc);
+      $('habL').style.background = 'linear-gradient(135deg,#9cc760,#4f8a2a)';
+      renderPicto($('pictoL'), Lc, CAP); $('cntL').innerHTML = countsHtml(Lc);
+      renderPicto($('pictoR'), Rc, CAP); $('cntR').innerHTML = countsHtml(Rc); $('totR').textContent = total(Rc);
+      $('rBody').classList.remove('hidden'); $('rPlace').classList.add('hidden');
+    }
+  }
+  function renderPred() {
+    $('pL').innerHTML = S.predict.L ? NAME[S.predict.L] + ' 토끼' : '아직 안 함';
+    $('pR').innerHTML = S.predict.R ? NAME[S.predict.R] + ' 토끼' : '아직 안 함';
+    var res = S.resultShown && S.lastVar;
+    ['L', 'R'].forEach(function (s) {
+      var e = $('rs' + s);
+      if (!res || !S.predict[s]) { e.textContent = ''; return; }
+      var ok = topColor(S.lastVar[s === 'L' ? 'left' : 'right']) === S.predict[s];
+      e.textContent = ok ? '맞음 ⭕' : '다름 ✖'; e.style.color = ok ? '#1d9a5c' : '#d0573c';
+    });
+  }
+  function renderAll() { renderSide(); renderHud(); renderPred(); renderCharts(); }
+
+  /* ---------- 그래프 (Chart.js: 세대별 털색 수, 누적 영역) ---------- */
+  Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
+  Chart.defaults.font.size = 10.5;
+  Chart.defaults.color = '#7a879a';
+  function makeChart(id) {
+    return new Chart($(id), {
+      type: 'line',
+      data: { labels: [], datasets: COLORS.map(function (c, i) {
+        return { label: NAME[c], data: [], borderColor: CHART[c][0], backgroundColor: CHART[c][1] + 'dd', borderWidth: 1.5,
+                 pointRadius: 0, fill: i === 0 ? 'origin' : '-1', tension: .3 };
+      }) },
+      options: {
+        responsive: true, maintainAspectRatio: false, animation: { duration: 400 },
+        interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { display: false }, tooltip: { callbacks: { title: function (it) { return it[0].label + '세대'; } } } },
+        scales: {
+          x: { grid: { display: false }, ticks: { maxTicksLimit: 8 }, title: { display: true, text: '세대', padding: 0 } },
+          y: { stacked: true, min: 0, max: CAP, ticks: { stepSize: 8 }, grid: { color: '#eef1f5' } }
+        }
+      }
+    });
+  }
+  var charts = { L: makeChart('chartL'), R: makeChart('chartR') };
+  function renderCharts() {
+    ['L', 'R'].forEach(function (s) {
+      var ch = charts[s], h = hist[s];
+      ch.data.labels = h.map(function (_, i) { return i; });
+      COLORS.forEach(function (c, k) { ch.data.datasets[k].data = h.map(function (o) { return o[c]; }); });
+      ch.update();
+    });
+  }
+  function snapshot() { hist.L.push(count('L')); hist.R.push(count('R')); }
+  function topColor(o) { return COLORS.slice().sort(function (a, b) { return o[b] - o[a]; })[0]; }
+
+  /* =========================================================
+   *  SimBridge
+   * ========================================================= */
+  SimBridge.init('1-2-02');
+  SimBridge.onLock = function () { S.locked = true; S.playing = false; renderHud(); };
+  function push() {
+    if (S.mode === 'var' && hist.L.length && !S.merged) { S.lastVar = { left: count('L'), right: count('R') }; S.lastVarGen = S.gen; }
+    SimBridge.setState({
+      stage: S.stage, generation: S.lastVarGen,
+      mode: S.mode === 'var' ? '변이 있음' : '변이 없음',
+      colorsFound: Object.keys(S.found).length,
+      predictLeft: S.predict.L ? NAME[S.predict.L] : null,
+      predictRight: S.predict.R ? NAME[S.predict.R] : null,
+      left: S.lastVar ? S.lastVar.left : null, right: S.lastVar ? S.lastVar.right : null,
+      merged: S.merged, crossPairTried: S.cross,
+      noVariationTried: S.noVarTried, noVariationSurvivors: S.noVarSurv
+    });
+  }
+
+  /* =========================================================
+   *  장면 진행
+   * ========================================================= */
+  function clearScene() {
+    token++;
+    S.busy = false; S.playing = false; S.merged = false; S.gen = 0; selected = null;
+    pop = []; hist = { L: [], R: [] };
+    SC.actors.length = 0; SC.clearHawks(); SC.clearRiver(); SC.setTrail(null);
+    $('drawHint').classList.add('hidden');
+    closeModal(); $('stamp').classList.remove('show', 'mini'); $('timelapse').classList.remove('show');
+    document.querySelectorAll('.bubble').forEach(function (b) { b.remove(); });
+  }
+
+  // ---- 장면 1: 다양한 변이 ----
+  function scene1() {
+    clearScene();
+    S.mode = 'var'; S.found = {}; S.predict = { L: null, R: null }; S.resultShown = false; S.cross = false; S.same = false;
+    var list = []; COLORS.forEach(function (c) { for (var i = 0; i < 8; i++) list.push(c); });
+    shuffle(list).forEach(function (c) { makeRabbit(c, null, spot(null)); });
+    setStep(1);
+    mission1();
+    hud([{ label: '다음 장면 ▶', cls: 'primary pulse', enabled: function () { return Object.keys(S.found).length === 3; }, go: scene2 }]);
+    renderAll(); push();
+  }
+  function mission1() {
+    var n = Object.keys(S.found).length;
+    var chips = COLORS.map(function (c) { return '<span class="chip ' + (S.found[c] ? 'ok' : '') + '">' + ico(c) + NAME[c] + '</span>'; }).join('');
+    mission('장면 1', '다양한 변이',
+      n < 3 ? '같은 종류의 토끼들이 풀밭에 살고 있어요. <b>토끼를 눌러</b> 어떤 털색이 있는지 찾아보세요. (' + n + '/3)'
+            : '같은 종류인데도 털색이 서로 달라요. 이처럼 같은 종류의 생물 사이에서 나타나는 형질의 차이를 <b>변이</b>라고 해요.', chips);
+  }
+  function onRabbitTap(r) {
+    if (S.locked) return;
+    if (S.stage === 1 && S.mode === 'var') {
+      if (!r.move) { var p = spot(null, r, 40); SC.hopTo(r, p.x, p.y, 0.8); }
+      var first = !S.found[r.color];
+      S.found[r.color] = true;
+      bubble(r.x, r.y - 95 * SC.depth(r.y), ico(r.color, 'front', 18, 22) + ' ' + NAME[r.color] + ' 털 토끼' + (first ? ' · 발견!' : ''), 1500);
+      mission1(); renderHud(); push();
+    } else if (S.stage === 5 && S.merged) {
+      pairTap(r);
+    }
+  }
+
+  // ---- 장면 2: 강 그리기 ----
+  var DEFAULT_RIVER = [[505, 286], [478, 360], [540, 440], [512, 520], [462, 610], [492, 712]];
+  function scene2() {
+    setStep(2);
+    mission('장면 2', '서식지가 나뉘어요',
+      '어느 날 서식지 한가운데로 강이 생겨요. 풀밭 <b>가운데를 위에서 아래로 길게 그어</b> 강을 만들어 보세요.');
+    hud([{ label: '자동으로 강 만들기', go: function () { makeRiver(DEFAULT_RIVER.map(function (p) { return p.slice(); })); } }]);
+    $('scene').classList.add('drawing'); $('drawHint').classList.remove('hidden');
+    renderAll(); push();
+  }
+  function trailToRiver(trail) {
+    var t = trail.slice().sort(function (a, b) { return a[1] - b[1]; }), pts = [], step = 70;
+    for (var y = 286; y <= 712; y += step) {
+      var near = t.filter(function (p) { return Math.abs(p[1] - y) < step / 2; });
+      pts.push([near.length ? near.reduce(function (s, p) { return s + p[0]; }, 0) / near.length : null, Math.min(y, 712)]);
+    }
+    if (pts[pts.length - 1][1] < 712) pts.push([null, 712]);
+    for (var i = 0; i < pts.length; i++) if (pts[i][0] == null) {
+      var l = null, r = null;
+      for (var a = i - 1; a >= 0; a--) if (pts[a][0] != null) { l = pts[a]; break; }
+      for (var b = i + 1; b < pts.length; b++) if (pts[b][0] != null) { r = pts[b]; break; }
+      pts[i][0] = l && r ? (l[0] + r[0]) / 2 : (l || r)[0];
+    }
+    pts.forEach(function (p) { p[0] = Math.max(400, Math.min(600, p[0])); });
+    return pts;
+  }
+  var trail = null;
+  $('scene').addEventListener('pointerdown', function (e) {
+    if (S.locked) return;
+    var p = SC.toLogical(e.clientX, e.clientY);
+    if (S.stage === 2 && !SC.hasRiver() && S.mode === 'var' && !S.busy) {
+      trail = [p]; SC.setTrail(trail);
+      $('scene').setPointerCapture(e.pointerId);
+      $('drawHint').classList.add('hidden');
+      return;
+    }
+    var r = SC.hit(p[0], p[1]);
+    if (r && pop.indexOf(r) >= 0) onRabbitTap(r);
+  });
+  $('scene').addEventListener('pointermove', function (e) {
+    if (!trail) return;
+    trail.push(SC.toLogical(e.clientX, e.clientY)); SC.setTrail(trail);
+  });
+  function endTrail() {
+    if (!trail) return;
+    var t = trail; trail = null; SC.setTrail(null);
+    var ys = t.map(function (p) { return p[1]; }), xs = t.map(function (p) { return p[0]; });
+    var span = Math.max.apply(null, ys) - Math.min.apply(null, ys);
+    var mx = xs.reduce(function (a, b) { return a + b; }, 0) / xs.length;
+    if (span < 200 || mx < 300 || mx > 700) {
+      bubble(500, 330, span < 200 ? '조금 더 길게, 위에서 아래로 그어 주세요!' : '풀밭 가운데쯤에 그어 주세요!', 1800);
+      $('drawHint').classList.remove('hidden');
+      return;
+    }
+    makeRiver(trailToRiver(t));
+  }
+  $('scene').addEventListener('pointerup', endTrail);
+  $('scene').addEventListener('pointercancel', endTrail);
+
+  async function makeRiver(pts) {
+    var tok = token;
+    $('scene').classList.remove('drawing'); $('drawHint').classList.add('hidden');
+    S.busy = true; renderHud();
+    SC.setRiver(pts);
+    var reveal = SC.revealRiver(1500);
+    // 서 있던 쪽으로 무리를 나누고, 털색마다 양쪽에 3마리 이상 있게 맞춤
+    pop.forEach(function (r) { r.side = r.x < SC.riverX(r.y) ? 'L' : 'R'; });
+    COLORS.forEach(function (c) {
+      ['L', 'R'].forEach(function (s) {
+        var other = s === 'L' ? 'R' : 'L';
+        var mine = pop.filter(function (r) { return r.color === c && r.side === s; });
+        var need = Math.min(3, Math.floor(pop.filter(function (r) { return r.color === c; }).length / 2));
+        while (mine.length < need) {
+          var cand = pop.filter(function (r) { return r.color === c && r.side === other; })
+            .sort(function (a, b) { return Math.abs(a.x - SC.riverX(a.y)) - Math.abs(b.x - SC.riverX(b.y)); })[0];
+          if (!cand) break;
+          cand.side = s; mine.push(cand);
+        }
+      });
+    });
+    pop.forEach(function (r) { r.origin = r.side; });
+    // 강물이 다가오면 자기 쪽으로 깡충
+    pop.forEach(function (r) {
+      if (!inArea(r.side, r.x, r.y)) {
+        var p = spot(r.side, r, 180);
+        setTimeout(function () { if (tok === token) SC.hopTo(r, p.x, p.y, 0.7); }, Math.max(0, (r.y - 300) / 420 * 1300));
+      }
+    });
+    await reveal;
+    await sleep(900);
+    if (tok !== token) return;
+    snapshot();
+    S.busy = false;
+    if (S.mode === 'var') {
+      mission('장면 2', '서식지가 나뉘어요',
+        '강 왼쪽은 <b>초록 풀밭</b>, 오른쪽은 <b>모래가 많은 사막</b>이 되었어요. 두 무리는 이제 서로 만날 수 없어요.');
+      hud([{ label: '다음 장면 ▶', cls: 'primary pulse', go: showPredict }]);
+    }
+    renderAll(); push();
+  }
+
+  // ---- 예측 ----
+  function openModal(html) { $('card').innerHTML = html; $('modal').classList.add('show'); }
+  function closeModal() { $('modal').classList.remove('show'); }
+  function showPredict() {
+    var tmp = { L: S.predict.L, R: S.predict.R };
+    function row(s, name, hab) {
+      return '<div class="pick-row"><div class="lab">' + name + '<small>' + hab + '</small></div><div class="picks">' +
+        COLORS.map(function (c) { return '<button class="pick" data-s="' + s + '" data-c="' + c + '" aria-pressed="' + (tmp[s] === c) + '">' +
+          '<img src="' + SC.icons.side[c] + '" alt="">' + NAME[c] + '</button>'; }).join('') + '</div></div>';
+    }
+    openModal('<h3 class="display">예측해 보세요!</h3><p class="sub">곧 천적인 <b>매</b>가 나타나 토끼를 사냥해요. 여러 세대가 지나면 각 무리에서 <b>어떤 털색의 토끼가 가장 많아질까요?</b></p>' +
+      row('L', '풀밭 무리', '강 왼쪽 · 초록 풀밭') + row('R', '사막 무리', '강 오른쪽 · 모래 땅') +
+      '<div class="actions"><button class="btn primary" id="goHunt" disabled>매가 나타나요! ▶</button></div>');
+    $('card').querySelectorAll('.pick').forEach(function (b) {
+      b.onclick = function () {
+        tmp[b.dataset.s] = b.dataset.c;
+        $('card').querySelectorAll('.pick[data-s="' + b.dataset.s + '"]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+        $('goHunt').disabled = !(tmp.L && tmp.R);
+      };
+    });
+    $('goHunt').onclick = function () { S.predict = tmp; closeModal(); renderPred(); push(); scene3(); };
+  }
+
+  // ---- 장면 3·4 ----
+  function scene3() {
+    setStep(3);
+    mission('장면 3 · 4', '천적과 생존, 그리고 자손',
+      '매는 <b>눈에 잘 띄는 토끼</b>를 더 쉽게 잡아요. 살아남은 토끼는 <b>자신과 같은 털색의 자손</b>을 남겨요. 10세대 동안 지켜보세요.');
+    hud([
+      { label: function () { return S.playing ? '⏸ 멈춤' : '▶ 자동 진행'; }, cls: 'primary', show: function () { return !S.merged; },
+        enabled: function () { return pop.length > 0 && (S.playing || !S.busy); },
+        go: function () { if (S.playing) { S.playing = false; renderHud(); } else play(false, token); } },
+      { label: '1세대만', show: function () { return !S.merged; }, enabled: function () { return !S.busy && pop.length > 0; }, go: function () { play(true, token); } },
+      { label: '다음 장면 ▶', cls: 'teal', show: function () { return S.gen >= GOAL && !S.merged; }, enabled: function () { return !S.busy; }, go: scene5 }
+    ]);
+    renderAll(); push();
+  }
+  function showResults() {
+    var L = count('L'), R = count('R'), tl = topColor(L), tr = topColor(R);
+    S.lastVar = { left: L, right: R }; S.lastVarGen = S.gen;
+    function row(name, top, pred) {
+      var ok = top === pred;
+      return '<div class="result-row"><span class="lab">' + name + '</span><span>가장 많아진 털색<br><b>' + ico(top, 'front', 20, 24) + ' ' + NAME[top] + '</b></span>' +
+        '<span>내 예측<br><b>' + NAME[pred] + '</b></span><span class="mark ' + (ok ? 'o' : 'x') + '">' + (ok ? '⭕' : '✖') + '</span></div>';
+    }
+    openModal('<h3 class="display">' + GOAL + '세대가 지났어요!</h3><p class="sub">각 무리의 털색이 어떻게 달라졌는지 예측과 비교해 보세요.</p>' +
+      row('풀밭 무리', tl, S.predict.L) + row('사막 무리', tr, S.predict.R) +
+      '<p class="sub" style="margin-top:10px">옆의 그래프에서 어떤 털색이 늘고 어떤 털색이 줄었는지도 확인해 보세요. 왜 두 무리의 결과가 다를까요?</p>' +
+      '<div class="actions"><button class="btn" id="more">세대 더 진행하기</button><button class="btn teal" id="next">다음 장면 ▶</button></div>');
+    $('more').onclick = closeModal;
+    $('next').onclick = function () { closeModal(); scene5(); };
+    renderPred();
+  }
+
+  // ---- 장면 5 ----
+  async function scene5() {
+    var tok = token;
+    S.busy = true; S.playing = false; renderHud();
+    S.lastVar = { left: count('L'), right: count('R') }; S.lastVarGen = S.gen;
+    $('timelapse').classList.add('show');
+    await sleep(700);
+    var years = [100, 1000, 5000, 10000, 50000, 100000];
+    for (var i = 0; i < years.length; i++) { $('tlYear').textContent = years[i].toLocaleString('ko-KR') + '년'; await sleep(260); }
+    $('tlYear').textContent = '아주 오랜 시간 뒤';
+    SC.hideRiver(200);
+    await sleep(250);
+    S.merged = true; setStep(5);
+    pop.forEach(function (r) { r.move = null; r.side = r.origin; });
+    pop.forEach(function (r) { var p = spot(null); r.x = p.x; r.y = p.y; r.ring = r.origin === 'L' ? '#2b7bd6' : '#ef8a2b'; });
+    await sleep(700);
+    if (tok !== token) return;
+    $('timelapse').classList.remove('show');
+    S.busy = false;
+    mission('장면 5', '서로 다른 종류가 되었을까?',
+      '강이 사라져 두 무리가 다시 만났어요. 토끼 <b>두 마리를 차례로 눌러</b> 짝을 지어 보세요.<br>' +
+      '<span class="legend-ring" style="border-color:#2b7bd6"></span>풀밭 무리 출신<span class="legend-ring" style="border-color:#ef8a2b"></span>사막 무리 출신',
+      '<span class="chip" id="chipSame">같은 무리끼리</span><span class="chip" id="chipCross">다른 무리끼리</span>');
+    hud([]);
+    renderAll(); push();
+  }
+  function pairTap(r) {
+    if (S.busy) return;
+    if (!selected) { selected = r; r.hold = true; r.selected = true; return; }
+    if (selected === r) { r.selected = false; r.hold = false; selected = null; return; }
+    var a = selected, b = r; selected = null;
+    b.hold = true; b.selected = true; S.busy = true;
+    var mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+    mx = Math.max(X0 + 40, Math.min(X1 - 40, mx)); my = Math.max(Y0, Math.min(Y1, my));
+    a.x0 = a.x;
+    Promise.all([SC.hopTo(a, mx - 30, my, 0.8), SC.hopTo(b, mx + 30, my, 0.8)]).then(function () {
+      a.dir = 1; b.dir = -1;
+      var same = a.origin === b.origin, d = SC.depth(my);
+      SC.fx(same ? 'love' : 'broken', mx, my - 105 * d, 2.2 * d);
+      bubble(mx, my - 135 * d, same ? '같은 무리 출신: 자손을 남길 수 있어요' : '다른 무리 출신: 자손을 남기지 못해요', 2200);
+      if (same) { S.same = true; $('chipSame') && $('chipSame').classList.add('ok'); }
+      else { S.cross = true; $('chipCross') && $('chipCross').classList.add('ok'); }
+      setTimeout(function () {
+        [a, b].forEach(function (x) { x.selected = false; x.hold = false; });
+        S.busy = false; push();
+        if (S.cross && S.same && !S.mainDone) { S.mainDone = true; renderHud(); setTimeout(showSummary, 600); }
+      }, 1600);
+    });
+  }
+  function showSummary() {
+    openModal('<h3 class="display">한 종류의 토끼가 서로 다른 두 종류가 되었어요!</h3>' +
+      '<p class="sub">두 무리는 다시 만나도 서로 짝짓기하여 자손을 남기지 못해요. 오랜 시간 동안 각 서식지에서 일어난 변화가 쌓였기 때문이에요.</p>' +
+      '<div class="flow"><div><b>변이</b>한 종류 안에 다양한 털색</div><i>›</i><div><b>서식지 나뉨</b>강이 생겨 두 무리로</div><i>›</i>' +
+      '<div><b>생존</b>환경에 유리한 변이를 가진 토끼가 살아남음</div><i>›</i><div><b>자손</b>특성을 자손에게 전달, 오랜 시간 누적</div><i>›</i><div><b>다른 종류</b>생물 다양성</div></div>' +
+      '<div class="actions"><button class="btn" id="close">장면 둘러보기</button><button class="btn primary" id="ch">도전 실험: 변이가 없다면? ▶</button></div>');
+    $('close').onclick = closeModal;
+    $('ch').onclick = function () { closeModal(); challenge(); };
+  }
+
+  // ---- 도전 실험 ----
+  function challenge() {
+    clearScene();
+    S.mode = 'none'; setStep(1);
+    for (var i = 0; i < 24; i++) makeRabbit('white', null, spot(null));
+    mission('도전 실험', '변이가 없다면?',
+      '이번에는 <b>모든 토끼의 털색이 흰색으로 똑같아요.</b> 앞의 실험과 같은 강과 매를 만나면 어떻게 될까요?');
+    hud([{ label: '실험 시작 ▶', cls: 'primary pulse', go: runChallenge }]);
+    renderAll(); push();
+  }
+  async function runChallenge() {
+    var tok = token;
+    hud([]);
+    S.speed = 0.5; syncSpeed();
+    setStep(2);
+    await makeRiver(DEFAULT_RIVER.map(function (p) { return p.slice(); }));
+    if (tok !== token) return;
+    mission('도전 실험', '변이가 없다면?', '매가 나타났어요. 흰 토끼는 풀밭에서도, 사막에서도 눈에 잘 띄어요…');
+    await sleep(600);
+    await play(false, tok);
+  }
+  function finishNoVar() {
+    S.noVarTried = true; S.noVarSurv = pop.length;
+    var n = pop.length;
+    if (n === 0) $('stamp').classList.add('show');
+    setTimeout(function () {
+      $('stamp').classList.add('mini');
+      openModal('<h3 class="display">' + (n === 0 ? '토끼 무리가 모두 사라졌어요' : '토끼가 ' + n + '마리밖에 남지 않았어요') + '</h3>' +
+        '<p class="sub">모든 토끼의 털색이 같아서 <b>바뀐 환경에서 살아남기에 유리한 토끼가 없었어요.</b> ' +
+        '변이가 다양하면 환경이 급격하게 변하거나 전염병이 유행해도 그 변화에 적응할 수 있는 생물이 있어 <b>멸종할 확률이 낮아져요.</b></p>' +
+        '<div class="actions"><button class="btn" id="close2">결과 보기</button><button class="btn primary" id="again">처음 실험으로 ▶</button></div>');
+      $('close2').onclick = closeModal;
+      $('again').onclick = function () { S.speed = 1; syncSpeed(); scene1(); };
+    }, n === 0 ? 1400 : 300);
+    mission('도전 실험', '변이가 없다면?', n === 0 ? '<b>멸종</b>: 환경에 적응할 수 있는 변이가 없었어요.' : '무리가 크게 줄었어요. 처음 실험 결과와 비교해 보세요.');
+    renderAll(); push();
+  }
+
+  /* ---------- 공통 버튼 ---------- */
+  function syncSpeed() {
+    $('speed').querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', String(S.speed < 1 ? b.dataset.sp !== '1' : b.dataset.sp === '1')); });
+  }
+  $('speed').querySelectorAll('button').forEach(function (b) { b.onclick = function () { S.speed = +b.dataset.sp; syncSpeed(); }; });
+  $('bReset').onclick = function () { S.speed = 1; syncSpeed(); scene1(); };
+  $('bChallenge').onclick = challenge;
+  window.addEventListener('resize', function () { renderCharts(); });
+
+  window.__sim = { pop: function () { return pop; }, SC: SC };   // 자동 점검용
+  scene1();
+  $('loading').remove();
+}
+requestAnimationFrame(function () { setTimeout(startSim, 30); });
+</script>
+</body>
+</html>
