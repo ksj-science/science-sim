@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>일정 성분비 법칙을 입자 모형으로 설명하기</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="../../lib/sim.css">
+<style>
+  html, body { overflow: hidden; }
+  body { display: flex; flex-direction: column; height: 100vh; }
+  .sim-header { flex: none; flex-wrap: wrap; }
+  .sim-header .seg { margin-left: auto; }
+  .sim-main { flex: 1; min-height: 0; grid-template-columns: 1fr 360px; }
+  .board-panel { min-height: 0; padding: 10px; display: flex; }
+  #board { width: 100%; height: 100%; touch-action: none; user-select: none; -webkit-user-select: none; }
+  .right { display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+  .right .panel { padding: 12px 14px; }
+  .steps { margin: 0; padding-left: 20px; font-size: 14px; }
+  .steps li { margin-bottom: 4px; }
+  .count { display: flex; align-items: baseline; justify-content: space-between; background: var(--bg);
+           border-radius: 10px; padding: 8px 12px; }
+  .count b { font-size: 30px; font-variant-numeric: tabular-nums; color: var(--accent); }
+  .msg { font-size: 14px; min-height: 42px; margin-top: 8px; }
+  .msg.good { color: var(--good); font-weight: 600; }
+  .bars { display: grid; grid-template-columns: 64px 1fr; gap: 6px 8px; align-items: center; font-size: 13px; }
+  .bar { height: 22px; display: flex; gap: 1px; }
+  .bar i { display: block; height: 100%; border-radius: 3px; }
+  .bar.h i { background: #9fb0c0; }
+  .bar.o i { background: #e04848; }
+  .ratio { margin-top: 8px; font-weight: 600; font-size: 15px; }
+  .hidden { display: none !important; }
+  .ref svg { width: 100%; height: auto; }
+  .sim-locked #board { pointer-events: none; opacity: .7; }
+</style>
+</head>
+<body>
+<header class="sim-header">
+  <h1>일정 성분비 법칙을 입자 모형으로 설명하기</h1>
+  <span class="unit">2-1-04 · Ⅰ. 화학 반응의 규칙과 에너지 변화</span>
+  <div class="seg" role="tablist">
+    <button id="tabWater" aria-pressed="true">① 물 분자 만들기</button>
+    <button id="tabPerox" aria-pressed="false">② 과산화 수소와 비교하기</button>
+  </div>
+</header>
+<main class="sim-main">
+  <section class="panel board-panel">
+    <svg id="board" viewBox="0 0 900 640" aria-label="자석 칠판">
+      <defs>
+        <radialGradient id="gO" cx="35%" cy="32%" r="70%">
+          <stop offset="0" stop-color="#ff9b93"/><stop offset=".45" stop-color="#e04848"/><stop offset="1" stop-color="#a82424"/>
+        </radialGradient>
+        <radialGradient id="gH" cx="35%" cy="32%" r="70%">
+          <stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="#c9d3dd"/><stop offset="1" stop-color="#8797a8"/>
+        </radialGradient>
+        <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+          <feDropShadow dx="2" dy="3" stdDeviation="2.5" flood-color="#1d2433" flood-opacity=".28"/>
+        </filter>
+      </defs>
+      <!-- 칠판 -->
+      <rect x="4" y="4" width="892" height="632" rx="14" fill="#f2f4f7" stroke="#c9ced8" stroke-width="2"/>
+      <rect x="20" y="20" width="860" height="456" rx="6" fill="#dfe6f0" stroke="#fff" stroke-width="6"/>
+      <text id="boardTitle" x="40" y="54" font-size="20" font-weight="600" fill="#5b6577">자석 칠판</text>
+      <!-- 자석 통 -->
+      <rect x="20" y="494" width="860" height="134" rx="10" fill="#fff" stroke="#d9dee7" stroke-width="2"/>
+      <text x="36" y="534" font-size="16" fill="#5b6577">수소 원자</text>
+      <text x="36" y="592" font-size="16" fill="#5b6577">산소 원자</text>
+      <text x="866" y="552" font-size="14" fill="#8a93a3" text-anchor="end">원자를 칠판으로 끌어 붙이세요.</text>
+      <text x="866" y="574" font-size="14" fill="#8a93a3" text-anchor="end">통에 놓으면 제자리로 돌아가요.</text>
+      <g id="mols"></g>
+      <g id="atoms"></g>
+    </svg>
+  </section>
+  <aside class="right">
+    <!-- ① 물 분자 -->
+    <div class="panel" data-tab="water">
+      <h2>활동하기</h2>
+      <ol class="steps">
+        <li>수소 원자 모형(작은 회색 공)과 산소 원자 모형(큰 빨간 공)이 각각 6개 있어요.</li>
+        <li>공을 칠판에 붙여 <b>물 분자 모형을 3개</b> 만들어 보자.</li>
+        <li>분자 수가 1개, 2개, 3개일 때 분자 속 수소 원자와 산소 원자 수를 세어 보자.</li>
+      </ol>
+    </div>
+    <div class="panel" data-tab="water">
+      <div class="count"><span>완성한 물 분자</span><b id="waterOut">0개</b></div>
+      <div class="msg" id="waterMsg"></div>
+      <div class="btn-row">
+        <button id="massBtn">질량 비교 보기</button>
+        <button id="resetWater">처음부터</button>
+      </div>
+    </div>
+    <div class="panel hidden" id="massPanel" data-tab="water">
+      <h2>완성한 물 분자 속 원소의 질량</h2>
+      <div class="bars">
+        <span>수소</span><div class="bar h" id="barH"></div>
+        <span>산소</span><div class="bar o" id="barO"></div>
+      </div>
+      <div class="hint" style="margin-top:6px">칸 하나 = 원자 1개의 질량. 산소 원자 1개는 수소 원자 1개보다 훨씬 무거워요.</div>
+      <div class="ratio" id="ratioOut"></div>
+    </div>
+    <!-- ② 과산화 수소 -->
+    <div class="panel hidden" data-tab="perox">
+      <h2>적용하기</h2>
+      <ol class="steps">
+        <li>아래 그림 Ⅰ-11을 보고 칠판에 <b>과산화 수소 분자 모형</b>을 만들어 보자.</li>
+        <li>물 분자와 비교하여 수소 원자와 산소 원자 수의 비가 어떻게 다른지 생각해 보자.</li>
+      </ol>
+    </div>
+    <div class="panel hidden ref" data-tab="perox">
+      <h2>그림 Ⅰ-11 물과 과산화 수소의 분자 모형</h2>
+      <svg viewBox="0 0 320 120" aria-label="물과 과산화 수소 분자 모형">
+        <g transform="translate(70,52)">
+          <circle cx="-23" cy="22" r="14" fill="url(#gH)"/><circle cx="23" cy="22" r="14" fill="url(#gH)"/>
+          <circle cx="0" cy="0" r="24" fill="url(#gO)"/>
+        </g>
+        <g transform="translate(215,56)">
+          <circle cx="-48" cy="20" r="14" fill="url(#gH)"/><circle cx="48" cy="-20" r="14" fill="url(#gH)"/>
+          <circle cx="-19" cy="0" r="24" fill="url(#gO)"/><circle cx="19" cy="0" r="24" fill="url(#gO)"/>
+        </g>
+        <text x="70" y="112" text-anchor="middle" font-size="14" fill="#1d2433">물</text>
+        <text x="215" y="112" text-anchor="middle" font-size="14" fill="#1d2433">과산화 수소</text>
+      </svg>
+    </div>
+    <div class="panel hidden" data-tab="perox">
+      <div class="count"><span>완성한 과산화 수소 분자</span><b id="peroxOut">0개</b></div>
+      <div class="msg" id="peroxMsg"></div>
+      <div class="btn-row"><button id="resetPerox">처음부터</button></div>
+    </div>
+  </aside>
+</main>
+<script src="../../lib/sim-bridge.js"></script>
+<script>
+(function () {
+  // 단순화: 원자 모형은 그림 Ⅰ-11처럼 산소 = 큰 빨간 공, 수소 = 작은 회색 공으로 고정.
+  // 공끼리 겹쳐 붙으면 결합한 것으로 보고, 붙은 덩어리의 원자 구성으로 분자를 판정한다.
+  var NS = 'http://www.w3.org/2000/svg';
+  var R = { H: 22, O: 34 };
+  var TRAY_Y = 486;                    // 이 아래에 놓으면 자석 통으로 돌아감
+  var MASS = { H: 1, O: 16 };          // 상대 질량(막대 칸 수 계산용, 화면에 숫자로 표시하지 않음)
+  var $ = function (id) { return document.getElementById(id); };
+  var svg = $('board'), atomLayer = $('atoms'), molLayer = $('mols');
+
+  var tab = 'water', massView = false, maxWater = 0, maxPerox = 0, locked = false;
+  var sets = { water: makeSet(), perox: makeSet() };
+
+  function makeSet() {
+    var list = [];
+    for (var i = 0; i < 6; i++) list.push({ el: 'H', hx: 150 + i * 62, hy: 528 });
+    for (var j = 0; j < 6; j++) list.push({ el: 'O', hx: 156 + j * 84, hy: 586 });
+    list.forEach(function (a, k) { a.id = k; a.x = a.hx; a.y = a.hy; a.onBoard = false; });
+    return list;
+  }
+  function atoms() { return sets[tab]; }
+
+  // ---------- 그리기 ----------
+  function drawAtoms() {
+    atomLayer.innerHTML = '';
+    atoms().forEach(function (a) {
+      var g = document.createElementNS(NS, 'g');
+      g.setAttribute('class', 'atom'); g.dataset.id = a.id;
+      g.style.cursor = 'grab';
+      var c = document.createElementNS(NS, 'circle');
+      c.setAttribute('r', R[a.el]); c.setAttribute('fill', 'url(#g' + a.el + ')');
+      c.setAttribute('filter', 'url(#shadow)');
+      var t = document.createElementNS(NS, 'text');
+      t.setAttribute('text-anchor', 'middle'); t.setAttribute('dy', a.el === 'O' ? 8 : 6);
+      t.setAttribute('font-size', a.el === 'O' ? 22 : 17); t.setAttribute('font-weight', '700');
+      t.setAttribute('fill', a.el === 'O' ? '#fff' : '#45556a'); t.setAttribute('pointer-events', 'none');
+      t.textContent = a.el;
+      g.appendChild(c); g.appendChild(t);
+      a.g = g; place(a);
+      atomLayer.appendChild(g);
+    });
+  }
+  function place(a) { a.g.setAttribute('transform', 'translate(' + a.x.toFixed(1) + ',' + a.y.toFixed(1) + ')'); }
+
+  // ---------- 분자 판정 ----------
+  function bonded(a, b) { return Math.hypot(a.x - b.x, a.y - b.y) < (R[a.el] + R[b.el]) * 0.95; }
+  function components() {
+    var on = atoms().filter(function (a) { return a.onBoard; }), seen = {}, out = [];
+    on.forEach(function (s) {
+      if (seen[s.id]) return;
+      var comp = [], stack = [s]; seen[s.id] = true;
+      while (stack.length) {
+        var a = stack.pop(); comp.push(a);
+        on.forEach(function (b) { if (!seen[b.id] && bonded(a, b)) { seen[b.id] = true; stack.push(b); } });
+      }
+      out.push(comp);
+    });
+    return out;
+  }
+  function kind(comp) {
+    var H = comp.filter(function (a) { return a.el === 'H'; }), O = comp.filter(function (a) { return a.el === 'O'; });
+    var hToO = H.every(function (h) {
+      return O.filter(function (o) { return bonded(h, o); }).length === 1 &&
+             H.every(function (h2) { return h2 === h || !bonded(h, h2); });
+    });
+    if (H.length === 2 && O.length === 1 && hToO) return 'water';
+    if (H.length === 2 && O.length === 2 && hToO && bonded(O[0], O[1])) {
+      var o0 = H.filter(function (h) { return bonded(h, O[0]); }).length;
+      if (o0 === 1) return 'perox';                       // 산소마다 수소가 1개씩
+    }
+    return null;
+  }
+
+  function evaluate() {
+    var comps = components(), n = 0, label = tab === 'water' ? '물 분자' : '과산화 수소 분자';
+    molLayer.innerHTML = '';
+    comps.forEach(function (comp) {
+      if (kind(comp) !== tab) return;
+      n++;
+      var cx = 0, cy = 0;
+      comp.forEach(function (a) { cx += a.x; cy += a.y; }); cx /= comp.length; cy /= comp.length;
+      var rad = 0;
+      comp.forEach(function (a) { rad = Math.max(rad, Math.hypot(a.x - cx, a.y - cy) + R[a.el]); });
+      var c = document.createElementNS(NS, 'circle');
+      c.setAttribute('cx', cx); c.setAttribute('cy', cy); c.setAttribute('r', rad + 10);
+      c.setAttribute('fill', 'rgba(26,143,90,.08)'); c.setAttribute('stroke', '#1a8f5a');
+      c.setAttribute('stroke-width', 2.5); c.setAttribute('stroke-dasharray', '8 6');
+      var t = document.createElementNS(NS, 'text');
+      t.setAttribute('x', cx); t.setAttribute('y', cy - rad - 18); t.setAttribute('text-anchor', 'middle');
+      t.setAttribute('font-size', 16); t.setAttribute('font-weight', '700'); t.setAttribute('fill', '#1a8f5a');
+      t.textContent = label + ' ' + n;
+      molLayer.appendChild(c); molLayer.appendChild(t);
+    });
+    return n;
+  }
+
+  // ---------- 화면 갱신 ----------
+  function update() {
+    var n = evaluate(), on = atoms().filter(function (a) { return a.onBoard; });
+    if (tab === 'water') {
+      maxWater = Math.max(maxWater, n);
+      $('waterOut').textContent = n + '개';
+      var m = $('waterMsg');
+      m.className = 'msg' + (n >= 3 ? ' good' : '');
+      m.textContent = n >= 3 ? '물 분자 모형 3개 완성! 분자 속 수소 원자와 산소 원자 수를 세어 보세요.'
+        : n > 0 ? '물 분자 ' + n + '개를 만들었어요. 분자 속 원자 수를 세어 보고, 3개까지 만들어 보세요.'
+        : '산소 원자 하나에 수소 원자를 붙여 물 분자 모형을 만들어 보세요.';
+      drawBars(n);
+    } else {
+      maxPerox = Math.max(maxPerox, n);
+      $('peroxOut').textContent = n + '개';
+      var p = $('peroxMsg');
+      p.className = 'msg' + (n > 0 ? ' good' : '');
+      p.textContent = n > 0 ? '과산화 수소 분자 모형을 만들었어요. 물 분자와 원자 수를 비교해 보세요.'
+        : '산소 원자 2개를 붙이고, 산소마다 수소 원자를 하나씩 붙여 보세요.';
+    }
+    var cur = sets[tab], s = { mode: tab, massView: massView, maxWaterCount: maxWater, maxH2o2Count: maxPerox };
+    if (tab === 'water') s.waterCount = n; else s.h2o2Count = n;
+    s.hPlaced = on.filter(function (a) { return a.el === 'H'; }).length;
+    s.oPlaced = on.length - s.hPlaced;
+    SimBridge.setState(s);
+  }
+  function drawBars(n) {
+    var unit = 5, h = '', o = '';
+    for (var i = 0; i < n * 2; i++) h += '<i style="width:' + (MASS.H * unit) + 'px"></i>';
+    for (var j = 0; j < n; j++) o += '<i style="width:' + (MASS.O * unit) + 'px"></i>';
+    $('barH').innerHTML = h; $('barO').innerHTML = o;
+    $('ratioOut').textContent = n ? '수소의 질량 : 산소의 질량 = 1 : 8 (물 분자 ' + n + '개)'
+      : '물 분자를 완성하면 질량 막대가 나타나요.';
+  }
+
+  // ---------- 끌어 놓기 (마우스·터치 공통) ----------
+  var drag = null;
+  function pt(e) {
+    var p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY;
+    return p.matrixTransform(svg.getScreenCTM().inverse());
+  }
+  svg.addEventListener('pointerdown', function (e) {
+    if (locked) return;
+    var g = e.target.closest && e.target.closest('.atom');
+    if (!g) return;
+    var a = atoms()[+g.dataset.id], p = pt(e);
+    drag = { a: a, dx: a.x - p.x, dy: a.y - p.y, pid: e.pointerId };
+    atomLayer.appendChild(g); g.style.cursor = 'grabbing';
+    svg.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+  svg.addEventListener('pointermove', function (e) {
+    if (!drag || e.pointerId !== drag.pid) return;
+    var p = pt(e), a = drag.a;
+    a.x = Math.max(R[a.el], Math.min(900 - R[a.el], p.x + drag.dx));
+    a.y = Math.max(R[a.el], Math.min(640 - R[a.el], p.y + drag.dy));
+    place(a);
+  });
+  function end(e) {
+    if (!drag || e.pointerId !== drag.pid) return;
+    var a = drag.a; drag = null; a.g.style.cursor = 'grab';
+    if (a.y > TRAY_Y) { a.x = a.hx; a.y = a.hy; a.onBoard = false; }
+    else {
+      a.onBoard = true;
+      a.y = Math.max(20 + R[a.el], Math.min(476 - R[a.el], a.y));
+      a.x = Math.max(20 + R[a.el], Math.min(880 - R[a.el], a.x));
+      snap(a);
+    }
+    place(a); update();
+  }
+  svg.addEventListener('pointerup', end);
+  svg.addEventListener('pointercancel', end);
+
+  // 가까운 원자에 맞닿게 붙이기 (물 분자는 굽은 모양이 되도록)
+  function snap(a) {
+    var best = null, bd = Infinity;
+    atoms().forEach(function (b) {
+      if (b === a || !b.onBoard) return;
+      var d = Math.hypot(a.x - b.x, a.y - b.y);
+      if (d < (R[a.el] + R[b.el]) + 22 && d < bd) { bd = d; best = b; }
+    });
+    if (!best) return;
+    var ang = Math.atan2(a.y - best.y, a.x - best.x);
+    if (a.el === 'H' && best.el === 'O' && tab === 'water') {
+      var other = atoms().filter(function (h) { return h !== a && h.el === 'H' && h.onBoard && bonded(h, best); })[0];
+      if (other) {
+        var base = Math.atan2(other.y - best.y, other.x - best.x), bend = 104.5 * Math.PI / 180;
+        var c1 = base + bend, c2 = base - bend;
+        ang = angDiff(ang, c1) < angDiff(ang, c2) ? c1 : c2;
+      }
+    }
+    var dist = (R[a.el] + R[best.el]) * 0.78;
+    a.x = best.x + Math.cos(ang) * dist; a.y = best.y + Math.sin(ang) * dist;
+  }
+  function angDiff(x, y) { var d = Math.abs(x - y) % (2 * Math.PI); return d > Math.PI ? 2 * Math.PI - d : d; }
+
+  // ---------- 버튼 ----------
+  function setTab(t) {
+    tab = t;
+    $('tabWater').setAttribute('aria-pressed', t === 'water');
+    $('tabPerox').setAttribute('aria-pressed', t === 'perox');
+    document.querySelectorAll('[data-tab]').forEach(function (el) {
+      var show = el.dataset.tab === t && (el.id !== 'massPanel' || massView);
+      el.classList.toggle('hidden', !show);
+    });
+    $('boardTitle').textContent = t === 'water' ? '자석 칠판 — 물 분자 모형 3개를 만들어 보자'
+      : '자석 칠판 — 과산화 수소 분자 모형을 만들어 보자';
+    drawAtoms(); update();
+  }
+  $('tabWater').onclick = function () { setTab('water'); };
+  $('tabPerox').onclick = function () { setTab('perox'); };
+  $('massBtn').onclick = function () {
+    massView = !massView;
+    this.textContent = massView ? '질량 비교 숨기기' : '질량 비교 보기';
+    $('massPanel').classList.toggle('hidden', !massView); update();
+  };
+  $('resetWater').onclick = function () { sets.water = makeSet(); drawAtoms(); update(); };
+  $('resetPerox').onclick = function () { sets.perox = makeSet(); drawAtoms(); update(); };
+
+  SimBridge.init('2-1-04');
+  SimBridge.onLock = function () { locked = true; drag = null; };
+  setTab('water');
+})();
+</script>
+</body>
+</html>
