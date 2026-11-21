@@ -15,8 +15,9 @@ export const magAt = (s, D) => s.M + 5 * Math.log10(D / 10);
 export const PC_MIN = 0.5, PC_MAX = 1000;
 const LMIN = Math.log10(PC_MIN), LMAX = Math.log10(PC_MAX);
 
-// 등급 자: -27 ~ -3은 줄여서, -3 ~ 8은 넓게
-const MAG_TOP = -27, MAG_BREAK = -3, MAG_BOT = 8, BREAK_FRAC = 0.2;
+// 등급 자: -27 ~ -3은 줄여서, -3 ~ 8은 넓게, 8 ~ 16은 다시 줄여서 (8등급보다 어두운 별도 실제 등급 위치에)
+const MAG_TOP = -27, MAG_BREAK = -3, MAG_BOT = 8, MAG_END = 16, BREAK_FRAC = 0.2, LOW_FRAC = 0.16;
+export const NAKED_EYE = 6;   // 맨눈으로 볼 수 있는 가장 어두운 별 ≈ 6등급
 
 export function createStarView(canvas, { onSelect, onDrag, onDragStart, onDragEnd, isLocked, getState }) {
   const g = canvas.getContext('2d');
@@ -64,9 +65,11 @@ export function createStarView(canvas, { onSelect, onDrag, onDragStart, onDragEn
     return Math.pow(10, LMIN + t * (LMAX - LMIN));
   }
   function yOfMag(m) {
-    const top = L.magTop, bot = L.magBot, bh = (bot - top) * BREAK_FRAC;
+    const top = L.magTop, bot = L.magBot, span = bot - top;
+    const bh = span * BREAK_FRAC, lh = span * LOW_FRAC, mh = span - bh - lh;
     if (m <= MAG_BREAK) return top + ((clamp(m, MAG_TOP, MAG_BREAK) - MAG_TOP) / (MAG_BREAK - MAG_TOP)) * bh;
-    return top + bh + ((clamp(m, MAG_BREAK, MAG_BOT + 0.5) - MAG_BREAK) / (MAG_BOT - MAG_BREAK)) * (bot - top - bh);
+    if (m <= MAG_BOT) return top + bh + ((m - MAG_BREAK) / (MAG_BOT - MAG_BREAK)) * mh;
+    return top + bh + mh + ((clamp(m, MAG_BOT, MAG_END) - MAG_BOT) / (MAG_END - MAG_BOT)) * lh;
   }
   const laneY = i => L.laneTop + L.laneH * (i + 0.5);
 
@@ -74,7 +77,7 @@ export function createStarView(canvas, { onSelect, onDrag, onDragStart, onDragEn
   function vis(m) {
     const t = clamp((6.5 - m) / 8.5, 0, 1);
     const k = clamp(Math.min(L.skyH / 420, 1), 0.7, 1);
-    return { t, core: (1.3 + 7.5 * Math.pow(t, 1.4)) * k, glow: (4 + 30 * t * t) * k, a: 0.25 + 0.75 * Math.pow(t, 0.6), over: m < -2, hidden: m > 6.5 };
+    return { t, core: (1.3 + 7.5 * Math.pow(t, 1.4)) * k, glow: (4 + 30 * t * t) * k, a: 0.25 + 0.75 * Math.pow(t, 0.6), over: m < -2, hidden: m > NAKED_EYE };
   }
 
   function drawStarGlow(x, y, s, m, sel) {
@@ -130,8 +133,8 @@ export function createStarView(canvas, { onSelect, onDrag, onDragStart, onDragEn
     g.font = `700 ${L.portrait ? 14 : 15}px ${getComputedStyle(document.body).fontFamily}`;
     g.textAlign = 'left'; g.textBaseline = 'top'; g.fillStyle = '#cfe0ff';
     g.fillText('지구에서 본 밤하늘 (보이는 밝기)', 12, 10);
-    g.font = `400 12.5px ${getComputedStyle(document.body).fontFamily}`;
-    g.fillStyle = '#93a6c8'; g.textBaseline = 'bottom';
+    g.font = `400 13px ${getComputedStyle(document.body).fontFamily}`;
+    g.fillStyle = '#a9b8d8'; g.textBaseline = 'bottom';
     g.fillText('별 점의 크기는 보이는 밝기만 나타내요 (실제 별의 크기와 상관없음)', 12, L.skyH - 8);
 
     const font = getComputedStyle(document.body).fontFamily;
@@ -139,15 +142,25 @@ export function createStarView(canvas, { onSelect, onDrag, onDragStart, onDragEn
       const D = st.dist[s.id], m = magAt(s, D);
       const x = s.sky[0] * L.skyW, y = s.sky[1] * (L.skyH - 40) + 24;
       const v = drawStarGlow(x, y, s, m, st.sel === s.id);
-      const off = Math.max(16, v.core + (v.over ? v.glow * 0.55 : 10));
+      // 이름표는 번짐 테두리(점선 원) 밖에. 아래 공간이 모자라면 별 위쪽에 씀
+      const off = v.over ? v.glow * 1.25 + v.core + 12 : Math.max(16, v.core + 10);
+      const lines = v.over ? 3 : 2, blockH = lines * 17;
+      const ty = y + off + blockH > L.skyH - 22 ? y - off - blockH : y + off;   // 아래쪽 안내 글(skyH-8)과 겹치면 위로
       g.textAlign = 'center'; g.textBaseline = 'top';
+      const l2 = v.hidden ? `${fmtMag(m)}등급 · 맨눈으로 안 보임` : `${fmtMag(m)}등급`;
+      const l3 = L.portrait ? '너무 밝아 다 못 나타냄' : '너무 밝아 화면에 다 못 나타냄';
+      // 글자가 밤하늘 창 밖으로 잘리지 않게 가운데를 안쪽으로
+      g.font = `600 13px ${font}`;
+      let half = g.measureText(l2).width / 2;
+      if (v.over) { g.font = `600 12.5px ${font}`; half = Math.max(half, g.measureText(l3).width / 2); }
+      const lx = clamp(x, half + 8, L.skyW - half - 8);
       g.font = `700 14px ${font}`; g.fillStyle = s.ui;
-      g.fillText(s.name, x, y + off);
+      g.fillText(s.name, lx, ty);
       g.font = `600 13px ${font}`; g.fillStyle = '#e9f0fb';
-      g.fillText(v.hidden ? `${fmtMag(m)}등급 · 맨눈으로 안 보임` : `${fmtMag(m)}등급`, x, y + off + 17);
+      g.fillText(l2, lx, ty + 17);
       if (v.over) {
-        g.font = `600 12px ${font}`; g.fillStyle = '#ffcc4d';
-        g.fillText('너무 밝아 화면에 다 못 나타냄', x, y + off + 34);
+        g.font = `600 12.5px ${font}`; g.fillStyle = '#ffcc4d';
+        g.fillText(l3, lx, ty + 34);
       }
     }
 
@@ -159,7 +172,7 @@ export function createStarView(canvas, { onSelect, onDrag, onDragStart, onDragEn
     g.strokeStyle = 'rgba(150,175,220,.25)'; g.beginPath(); g.moveTo(0, L.skyH + 0.5); g.lineTo(W, L.skyH + 0.5); g.stroke();
     g.font = `700 14px ${font}`; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillStyle = '#cfe0ff';
     g.fillText('지구에서 별까지의 거리', 12, L.skyH + 15);
-    g.font = `400 12px ${font}`; g.fillStyle = '#93a6c8';
+    g.font = `400 13px ${font}`; g.fillStyle = '#a9b8d8';
     g.textAlign = 'right';
     g.fillText(L.portrait ? '눈금 한 칸마다 10배' : '눈금이 한 칸 갈 때마다 거리 10배', W - 12, L.skyH + 15);
 
@@ -174,8 +187,8 @@ export function createStarView(canvas, { onSelect, onDrag, onDragStart, onDragEn
     const cx0 = L.earthW + 4, cx1 = L.x0 - 12;
     g.fillStyle = 'rgba(255,201,77,.07)'; g.strokeStyle = 'rgba(255,201,77,.35)'; g.setLineDash([4, 4]);
     g.fillRect(cx0, L.laneTop, cx1 - cx0, L.laneBot - L.laneTop); g.strokeRect(cx0, L.laneTop, cx1 - cx0, L.laneBot - L.laneTop); g.setLineDash([]);
-    g.fillStyle = '#d9b75a'; g.font = `600 11.5px ${font}`; g.textAlign = 'center'; g.textBaseline = 'top';
-    g.fillText('아주 가까움(생략)', (cx0 + cx1) / 2, L.laneBot + 4);
+    g.fillStyle = '#d9b75a'; g.font = `600 12.5px ${font}`; g.textAlign = 'center'; g.textBaseline = 'top';
+    g.fillText(L.portrait ? '아주 가까움' : '아주 가까움(생략)', (cx0 + cx1) / 2, L.laneBot + 4);
     // 물결 (끊김 표시)
     g.strokeStyle = '#8aa0c8'; g.lineWidth = 1.5;
     for (const dx of [-7, -2]) {
@@ -184,7 +197,7 @@ export function createStarView(canvas, { onSelect, onDrag, onDragStart, onDragEn
       g.stroke();
     }
     // 눈금
-    g.textBaseline = 'top'; g.font = `600 12px ${font}`;
+    g.textBaseline = 'top'; g.font = `600 13px ${font}`;
     for (let e = -1; e <= 3; e++) for (let k = 1; k <= 9; k++) {
       const D = k * Math.pow(10, e);
       if (D < PC_MIN - 1e-9 || D > PC_MAX + 1e-9) continue;
@@ -194,7 +207,8 @@ export function createStarView(canvas, { onSelect, onDrag, onDragStart, onDragEn
       g.beginPath(); g.moveTo(x, L.laneTop); g.lineTo(x, L.laneBot); g.stroke();
       if (major) { g.fillStyle = '#b8c7e2'; g.textAlign = 'center'; g.fillText(`${D} pc`, x, L.laneBot + 4); }
     }
-    g.fillStyle = '#8193b3'; g.textAlign = 'center'; g.fillText('0.5', xOf(0.5), L.laneBot + 4);
+    // 0.5 눈금 글자는 '생략' 칸 이름과 붙지 않게 눈금 오른쪽에
+    g.fillStyle = '#93a6c8'; g.textAlign = 'left'; g.fillText('0.5', xOf(0.5) + 3, L.laneBot + 4);
     // 10 pc 선
     const x10 = xOf(10);
     g.strokeStyle = '#ffcc4d'; g.lineWidth = 3;
@@ -255,13 +269,21 @@ export function createStarView(canvas, { onSelect, onDrag, onDragStart, onDragEn
     const grad = g.createLinearGradient(0, top, 0, bot);
     grad.addColorStop(0, '#fff6cf'); grad.addColorStop(0.3, '#a9b8d8'); grad.addColorStop(1, '#1d2740');
     g.fillStyle = grad; g.fillRect(x - 4, top, 8, bot - top);
-    // 끊김 표시
-    const yb = yOfMag(MAG_BREAK) - 3;
-    g.fillStyle = 'rgba(10,17,34,1)'; g.fillRect(x - 7, yb - 3, 14, 6);
-    g.strokeStyle = '#8aa0c8'; g.lineWidth = 1.2;
-    g.beginPath(); g.moveTo(x - 7, yb - 1); g.lineTo(x + 7, yb - 5); g.moveTo(x - 7, yb + 4); g.lineTo(x + 7, yb); g.stroke();
+    // 맨눈으로 안 보이는 범위 (6등급보다 어두움) — 빗금
+    const y6 = yOfMag(NAKED_EYE);
+    g.save(); g.beginPath(); g.rect(x - 4, y6, 8, bot - y6); g.clip();
+    g.strokeStyle = 'rgba(255,255,255,.28)'; g.lineWidth = 1;
+    for (let yy = y6 - 8; yy < bot + 8; yy += 5) { g.beginPath(); g.moveTo(x - 4, yy + 8); g.lineTo(x + 4, yy); g.stroke(); }
+    g.restore();
+    // 끊김 표시 (눈금 간격이 바뀌는 곳) — 막대 폭 안에만 그려 별 표시(▶)와 겹치지 않게
+    for (const mb of [MAG_BREAK, MAG_BOT]) {
+      const yb = yOfMag(mb) + (mb === MAG_BREAK ? -3 : 3);
+      g.fillStyle = 'rgba(10,17,34,1)'; g.fillRect(x - 5, yb - 3, 10, 6);
+      g.strokeStyle = '#8aa0c8'; g.lineWidth = 1.2;
+      g.beginPath(); g.moveTo(x - 5, yb - 1); g.lineTo(x + 5, yb - 4); g.moveTo(x - 5, yb + 4); g.lineTo(x + 5, yb + 1); g.stroke();
+    }
     g.textAlign = 'left'; g.textBaseline = 'middle';
-    const ticks = [-27, -20, -10, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8];
+    const ticks = [-27, -20, -10, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 12, 16];
     for (const m of ticks) {
       const y = yOfMag(m), strong = m === 0 || m === 1 || m === 6;
       g.strokeStyle = strong ? '#ffcc4d' : 'rgba(200,215,255,.6)'; g.lineWidth = strong ? 2 : 1;
@@ -270,22 +292,24 @@ export function createStarView(canvas, { onSelect, onDrag, onDragStart, onDragEn
       g.fillStyle = strong ? '#ffcc4d' : '#a9b8d8';
       g.fillText(String(m), x + 15, y);
     }
-    g.font = `600 11.5px ${font}`; g.fillStyle = '#93a6c8'; g.textAlign = 'center';
+    g.font = `600 12.5px ${font}`; g.fillStyle = '#a9b8d8'; g.textAlign = 'center';
     g.fillText('↑ 밝다', x, top - 14);
     g.fillText('↓ 어둡다', x, bot + 12);
     // 별 표시 (겹치지 않게 밀기)
     const items = STARS.map(s => ({ s, m: magAt(s, st.dist[s.id]) }))
       .map(o => ({ ...o, y0: yOfMag(o.m) })).sort((a, b) => a.y0 - b.y0);
     let last = -1e9;
-    for (const o of items) { o.y = Math.max(o.y0, last + 15); last = o.y; }
+    const GAP = 17;
+    for (const o of items) { o.y = Math.max(o.y0, last + GAP); last = o.y; }
     const over = last - (bot + 8);
     if (over > 0) for (const o of items) o.y -= over;
+    for (let i = items.length - 2; i >= 0; i--) items[i].y = Math.min(items[i].y, items[i + 1].y - GAP);
     for (const o of items) {
       g.fillStyle = o.s.ui;
-      g.beginPath(); g.moveTo(x - 5, o.y0); g.lineTo(x - 13, o.y0 - 5); g.lineTo(x - 13, o.y0 + 5); g.closePath(); g.fill();
-      if (Math.abs(o.y - o.y0) > 1) { g.strokeStyle = o.s.ui; g.lineWidth = 1; g.beginPath(); g.moveTo(x - 13, o.y0); g.lineTo(x - 17, o.y); g.stroke(); }
-      g.font = `${st.sel === o.s.id ? 800 : 600} 12px ${font}`; g.textAlign = 'right'; g.textBaseline = 'middle';
-      g.fillText(o.s.name, x - 17, o.y);
+      g.beginPath(); g.moveTo(x - 7, o.y0); g.lineTo(x - 15, o.y0 - 5); g.lineTo(x - 15, o.y0 + 5); g.closePath(); g.fill();
+      if (Math.abs(o.y - o.y0) > 1) { g.strokeStyle = o.s.ui; g.lineWidth = 1; g.beginPath(); g.moveTo(x - 15, o.y0); g.lineTo(x - 19, o.y); g.stroke(); }
+      g.font = `${st.sel === o.s.id ? 800 : 600} 12.5px ${font}`; g.textAlign = 'right'; g.textBaseline = 'middle';
+      g.fillText(o.s.name, x - 19, o.y);
     }
   }
 
@@ -351,7 +375,8 @@ export function createStarView(canvas, { onSelect, onDrag, onDragStart, onDragEn
 
   return {
     layout, draw,
-    tick(dt) { time += dt; draw(); },
+    // 반짝임은 품질 '높음'에서만 → 낮음이거나 멈춤이면 바뀐 것이 있을 때만 다시 그림
+    tick(dt) { time += dt; if (quality === 'high' && dt > 0) draw(); },
     setQuality(q) { quality = q; layout(); },
     cancelDrag() { drag = null; },
     get dragging() { return !!drag; },

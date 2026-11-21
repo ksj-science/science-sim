@@ -32,10 +32,19 @@
     <div class="tb-actions">
       <button class="btn icon" id="btnPlay" title="일시정지 (스페이스바)" aria-label="일시정지">⏸</button>
       <div class="reset-wrap">
-        <button class="btn icon" id="btnReset" title="초기화" aria-label="초기화">↺</button>
+        <button class="btn icon" id="btnReset" title="초기화" aria-label="초기화" aria-haspopup="true" aria-expanded="false">↺</button>
         <div id="resetMenu" class="popover" hidden>
-          <button class="btn" id="btnResetTab">이 탭만 처음으로</button>
-          <button class="btn warn" id="btnResetAll">모두 처음으로</button>
+          <div id="resetChoices" class="pop-col">
+            <button class="btn" id="btnResetTab">이 탭만 처음으로</button>
+            <button class="btn warn" id="btnResetAll">모두 처음으로…</button>
+          </div>
+          <div id="resetConfirm" class="pop-col" role="alertdialog" aria-labelledby="resetQ" hidden>
+            <p id="resetQ">두 탭의 기록·예상·결과를<br />모두 지우고 처음으로 돌릴까요?</p>
+            <div class="pop-row">
+              <button class="btn" id="btnResetNo">취소</button>
+              <button class="btn warn" id="btnResetYes">모두 지우기</button>
+            </div>
+          </div>
         </div>
       </div>
       <button class="btn icon" id="btnMute" title="소리 켜기/끄기" aria-label="소리 켜기/끄기">🔊</button>
@@ -118,7 +127,7 @@
           <div class="readouts three">
             <div class="ro"><span>거리</span><b id="roD">6.0 cm</b></div>
             <div class="ro"><span>빛을 받는 넓이</span><b id="roA">1.0칸</b><small id="roSide">한 변 1.0칸</small></div>
-            <div class="ro"><span>한 칸의 밝기</span><b id="roB">1</b><small>1칸일 때 = 1</small></div>
+            <div class="ro"><span>한 칸의 밝기</span><b id="roB">1</b><small id="roBSub">기준 (1칸일 때)</small></div>
           </div>
           <div class="bbar" aria-hidden="true">
             <div class="bbar-track"><div class="bbar-fill" id="bbarFill"></div><i class="bbar-one" title="1칸일 때"></i></div>
@@ -127,7 +136,7 @@
           <div class="control">
             <label for="dSlider">휴대 전화–모눈종이 거리 <output id="dOut">6.0 cm</output></label>
             <input type="range" id="dSlider" min="3" max="30" step="0.5" value="6" aria-label="휴대 전화와 모눈종이 사이 거리 (cm)" />
-            <div class="scale"><span>3 cm</span><span>10</span><span>20</span><span>30 cm</span></div>
+            <div class="scale" id="dScale" aria-hidden="true"></div>
           </div>
           <div class="btn-line">
             <button class="btn primary" id="btnRecord">📝 표에 기록</button>
@@ -156,12 +165,12 @@
           <div class="my-pred" id="starPredLine"></div>
           <div class="chips" id="starChips" role="radiogroup" aria-label="별 고르기"></div>
           <div class="readouts three" id="starReadouts">
-            <div class="ro"><span>실제 거리</span><b id="roReal">2.6 pc</b></div>
+            <div class="ro"><span>실제 거리</span><b id="roReal">2.6 pc</b><small id="roRealSub"></small></div>
             <div class="ro"><span>지금 거리</span><b id="roNow">2.6 pc</b></div>
-            <div class="ro"><span>거리 배수</span><b id="roDMul">1배</b></div>
+            <div class="ro"><span>원래 거리의</span><b id="roDMul">1배</b><small id="roDMulSub">원래 자리</small></div>
             <div class="ro"><span>원래 겉보기 등급</span><b id="roM0">-1.4등급</b></div>
             <div class="ro hl"><span>지금 겉보기 등급</span><b id="roM">-1.4등급</b></div>
-            <div class="ro"><span>보이는 밝기 배수</span><b id="roBMul">1배</b></div>
+            <div class="ro"><span>원래 밝기의</span><b id="roBMul">1배</b><small id="roBMulSub">그대로</small></div>
             <div class="ro abs wide"><span>절대 등급 <small>(10 pc에 놓았을 때)</small></span><b id="roAbs">?</b></div>
           </div>
         </div>
@@ -169,7 +178,7 @@
           <div class="control">
             <label for="pcSlider">별까지의 거리 <output id="pcOut">2.6 pc</output></label>
             <input type="range" id="pcSlider" min="0" max="1000" step="1" value="300" aria-label="별까지의 거리 (pc)" />
-            <div class="scale"><span>0.5 pc</span><span>10 pc</span><span>1000 pc</span></div>
+            <div class="scale" id="pcScale" aria-hidden="true"></div>
           </div>
           <div class="btn-line">
             <button class="btn primary" id="btn10pc">🚀 10 pc로 보내기</button>

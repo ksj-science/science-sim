@@ -19,7 +19,7 @@ export const brightOf = d => (D_ONE / d) ** 2;        // 한 칸 밝기 (1칸일
 const VIEWS = {
   main: { pos: [-36, 30, 47], target: [-13, 5, 2] },
   front: { pos: [-44, 17, 12], target: [0, 10, 2] },
-  side: { pos: [-15, 9, 46], target: [-15, 7, 0] },
+  side: { pos: [-15, 9, 50], target: [-15, 7, 0] },
 };
 
 function rulerTexture() {
@@ -80,14 +80,23 @@ function makeLabel(html, cls = 'l3d') {
 }
 
 export function createLamp(wrap, { onDrag, onDragStart, onDragEnd, isLocked }) {
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-  renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.05;
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-  wrap.appendChild(renderer.domElement);
+  // 렌더러 — 품질 '낮음'에서는 안티에일리어싱을 끈 새 렌더러로 바꿈(만들 때만 정할 수 있음)
+  let renderer = null, rendererAA = null;
+  function buildRenderer(aa) {
+    if (renderer && rendererAA === aa) return;
+    if (renderer) {
+      renderer.domElement.remove();
+      renderer.dispose(); renderer.forceContextLoss();
+    }
+    renderer = new THREE.WebGLRenderer({ antialias: aa, powerPreference: aa ? 'default' : 'low-power' });
+    rendererAA = aa;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.05;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    wrap.insertBefore(renderer.domElement, wrap.firstChild);
+  }
+  buildRenderer(true);
 
   const labelRenderer = new CSS2DRenderer();
   labelRenderer.domElement.className = 'label-layer';
@@ -99,13 +108,21 @@ export function createLamp(wrap, { onDrag, onDragStart, onDragEnd, isLocked }) {
 
   const camera = new THREE.PerspectiveCamera(38, 1, 0.5, 400);
   camera.position.set(...VIEWS.main.pos);
-  const controls = new OrbitControls(camera, renderer.domElement);
+  // 끌기·회전은 캔버스를 감싼 상자에서 받음 → 렌더러를 바꿔도 조작이 그대로 이어짐
+  // (휴대 전화 끌기 처리를 OrbitControls보다 먼저 받도록 capture 단계에 등록)
+  const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), plane = new THREE.Plane(), hit = new THREE.Vector3();
+  let dragging = false, grabOffset = 0, pid = null;
+  const el = wrap;
+  el.addEventListener('pointerdown', e => onDown(e), { capture: true });
+  const controls = new OrbitControls(camera, el);
   controls.target.set(...VIEWS.main.target);
   controls.enableDamping = true; controls.dampingFactor = 0.08;
   controls.minDistance = 18; controls.maxDistance = 85;
   controls.maxPolarAngle = Math.PI * 0.49;
   controls.enablePan = false;
   controls.update();
+  let dirty = true;                       // 장면이 바뀌었을 때만 다시 그림
+  controls.addEventListener('change', () => { dirty = true; });
 
   // 조명 (어둑한 실험실)
   scene.add(new THREE.HemisphereLight('#bcd2ff', '#3a2c20', 0.55));
@@ -200,7 +217,7 @@ export function createLamp(wrap, { onDrag, onDragStart, onDragEnd, isLocked }) {
   const okGeo = new THREE.BufferGeometry().setFromPoints([
     new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 1, 1),
     new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 0)]);
-  const okLine = new THREE.Line(okGeo, new THREE.LineBasicMaterial({ color: '#4ade80', transparent: true, opacity: 0 }));
+  const okLine = new THREE.Line(okGeo, new THREE.LineBasicMaterial({ color: '#4ade80', transparent: true, opacity: 0.75 }));
   okLine.position.set(-0.05, Y0, 0); // 꼭짓점(구멍 바로 앞)에서 시작
   scene.add(okLine);
 
@@ -262,10 +279,10 @@ export function createLamp(wrap, { onDrag, onDragStart, onDragEnd, isLocked }) {
 
   const lblPaper = makeLabel('모눈종이');
   lblPaper.position.set(0.5, PY + 7, PZ); scene.add(lblPaper);
-  const lblPhone = makeLabel('휴대 전화 + 종이컵<br><small>끌어서 움직이기</small>');
+  const lblPhone = makeLabel('휴대 전화 + 종이컵<br><small>👆 끌어서 움직이기</small>');
   phone.add(lblPhone); lblPhone.position.set(-CUP - 0.4, Y0 + 8.6, 0);
   const lblRuler = makeLabel('자 (cm)');
-  lblRuler.position.set(-31.5, 0.6, 8.5); scene.add(lblRuler);
+  lblRuler.position.set(-29, 0.6, 9); scene.add(lblRuler);
 
   // 상태
   let d = 10, beamOn = true, quality = 'high', okGlow = 0, w = 1, h = 1;
@@ -300,14 +317,16 @@ export function createLamp(wrap, { onDrag, onDragStart, onDragEnd, isLocked }) {
     okLine.scale.set(1, s, s);
     const exact = Math.abs(s - Math.round(s)) < 1e-6;
     okLine.visible = exact;
+    dirty = true;
   }
 
   function setDistance(v) { d = clamp(v, D_MIN, D_MAX); update(); }
-  function flashExact() { okGlow = 1; }
-  function setBeam(on) { beamOn = on; applyQuality(); }
+  function flashExact() { okGlow = 1; dirty = true; }
+  function setBeam(on) { beamOn = on; applyQuality(); dirty = true; }
   function applyQuality(q = quality) {
     quality = q;
     const high = q === 'high';
+    buildRenderer(high);
     renderer.setPixelRatio(high ? Math.min(devicePixelRatio, 2) : 1);
     renderer.shadowMap.enabled = high;
     key.castShadow = high;
@@ -319,6 +338,7 @@ export function createLamp(wrap, { onDrag, onDragStart, onDragEnd, isLocked }) {
 
   function setView(name) {
     const v = VIEWS[name]; if (!v) return;
+    dirty = true;
     view = name;
     tween = {
       t: 0, fromPos: camera.position.clone(), toPos: new THREE.Vector3(...v.pos),
@@ -334,11 +354,10 @@ export function createLamp(wrap, { onDrag, onDragStart, onDragEnd, isLocked }) {
     // 좁은(세로) 화면에서는 시야를 넓혀 장면이 잘리지 않게
     camera.fov = camera.aspect < 1.2 ? 50 : 38;
     camera.updateProjectionMatrix();
+    dirty = true;
   }
 
   // 끌기
-  const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), plane = new THREE.Plane(), hit = new THREE.Vector3();
-  let dragging = false, grabOffset = 0, pid = null;
   function setNdc(e) {
     const r = renderer.domElement.getBoundingClientRect();
     ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
@@ -351,22 +370,22 @@ export function createLamp(wrap, { onDrag, onDragStart, onDragEnd, isLocked }) {
     n.normalize();
     plane.setFromNormalAndCoplanarPoint(n, new THREE.Vector3(0, Y0, 0));
   }
-  const el = renderer.domElement;
-  el.addEventListener('pointerdown', e => {
-    if (isLocked()) return;
+  function onDown(e) {
+    if (isLocked()) { e.stopPropagation(); return; }
+    if (e.target !== renderer.domElement) return;
     setNdc(e);
     if (ray.intersectObjects(pickables, false).length) {
       dragPlane();
       if (!ray.ray.intersectPlane(plane, hit)) return;
       dragging = true; pid = e.pointerId;
       grabOffset = hit.x - (-d);
-      controls.enabled = false;
       el.setPointerCapture(e.pointerId);
       el.style.cursor = 'grabbing';
       onDragStart && onDragStart();
       e.preventDefault();
+      e.stopPropagation();        // 카메라 회전은 시작하지 않음
     }
-  });
+  }
   el.addEventListener('pointermove', e => {
     if (dragging && e.pointerId === pid) {
       setNdc(e);
@@ -382,7 +401,7 @@ export function createLamp(wrap, { onDrag, onDragStart, onDragEnd, isLocked }) {
   });
   const end = e => {
     if (!dragging || e.pointerId !== pid) return;
-    dragging = false; controls.enabled = true; el.style.cursor = '';
+    dragging = false; el.style.cursor = '';
     onDragEnd && onDragEnd();
   };
   el.addEventListener('pointerup', end);
@@ -395,19 +414,25 @@ export function createLamp(wrap, { onDrag, onDragStart, onDragEnd, isLocked }) {
       camera.position.lerpVectors(tween.fromPos, tween.toPos, k);
       controls.target.lerpVectors(tween.fromT, tween.toT, k);
       if (tween.t >= 1) tween = null;
+      dirty = true;
     }
-    controls.update();
-    if (okLine.visible) {
+    controls.update();             // 'change'가 나면 dirty
+    if (okLine.visible && okGlow > 0) {
       okGlow = Math.max(0, okGlow - dt * 0.8);
       okLine.material.opacity = 0.75 + 0.25 * okGlow;
+      dirty = true;
     }
+    if (!dirty) return false;      // 바뀐 것이 없으면 그리지 않음 (저사양 크롬북 배려)
+    dirty = false;
     renderer.render(scene, camera);
     labelRenderer.render(scene, camera);
+    return true;
   }
 
-  function cancelDrag() { if (dragging) { dragging = false; controls.enabled = true; } }
+  function cancelDrag() { dragging = false; el.style.cursor = ''; }
+  function invalidate() { dirty = true; }
 
   update();
   resize();
-  return { setDistance, setBeam, setView, applyQuality, resize, render, flashExact, cancelDrag, get view() { return view; } };
+  return { setDistance, setBeam, setView, applyQuality, resize, render, flashExact, cancelDrag, invalidate, get view() { return view; } };
 }

@@ -8,7 +8,7 @@ const UNIT = '15-3-7-1-01';
 const $ = id => document.getElementById(id);
 const Bridge = window.SimBridge;
 Bridge.init(UNIT);
-const locked = () => !!Bridge.locked;
+const locked = () => !!Bridge.locked || document.documentElement.classList.contains('sim-locked');
 
 // ---------------- 상태 ----------------
 const D0 = 10;
@@ -16,8 +16,8 @@ const S = {
   mode: 'lamp',
   paused: false,
   quality: (navigator.hardwareConcurrency || 4) <= 2 ? 'low' : 'high',
-  lamp: { d: D0, records: [], pred: '', beam: true, touched: false },
-  star: { sel: 'sirius', dist: {}, found: new Set(), pred: '', anim: null, touched: false, visited: false },
+  lamp: { d: D0, records: [], pred: '', beam: true, touched: false, cmp: false },
+  star: { sel: 'sirius', dist: {}, found: new Set(), pred: '', anim: null, touched: false, visited: false, cmp: false },
   stairs: { pick: [], last: null, anim: null },
 };
 const resetStarDist = () => STARS.forEach(s => { S.star.dist[s.id] = s.dist; });
@@ -31,31 +31,40 @@ function bigNum(v) {
   if (v < 1e4) return sig(v);
   if (v < 1e8) return sig(v / 1e4) + '만';
   if (v < 1e12) return sig(v / 1e8) + '억';
-  return sig(v / 1e12) + '조';
+  if (v < 1e16) return sig(v / 1e12) + '조';
+  return sig(v / 1e16) + '경';
+}
+// 받침에 따라 을/를
+const eulReul = w => { const c = w.charCodeAt(w.length - 1); return c >= 0xac00 && c <= 0xd7a3 && (c - 0xac00) % 28 ? '을' : '를'; };
+// 원래 거리와 비교 (1보다 작으면 1/○)
+function fmtDistCmp(x) {
+  if (Math.abs(x - 1) < 0.005) return { v: '1배', sub: '원래 자리' };
+  const sig = y => (y < 10 ? (Math.round(y * 10) / 10).toString() : bigNum(y));
+  const approx = y => { const r = y < 10 ? Math.round(y * 10) / 10 : Math.round(y); return Math.abs(r - y) / y > 0.01 ? '약 ' : ''; };
+  if (x < 1) return { v: `${approx(1 / x)}1/${sig(1 / x)}`, sub: '더 가까이' };
+  return { v: `${approx(x)}${sig(x)}배`, sub: '더 멀리' };
 }
 function fmtTimes(x) {           // 밝기 배수: 1보다 작으면 1/○배
   if (Math.abs(x - 1) < 0.005) return '1배';
   return x >= 1 ? `${bigNum(x)}배` : `1/${bigNum(1 / x)}배`;
 }
-function fmtDistMul(x) {
-  if (Math.abs(x - 1) < 0.005) return '1배';
-  if (x < 1) return `${x.toPrecision(2)}배`;
-  return `${bigNum(x)}배`;
-}
 function fmtPc(D) {
-  if (D < 0.01) return '0.00000485 pc';
+  if (D < 0.01) return '1 AU';
   if (D < 9.95) return `${f1(D)} pc`;
   return `${Math.round(D)} pc`;
 }
-// 한 칸 밝기: 한 변이 정수 칸이면 분수도 함께
-function fmtBright(d, withDec = true) {
-  const s = sideOf(d), B = brightOf(d);
-  const si = Math.round(s);
+// 한 칸 밝기: 칸에 딱 맞으면 분수(1/4), 아니면 소수 + 가까운 분수(약 1/3)
+function brightParts(d) {
+  const s = sideOf(d), B = brightOf(d), si = Math.round(s);
   if (Math.abs(s - si) < 1e-9 && si >= 1) {
-    if (si === 1) return '1';
-    return withDec ? `1/${si * si} (${B.toFixed(2)})` : `1/${si * si}`;
+    return si === 1 ? { main: '1', sub: '기준 (1칸일 때)' } : { main: `1/${si * si}`, sub: `= ${B.toFixed(2)}` };
   }
-  return B.toFixed(2);
+  if (B > 1) return { main: B.toFixed(2), sub: '빛이 모여 더 밝음' };
+  return { main: B.toFixed(2), sub: `약 1/${Math.round(1 / B)}` };
+}
+function fmtBrightCell(d) {
+  const p = brightParts(d);
+  return p.sub.startsWith('약') ? `${p.main} <small>(${p.sub})</small>` : p.main;
 }
 
 // ---------------- SimBridge ----------------
@@ -118,7 +127,9 @@ function renderLampPanel() {
   $('dOut').textContent = `${f1(d)} cm`;
   $('roA').textContent = `${f1(A)}칸`;
   $('roSide').textContent = `${f1(s)}칸 × ${f1(s)}칸`;
-  $('roB').textContent = fmtBright(d, false);
+  const bp = brightParts(d);
+  $('roB').textContent = bp.main;
+  $('roBSub').textContent = bp.sub;
   $('roB').title = B.toFixed(3);
   $('bbarFill').style.width = `${Math.min(B, 2) / 2 * 100}%`;
   if (+dSlider.value !== d) dSlider.value = d;
@@ -126,7 +137,7 @@ function renderLampPanel() {
   $('cmpText').innerHTML = `지금 거리 <b>${f1(d)} cm</b>는 한 칸일 때의 거리 <b>${D_ONE} cm</b>의 <b>${(d / D_ONE).toFixed(2).replace(/\.?0+$/, '')}배</b>예요.`;
   const lbl = $('insetLabel');
   lbl.classList.toggle('exact', exact);
-  lbl.innerHTML = exact ? `<b>칸에 딱 맞음 · ${Math.round(A)}칸</b>` : `넓이 <b>${f1(A)}칸</b>`;
+  lbl.innerHTML = exact ? `<b>칸에 딱 맞음 · ${Math.round(A)}칸</b>` : A < 1 ? `넓이 <b>${f1(A)}칸</b> (한 칸보다 좁음)` : `넓이 <b>${f1(A)}칸</b>`;
   drawInset();
 }
 
@@ -191,7 +202,7 @@ function renderRecords(flashD) {
   for (const r of S.lamp.records) {
     const tr = document.createElement('tr');
     if (r.d === flashD) tr.className = 'new';
-    tr.innerHTML = `<td>${f1(r.d)}</td><td>${f1(cellsOf(r.d))}</td><td>${fmtBright(r.d, false)}</td>` +
+    tr.innerHTML = `<td>${f1(r.d)}</td><td>${f1(cellsOf(r.d))}</td><td>${fmtBrightCell(r.d)}</td>` +
       `<td class="del"><button aria-label="${f1(r.d)} cm 줄 지우기" title="이 줄 지우기">✕</button></td>`;
     tr.querySelector('button').addEventListener('click', () => {
       S.lamp.records = S.lamp.records.filter(x => x !== r);
@@ -201,6 +212,7 @@ function renderRecords(flashD) {
   }
   $('recCount').textContent = `${S.lamp.records.length} / 6줄`;
   $('recEmpty').hidden = S.lamp.records.length > 0;
+  checkCompare();
 }
 
 // 예상 카드 ①
@@ -252,8 +264,9 @@ function foundAbs(id) {
   S.star.found.add(id);
   sound.bell();
   const s = byId(id);
-  toast(`${s.name}을(를) 10 pc에 놓았어요 → 절대 등급 ${fmtMag(s.M)}등급`);
+  toast(`${s.name}${eulReul(s.name)} 10 pc에 놓았어요 → 절대 등급 ${fmtMag(s.M)}등급`);
   renderStarPanel();
+  checkCompare();
   const el = $('roAbs').closest('.ro');
   el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
 }
@@ -261,13 +274,16 @@ function foundAbs(id) {
 function renderStarPanel() {
   const s = byId(S.star.sel), D = S.star.dist[s.id];
   document.querySelectorAll('#starChips .chip').forEach(c => c.setAttribute('aria-checked', String(c.dataset.id === s.id)));
-  $('roReal').textContent = s.id === 'sun' ? '0.00000485 pc' : fmtPc(s.dist);
-  $('roReal').title = s.id === 'sun' ? '1 AU (지구–태양 거리)' : '';
-  $('roReal').classList.toggle('long', s.id === 'sun');
-  $('roNow').classList.toggle('long', D < 0.01);
+  $('roReal').textContent = fmtPc(s.dist);
+  $('roRealSub').textContent = s.id === 'sun' ? '지구–태양 거리' : '';
+  $('roReal').title = s.id === 'sun' ? '1 AU = 지구와 태양 사이 거리 ≈ 0.00000485 pc' : '';
   $('roNow').textContent = fmtPc(D);
-  $('roDMul').textContent = fmtDistMul(D / s.dist);
-  $('roBMul').textContent = fmtTimes((s.dist / D) ** 2);
+  const dc = fmtDistCmp(D / s.dist);
+  $('roDMul').textContent = dc.v; $('roDMulSub').textContent = dc.sub;
+  const bm = (s.dist / D) ** 2;
+  $('roBMul').textContent = fmtTimes(bm);
+  $('roBMulSub').textContent = Math.abs(bm - 1) < 0.005 ? '그대로' : bm > 1 ? '더 밝게 보임' : '더 어둡게 보임';
+  fitText($('roDMul')); fitText($('roBMul')); fitText($('roNow'));
   $('roM0').textContent = `${fmtMag(s.m0)}등급`;
   $('roM').textContent = `${fmtMag(magAt(s, D))}등급`;
   $('roAbs').textContent = S.star.found.has(s.id) ? `${fmtMag(s.M)}등급` : '?';
@@ -303,13 +319,27 @@ document.querySelectorAll('#predictStarOpts [data-v]').forEach(b => b.addEventLi
   renderPredLines(); pushState();
 }));
 
-pcSlider.addEventListener('input', () => {
+function onPcInput() {
   if (locked()) return;
   stopAnim();
   let D = pcFromSlider(+pcSlider.value);
   if (Math.abs(D - 10) <= 0.3) D = 10;
   hideHint('starHint');
   setStarDist(S.star.sel, D);
+}
+pcSlider.addEventListener('input', onPcInput);
+// 키보드: ←/→ 한 번에 눈금 1/100(약 8%), PageUp/Down 1/10, Home/End 끝 — 누를 때마다 틱 소리
+pcSlider.addEventListener('keydown', e => {
+  const step = { ArrowRight: 10, ArrowUp: 10, ArrowLeft: -10, ArrowDown: -10, PageUp: 100, PageDown: -100, Home: -1000, End: 1000 }[e.key];
+  if (step === undefined || locked()) return;
+  e.preventDefault();
+  let v = clamp(+pcSlider.value + step, 0, 1000);
+  // 10 pc를 건너뛰지 않게
+  const v10 = sliderFromPc(10), cur = +pcSlider.value;
+  if ((cur < v10 - 0.5 && v > v10) || (cur > v10 + 0.5 && v < v10)) v = v10;
+  pcSlider.value = v;
+  onPcInput();
+  sound.tick(v / 1000);
 });
 
 // 이동 애니메이션 (일시정지 가능)
@@ -469,16 +499,63 @@ function stepStairs(dt) {
 $('btnStairs').addEventListener('click', () => { $('stairs').hidden = false; sound.click(); requestAnimationFrame(renderStairs); });
 $('btnStairsClose').addEventListener('click', () => { $('stairs').hidden = true; sound.click(); });
 
+// 슬라이더 눈금 글자를 실제 값 위치에 (손잡이 폭 24px 고려)
+function buildScale(el, ticks) {
+  el.innerHTML = ticks.map(([f, label], i) => {
+    const cls = i === 0 ? 'first' : i === ticks.length - 1 ? 'last' : '';
+    return `<span class="${cls}" style="--f:${f.toFixed(4)}">${label}</span>`;
+  }).join('');
+}
+buildScale($('dScale'), [[3, '3 cm'], [10, '10'], [20, '20'], [30, '30 cm']].map(([v, l]) => [(v - D_MIN) / (D_MAX - D_MIN), l]));
+buildScale($('pcScale'), [[0.5, '0.5 pc'], [10, '10 pc'], [100, '100'], [1000, '1000 pc']].map(([v, l]) => [sliderFromPc(v) / 1000, l]));
+
+// 칸보다 긴 값은 글자를 조금 줄임
+function fitText(b) {
+  b.classList.remove('long');
+  if (b.scrollWidth > b.clientWidth + 1) b.classList.add('long');
+}
+
+// 예상과 결과를 비교할 때 (정답은 보여 주지 않고 비교하라고만 알림)
+function lampReady() {
+  const r = S.lamp.records.map(x => x.d);
+  return r.length >= 3 || r.some(a => r.some(b => Math.abs(b - 2 * a) < 1e-9));
+}
+const starReady = () => ['sirius', 'mirzam', 'muliphein'].every(id => S.star.found.has(id));
+function checkCompare() {
+  const lr = lampReady(), sr = starReady();
+  if (lr && !S.lamp.cmp) {
+    sound.chime();
+    toast(S.lamp.pred ? '기록이 모였어요! 처음 예상과 기록 표의 \'한 칸 밝기\'를 비교해 보세요' : '기록이 모였어요! [예상하기]로 생각을 정리하고 기록 표와 비교해 보세요', 3600);
+  }
+  if (sr && !S.star.cmp) {
+    sound.chime();
+    toast(S.star.pred ? '세 별의 절대 등급이 모였어요! 처음 예상과 결과 표를 비교해 보세요' : '세 별의 절대 등급이 모였어요! [예상하기]로 생각을 정리하고 결과 표와 비교해 보세요', 3600);
+  }
+  S.lamp.cmp = lr; S.star.cmp = sr;
+  renderPredLines();
+}
+
+// 알림(토스트)은 장면 영역 위쪽 가운데에 — 등급 자·제목을 가리지 않게
+function placeToast() {
+  const t = document.querySelector('.toast'), r = $('scene').getBoundingClientRect();
+  if (!t || !r.width) return;
+  t.style.left = `${r.left + r.width / 2}px`;
+  t.style.top = `${r.top + 84}px`;
+  t.style.maxWidth = `${Math.max(260, r.width - 40)}px`;
+}
+
 // ---------------- 공통 ----------------
 function renderPredLines() {
   const lp = $('lampPredLine'), sp = $('starPredLine');
+  const lc = S.lamp.cmp, sc = S.star.cmp;
+  lp.classList.toggle('compare', lc); sp.classList.toggle('compare', sc);
   lp.innerHTML = S.lamp.pred
-    ? `<span>내 예상: 거리 2배 → 한 칸 밝기 <b>${LAMP_PRED[S.lamp.pred]}</b></span><button class="btn" data-open="predictLamp">바꾸기</button>`
-    : `<span>아직 예상을 고르지 않았어요</span><button class="btn" data-open="predictLamp">예상하기</button>`;
+    ? `<span>${lc ? '<em>기록 표와 비교!</em> ' : ''}내 예상: ${lc ? '' : '거리 2배 → 한 칸 밝기 '}<b>${LAMP_PRED[S.lamp.pred]}</b></span><button class="btn" data-open="predictLamp">바꾸기</button>`
+    : `<span>${lc ? '<em>기록이 모였어요.</em> ' : ''}아직 예상을 고르지 않았어요</span><button class="btn" data-open="predictLamp">예상하기</button>`;
   const ps = S.star.pred && byId(S.star.pred);
   sp.innerHTML = ps
-    ? `<span>내 예상: 실제로 가장 밝은 별 <b>${ps.name}</b></span><button class="btn" data-open="predictStar">바꾸기</button>`
-    : `<span>아직 예상을 고르지 않았어요</span><button class="btn" data-open="predictStar">예상하기</button>`;
+    ? `<span>${sc ? '<em>결과 표와 비교!</em> ' : ''}내 예상: ${sc ? '' : '실제로 가장 밝은 별 '}<b>${ps.name}</b></span><button class="btn" data-open="predictStar">바꾸기</button>`
+    : `<span>${sc ? '<em>결과가 모였어요.</em> ' : ''}아직 예상을 고르지 않았어요</span><button class="btn" data-open="predictStar">예상하기</button>`;
   document.querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', () => {
     if (locked()) return;
     $(b.dataset.open).hidden = false; sound.click();
@@ -527,6 +604,7 @@ window.addEventListener('keydown', e => {
 
 function updateMuteBtn() { $('btnMute').textContent = sound.muted ? '🔇' : '🔊'; $('btnMute').setAttribute('aria-pressed', String(sound.muted)); }
 $('btnMute').addEventListener('click', () => { sound.toggleMute(); updateMuteBtn(); sound.click(); });
+const ALLOW_LOCKED = '.tab, #btnMute, #btnQuality';   // 잠금 뒤에도 되는 것: 탭 보기, 소리, 화질
 updateMuteBtn();
 
 function applyQuality(q) {
@@ -539,10 +617,16 @@ function applyQuality(q) {
 }
 $('btnQuality').addEventListener('click', () => { applyQuality(S.quality === 'high' ? 'low' : 'high'); sound.click(); });
 
-// 초기화
+// 초기화 — 브라우저 confirm() 대신 메뉴 안에서 한 번 더 묻기 (웹앱 창 안에서도 동작)
 const menu = $('resetMenu');
-$('btnReset').addEventListener('click', e => { e.stopPropagation(); menu.hidden = !menu.hidden; sound.click(); });
-document.addEventListener('pointerdown', e => { if (!menu.hidden && !e.target.closest('.reset-wrap')) menu.hidden = true; });
+function setMenu(open, confirmStep = false) {
+  menu.hidden = !open;
+  $('resetChoices').hidden = confirmStep;
+  $('resetConfirm').hidden = !confirmStep;
+  $('btnReset').setAttribute('aria-expanded', String(open));
+}
+$('btnReset').addEventListener('click', e => { e.stopPropagation(); setMenu(menu.hidden); sound.click(); });
+document.addEventListener('pointerdown', e => { if (!menu.hidden && !e.target.closest('.reset-wrap')) setMenu(false); });
 function resetLamp() {
   S.lamp.records = []; S.lamp.beam = true; $('tBeam').checked = true; lamp.setBeam(true);
   document.querySelectorAll('.view-btns [data-view]').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.view === 'main')));
@@ -555,43 +639,65 @@ function resetStar() {
   stopAnim(); resetStarDist(); S.star.found.clear(); S.star.sel = 'sirius';
   S.stairs = { pick: [], last: null, anim: null }; $('stairs').hidden = true;
   renderStairs(); renderStarPanel(); starView.draw();
+  checkCompare();
 }
 $('btnResetTab').addEventListener('click', () => {
-  menu.hidden = true;
+  setMenu(false);
   S.mode === 'lamp' ? resetLamp() : resetStar();
   sound.reset(); sound.whoosh(); toast('이 탭을 처음 상태로 돌렸어요'); pushState();
 });
-$('btnResetAll').addEventListener('click', () => {
-  if (!confirm('두 탭의 기록·예상·결과를 모두 지우고 처음으로 돌릴까요?')) { menu.hidden = true; return; }
-  menu.hidden = true;
+$('btnResetAll').addEventListener('click', () => { setMenu(true, true); sound.click(); $('btnResetNo').focus(); });
+$('btnResetNo').addEventListener('click', () => { setMenu(false); sound.click(); $('btnReset').focus(); });
+$('btnResetYes').addEventListener('click', () => {
+  setMenu(false);
   resetLamp(); resetStar();
-  S.lamp.pred = ''; S.star.pred = '';
+  S.lamp.pred = ''; S.star.pred = ''; S.lamp.cmp = false; S.star.cmp = false;
   $('lampHint').classList.remove('gone'); $('starHint').classList.remove('gone');
   renderPredLines(); setMode('lamp', true); setPaused(false);
   sound.reset(); toast('모두 처음 상태로 돌렸어요'); pushState();
 });
 
-// 잠금 뒤에는 탭 전환(보기)만 허용 — 키보드로 누르는 것도 막음
-['click', 'input', 'change'].forEach(type => document.addEventListener(type, e => {
-  if (!locked() || (e.target.closest && e.target.closest('.tab'))) return;
-  if (e.target.closest && e.target.closest('#app')) { e.preventDefault(); e.stopImmediatePropagation(); }
+// Esc: 열린 창 닫기 (초기화 메뉴 → 등급 계단 → 다시 연 예상 창 순서)
+window.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (!menu.hidden) { setMenu(false); $('btnReset').focus(); }
+  else if (!$('stairs').hidden) { $('stairs').hidden = true; sound.click(); $('btnStairs').focus(); }
+  else if (!$('predictLamp').hidden && S.lamp.pred) $('predictLamp').hidden = true;
+  else if (!$('predictStar').hidden && S.star.pred) $('predictStar').hidden = true;
+});
+
+// 잠금 뒤에는 탭 전환(보기)·소리·화질만 허용 — 마우스·터치·키보드 모두 막음
+const blockedTarget = t => t && t.closest && t.closest('#app') && !t.closest(ALLOW_LOCKED);
+['click', 'input', 'change', 'pointerdown'].forEach(type => document.addEventListener(type, e => {
+  if (locked() && blockedTarget(e.target)) { e.preventDefault(); e.stopImmediatePropagation(); }
 }, true));
+window.addEventListener('keydown', e => {
+  if (!locked() || e.key === 'Tab' || e.key === 'Shift') return;
+  if (blockedTarget(e.target) || (e.code === 'Space' && e.target === document.body)) { e.preventDefault(); e.stopImmediatePropagation(); }
+}, true);
 Bridge.onLock = () => {
   lamp.cancelDrag(); starView.cancelDrag(); stopAnim();
   document.querySelectorAll('#app input').forEach(i => { i.disabled = true; });
-  menu.hidden = true;
+  setMenu(false);
 };
 
 // ---------------- 크기 변화 ----------------
 const ro = new ResizeObserver(() => {
+  placeToast();
   if (S.mode === 'lamp') lamp.resize(); else starView.layout();
   drawInset();
   if (!$('stairs').hidden) drawStairs();
 });
 ro.observe($('scene'));
+window.addEventListener('resize', placeToast);
 
 // ---------------- 반복 ----------------
-const fps = new FpsMonitor(() => { if (S.quality === 'high') { applyQuality('low'); toast('화면이 느려서 그래픽 품질을 낮췄어요'); } }, { threshold: 30, window: 4 });
+const fps = new FpsMonitor(() => {
+  if (S.quality !== 'high') return;
+  applyQuality('low');
+  toast('화면이 느려서 그래픽 품질을 \'낮음\'으로 바꿨어요 (✨ 버튼으로 되돌릴 수 있어요)', 5000);
+  const b = $('btnQuality'); b.classList.remove('pulse'); void b.offsetWidth; b.classList.add('pulse');
+}, { threshold: 30, window: 4 });
 let last = performance.now();
 function loop(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
@@ -606,6 +712,7 @@ function loop(now) {
 }
 
 // 시작
+placeToast();
 applyQuality(S.quality);
 setLampD(D0, { silent: true });
 renderRecords();
