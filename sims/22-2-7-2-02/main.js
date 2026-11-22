@@ -16,6 +16,7 @@ const SUN_X = 10.2, SUN_R = 1.25;
 const LUNAR_MONTH = 29.5;   // 삭 → 다음 삭 (일)
 const LAP_SECONDS = 24;     // 1배일 때 한 바퀴 (화면 시간, 초)
 const SNAP_DEG = 3;         // 끌어 놓을 때 표시점에 붙는 범위
+const NEAR_DEG = 10;        // 화면에 '(○) 근처'로 나오는 범위 — 과제 중에는 이 안에 놓으면 그 표시점에 붙임
 const POS = ['가', '나', '다', '라', '마', '바', '사', '아'];
 const NAMES = ['삭', '초승달', '상현달', '', '망(보름달)', '', '하현달', '그믐달'];
 // 교과서에 이름이 없는 (라)·(바)는 어디쯤인지만 알려 줌
@@ -27,6 +28,14 @@ const angDiff = (a, b) => { let d = norm(b - a); if (d > 180) d -= 360; return d
 const nearestIdx = th => Math.round(norm(th) / 45) % 8;
 const litPercent = th => Math.round((1 - Math.cos(th * DEG)) / 2 * 100);
 const daysAfterNew = th => Math.round(norm(th) / 360 * LUNAR_MONTH * 10) / 10;
+// 화면 '위치' 칸 글: 표시점 위면 이름, ±10° 안이면 '근처', 그 밖이면 두 표시점 '사이'
+function posText(th) {
+  th = norm(th); const i = nearestIdx(th), off = angDiff(i * 45, th);
+  if (Math.abs(off) < 0.5) return posLabel(i);
+  if (Math.abs(off) <= NEAR_DEG) return posLabel(i) + ' 근처';
+  const a = off > 0 ? i : (i + 7) % 8, b = (a + 1) % 8;
+  return `(${POS[a]})와 (${POS[b]}) 사이`;
+}
 
 /* ───────── 소리 (lib/sound.js 위에 이 단원용 소리) ───────── */
 const sfx = {
@@ -310,9 +319,8 @@ const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 let hintShown = true;
 const hintEl = document.getElementById('stageHint');
 function hideHint() { if (hintShown) { hintShown = false; hintEl.classList.add('hide'); } }
-let hintTimer;
-// 안내 말풍선은 아래쪽 라벨을 가릴 수 있어 8초 뒤 저절로 사라짐(첫 조작 때도 사라짐)
-function showHint() { hintShown = true; hintEl.classList.remove('hide'); clearTimeout(hintTimer); hintTimer = setTimeout(hideHint, 8000); }
+// 시작 안내는 무대 오른쪽 위(라벨 자리를 비워 둔 곳)에 두고, 학생이 처음 조작할 때까지 남김. 그동안 달 둘레 고리가 깜박임
+function showHint() { hintShown = true; hintEl.classList.remove('hide'); needsRender = true; }
 function setNdc(e) {
   const r = stageEl.getBoundingClientRect();
   ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
@@ -376,6 +384,9 @@ const fitCam = new THREE.PerspectiveCamera();
 function fitDistance(top = false) {
   const r = stageEl.getBoundingClientRect(), W = Math.max(1, r.width), H = Math.max(1, r.height);
   const tagR = document.querySelector('.stage-tag').getBoundingClientRect().right - r.left + 46;
+  // 오른쪽 위 시작 안내 자리(사라진 뒤에도 자리는 그대로 비워 둠 → 카메라 거리가 바뀌지 않음)
+  const hr = hintEl.getBoundingClientRect();
+  const hintL = hr.left - r.left - 6, hintB = hr.bottom - r.top + 4;
   fitCam.copy(camera); fitCam.aspect = Math.max(0.3, W / H); fitCam.updateProjectionMatrix();
   const tilt = top ? 0.02 : homeTilt();
   const dir = new THREE.Vector3(0, Math.cos(tilt), Math.sin(tilt));
@@ -386,6 +397,7 @@ function fitDistance(top = false) {
       v.copy(p).project(fitCam);
       const x = (v.x + 1) / 2 * W, y = (1 - v.y) / 2 * H;
       const t = mt >= 0 ? mt : (x < tagR ? 44 : 22);
+      if (x + mx > hintL && y < hintB + (mx >= 24 ? 20 : 4)) return false;
       return x > mx && x < W - mx && y > t && y < H - mb;
     });
   };
@@ -471,9 +483,15 @@ for (let i = 0; i <= 8; i++) {
 function layoutStrip() {
   stripSlots.forEach((s, i) => { s.el.style.left = (i / 8 * 100) + '%'; });
 }
+// 붙임딱지 8칸을 다 붙이기 전에는 위상 띠에 모양과 날짜만 보이고 이름은 가림(띠를 보고 베끼지 않게)
+const stripNamesOn = () => S.cardsPlaced >= 8;
 function markStrip(i) {
   const s = stripSlots[i]; if (s.got) return;
-  s.got = true; s.el.classList.add('got', 'pop'); drawPhase(s.cv, (i % 8) * 45); s.t.textContent = s.t.dataset.full;
+  s.got = true; s.el.classList.add('got', 'pop'); drawPhase(s.cv, (i % 8) * 45);
+  s.t.textContent = stripNamesOn() ? s.t.dataset.full : s.t.dataset.empty;
+}
+function refreshStripNames() {
+  stripSlots.forEach(s => { if (s.got) s.t.textContent = stripNamesOn() ? s.t.dataset.full : s.t.dataset.empty; });
 }
 function clearStrip() {
   stripSlots.forEach(s => { s.got = false; s.el.classList.remove('got', 'pop'); s.t.textContent = s.t.dataset.empty; const g = s.cv.getContext('2d'); g.clearRect(0, 0, s.cv.width, s.cv.height); });
@@ -495,8 +513,12 @@ posBtns.forEach(b => b.addEventListener('click', () => {
 // 달이 표시점에 놓였을 때(끌어 놓기·단추·키보드)
 function placed() {
   const i = nearestIdx(S.theta);
-  const exact = Math.abs(angDiff(S.theta, i * 45)) < 0.01;
-  if (!exact) return;
+  const off = Math.abs(angDiff(S.theta, i * 45));
+  if (off >= 0.01) {
+    // 과제 중에는 화면에 '근처'로 나오는 자리(±10°)에 놓아도 그 표시점에 붙여서 확인함
+    if (S.activeTask && off <= NEAR_DEG && !S.playing && !S.dragging) moveTo(i * 45, { fast: true });
+    return;
+  }
   arriveAt(i, true);
   if (S.activeTask) checkTask(i);
 }
@@ -508,6 +530,7 @@ function arriveAt(i, settled) {
   else if (i === 0 || i === 4) sfx.bell(); else sfx.pass();
   flashMarker(i);
   if (first && S.visited.size === 8) toastMsg('8곳을 모두 돌아봤어요! 위상 띠의 순서를 살펴보세요.');
+  else if (first && S.visited.size >= 3) recheckPrediction();
 }
 let flashT = new Array(8).fill(0);
 function flashMarker(i) { flashT[i] = 1; }
@@ -560,7 +583,8 @@ function applyToggles() {
 }
 [tLit, tSeen, tShadow].forEach(t => t.addEventListener('change', () => {
   if (isLocked()) { t.checked = !t.checked; return; } // 잠긴 뒤에는 키보드로도 못 바꿈
-  sfx.toggle(); applyToggles(); pushState(true);
+  sfx.toggle(); hideHint(); applyToggles(); pushState(true);
+  if (t === tShadow && t.checked) recheckPrediction();
 }));
 
 /* ───────── 과제 ───────── */
@@ -574,9 +598,13 @@ function setTask(name) {
   for (const [k, t] of Object.entries(TASKS)) t.btn.setAttribute('aria-pressed', S.activeTask === k && !S[t.key]);
   taskMsg.style.color = ''; taskMsg.textContent = S.activeTask ? TASKS[S.activeTask].ask : '';
   // 과제를 고를 때 달이 이미 표시점에 멈춰 있으면 그 자리를 바로 확인함(이미 알맞은 자리면 바로 완성)
+  // 화면에 '근처'로 나오는 자리(±10°)면 그 표시점에 붙여서 확인
   if (S.activeTask && !S.playing && !S.tween && !S.dragging) {
-    const i = nearestIdx(S.theta);
-    if (Math.abs(angDiff(S.theta, i * 45)) < 0.01 && i === TASKS[S.activeTask].idx) { checkTask(i); pushState(true); }
+    const i = nearestIdx(S.theta), off = Math.abs(angDiff(S.theta, i * 45));
+    if (i === TASKS[S.activeTask].idx) {
+      if (off < 0.01) { checkTask(i); pushState(true); }
+      else if (off <= NEAR_DEG) moveTo(i * 45, { fast: true });
+    }
   }
 }
 function checkTask(i) {
@@ -590,8 +618,8 @@ function checkTask(i) {
     taskMsg.style.color = ''; taskMsg.textContent = `(${POS[i]})에서는 다른 모양이에요. '지구에서 본 달' 창을 보며 다시 옮겨 보세요.`;
   }
 }
-taskFullBtn.addEventListener('click', () => { if (isLocked()) return; sfx.toggle(); setTask('full'); });
-taskFQBtn.addEventListener('click', () => { if (isLocked()) return; sfx.toggle(); setTask('fq'); });
+taskFullBtn.addEventListener('click', () => { if (isLocked()) return; sfx.toggle(); hideHint(); setTask('full'); });
+taskFQBtn.addEventListener('click', () => { if (isLocked()) return; sfx.toggle(); hideHint(); setTask('fq'); });
 
 /* ───────── 붙임딱지 ───────── */
 // 위상 카드 8장 + 좌우가 바뀐 반달 카드 2장(서로 짝이 바뀐 모양)
@@ -613,7 +641,7 @@ function buildBoard() {
   angles.forEach((a, n) => {
     const cell = document.createElement('div'); cell.className = 'card-cell';
     const c = document.createElement('div'); c.className = 'card'; c.tabIndex = 0; c.setAttribute('role', 'button');
-    c.setAttribute('aria-label', `달 모양 카드 ${n + 1}`);
+    c.setAttribute('aria-label', `달 모양 카드 ${n + 1}`); c.setAttribute('aria-pressed', 'false');
     c.appendChild(phaseCanvas(a, 40));
     const card = { el: c, cell, deg: a, used: false };
     c.addEventListener('pointerdown', e => startCardDrag(e, card));
@@ -625,7 +653,7 @@ function buildBoard() {
 function selectCard(card) {
   if (isLocked() || card.used) return;
   selected = selected === card ? null : card;
-  cards.forEach(c => c.el.classList.toggle('sel', c === selected));
+  cards.forEach(c => { c.el.classList.toggle('sel', c === selected); c.el.setAttribute('aria-pressed', c === selected); });
   slots.forEach(s => s.el.classList.toggle('target', !!selected && !s.filled));
   if (selected) sfx.pick();
 }
@@ -667,7 +695,7 @@ window.addEventListener('pointercancel', endCardDrag);
 function tryPlace(card, i) {
   const slot = slots[i];
   if (slot.filled || card.used) return;
-  selected = null; cards.forEach(c => c.el.classList.remove('sel')); slots.forEach(s => s.el.classList.remove('target'));
+  selected = null; cards.forEach(c => { c.el.classList.remove('sel'); c.el.setAttribute('aria-pressed', 'false'); }); slots.forEach(s => s.el.classList.remove('target'));
   const actual = i * 45; // 그 위치에서 지구에서 본 달의 모양
   if (card.deg === actual) {
     card.used = true; slot.filled = true; S.cardsPlaced++;
@@ -678,6 +706,7 @@ function tryPlace(card, i) {
     fbEl.innerHTML = `<span><b>${posLabel(i)}</b> 칸에 붙였어요. (${S.cardsPlaced}/8)</span>`;
     sfx.right();
     if (S.cardsPlaced === 8) {
+      refreshStripNames();
       setTimeout(() => { sfx.done(); fbEl.innerHTML = '<span><b>8칸 모두 완성!</b> 달이 시계 반대 방향으로 돌며 모양이 차례로 바뀌어요. 남은 카드 2장은 이미 붙인 반달과 같은 모양이라 붙일 칸이 없어요.</span>'; }, 450);
       setTimeout(() => openPrediction(true), 1800);
     }
@@ -705,7 +734,19 @@ function tryPlace(card, i) {
 
 /* ───────── 예측 ───────── */
 const predModal = document.getElementById('predModal');
-const PRED_TEXT = { '그림자': '①', '방향': '②' };
+const PRED_TEXT = { '그림자': '①', '방향': '②', '거리': '③' };
+// 실험 도중 처음 예측을 한 번 되물음(맞고 틀림은 알려 주지 않고, 고른 생각을 직접 확인할 거리만 줌)
+const RECHECK = {
+  '그림자': '처음에 ① 지구 그림자를 골랐죠? \'지구 그림자\'를 켜고 (나)·(다)에 달을 놓아 보세요. 그림자가 달에 닿나요?',
+  '방향': '처음에 ② 햇빛 받는 쪽과 보는 쪽을 골랐죠? 노란·파란 반쪽을 켜고 두 반쪽이 겹치는 부분을 달 모양과 견주어 보세요.',
+  '거리': '처음에 ③ 지구와 달 사이 거리를 골랐죠? 공전하는 동안 지구와 달 사이 거리가 바뀌나요? 그런데도 모양은 바뀌나요?',
+};
+let recheckDone = false;
+function recheckPrediction() {
+  if (recheckDone || !S.prediction || S.cardsPlaced >= 8 || isLocked()) return;
+  recheckDone = true;
+  setTimeout(() => toastMsg(RECHECK[S.prediction], 12000, 'var(--ink)'), 700);
+}
 let predAfterMode = false;
 function openPrediction(after) {
   if (isLocked()) return;
@@ -730,16 +771,15 @@ predModal.querySelectorAll('[data-pred]').forEach(b => b.addEventListener('click
   else if (S.prediction) {
     // 처음 생각과 지금 생각을 나란히 보여 줌(맞고 틀림은 알려 주지 않음)
     const same = S.prediction === S.predictionAfter;
-    toastMsg(`처음 생각 ${PRED_TEXT[S.prediction]} → 지금 생각 ${PRED_TEXT[S.predictionAfter]} · ${same ? '어떤 관찰이 근거인가요?' : '무엇을 보고 바뀌었나요?'}`, 9000);
-    taskMsg.style.color = ''; // 맞고 틀림을 뜻하지 않게 기본 색
+    toastMsg(`처음 생각 ${PRED_TEXT[S.prediction]} → 지금 생각 ${PRED_TEXT[S.predictionAfter]} · ${same ? '어떤 관찰이 근거인가요?' : '무엇을 보고 바뀌었나요?'}`, 9000, ''); // 맞고 틀림을 뜻하지 않게 기본 색
   }
 }));
 document.getElementById('btnRethink').addEventListener('click', () => { sfx.toggle(); openPrediction(true); });
 
 /* ───────── 알림 ───────── */
 let toastTimer;
-function toastMsg(t, ms = 4000) {
-  taskMsg.style.color = 'var(--good)'; taskMsg.textContent = t;
+function toastMsg(t, ms = 4000, color = 'var(--good)') {
+  taskMsg.style.color = color; taskMsg.textContent = t;
   clearTimeout(toastTimer); toastTimer = setTimeout(() => { if (taskMsg.textContent === t) taskMsg.textContent = ''; }, ms);
 }
 
@@ -755,7 +795,7 @@ function setQuality(q) {
   btnQuality.textContent = q === 'high' ? '그래픽: 높음' : '그래픽: 낮음';
   btnQuality.setAttribute('aria-pressed', q === 'low');
   const hi = q === 'high';
-  // 낮음: 안티에일리어싱 끔(렌더러 새로 만듦) · 화소 비율 1 · 구 분할 줄임 · 별 줄임 · 빛무리 끔 · 공전 중 30fps
+  // 낮음: 안티에일리어싱 끔(렌더러 새로 만듦) · 화소 비율 1 · 구 분할 줄임 · 별 줄임 · 빛무리 끔
   if (renderer.getContextAttributes()?.antialias !== hi) makeRenderer(hi);
   renderer.setPixelRatio(hi ? Math.min(devicePixelRatio, 1.5) : 1); // 고해상도 화면도 1.5배까지만(안티에일리어싱이 켜져 있으므로)
   setSegments(hi);
@@ -778,7 +818,9 @@ function resetAll() {
   Object.assign(S, {
     theta: 30, tween: null, visited: new Set(), lapDone: false, cardsPlaced: 0, cardMistakes: 0, mirrorMistake: false,
     taskFull: false, taskFirstQuarter: false, activeTask: null, taskFullFirstTry: '', taskFirstQuarterFirstTry: '',
+    predictionAfter: '', // 처음 예측은 남기고, 끝 예측은 다시 받음
   });
+  recheckDone = false;
   tLit.checked = tSeen.checked = tShadow.checked = false; applyToggles();
   speedEl.value = 1; setSpeed(1);
   posBtns.forEach(b => b.classList.remove('seen'));
@@ -797,11 +839,7 @@ function readout() {
   const key = deg + '|' + i + '|' + Math.round(th * 2);
   if (key === lastShown) return false;
   lastShown = key;
-  // 표시점 위면 이름, 가까우면 '근처', 두 표시점 가운데쯤이면 '사이'
-  const off = angDiff(i * 45, th);
-  if (Math.abs(off) < 0.5) vPos.textContent = posLabel(i);
-  else if (Math.abs(off) <= 10) vPos.textContent = posLabel(i) + ' 근처';
-  else { const a = off > 0 ? i : (i + 7) % 8, b = (a + 1) % 8; vPos.textContent = `(${POS[a]})와 (${POS[b]}) 사이`; }
+  vPos.textContent = posText(th);
   vAngle.textContent = deg + '°';
   vDays.textContent = deg === 0 ? '0일 (삭)' : '약 ' + daysAfterNew(deg).toFixed(1) + '일';
   const lp = litPercent(deg);
@@ -820,6 +858,7 @@ function pushState(force) {
     angleDeg: deg,
     position: POS[i],
     phaseName: NAMES[i],
+    positionShown: posText(S.theta), // 화면 '위치' 칸과 같은 글(표시점/근처 ±10°/사이)
     litPercent: litPercent(deg),
     daysAfterNew: daysAfterNew(deg),
     visited: POS.filter(p => S.visited.has(p)).join(','),
@@ -837,21 +876,33 @@ function pushState(force) {
     showShadow: S.showShadow,
   });
 }
-let lockApplied = false;
+let lockApplied = false, lockedEls = [];
 function applyLock() {
   if (lockApplied) return; lockApplied = true;
   setPlaying(false); S.tween = null; predModal.hidden = true;
   if (cd) { cd = null; ghost.hidden = true; } S.dragging = false; selected = null;
   // 키보드(Tab·Space)로도 못 바꾸게 조작 요소를 모두 끔(소리·그래픽 품질은 그대로 둠)
-  document.querySelectorAll('.app button, .app input, .modal button, #btnReset').forEach(el => { el.disabled = true; });
+  lockedEls = [...document.querySelectorAll('.app button, .app input, .modal button, #btnReset')].filter(el => !el.disabled);
+  lockedEls.forEach(el => { el.disabled = true; });
   document.querySelectorAll('.card, .slot').forEach(el => { el.tabIndex = -1; });
 }
+// 잠금이 풀리면(클래스가 빠지고 웹앱 잠금도 아닐 때) 끈 요소를 되살림
+function releaseLock() {
+  if (!lockApplied || isLocked()) return; lockApplied = false;
+  lockedEls.forEach(el => { el.disabled = false; }); lockedEls = [];
+  cards.forEach(c => { if (!c.used) c.el.tabIndex = 0; });
+  slots.forEach(s => { if (!s.filled) s.el.tabIndex = 0; });
+}
 SimBridge.onLock = applyLock;
-new MutationObserver(() => { if (isLocked()) applyLock(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+new MutationObserver(() => { if (isLocked()) applyLock(); else releaseLock(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 
 /* ───────── 매 프레임 ───────── */
 const clock = new THREE.Clock();
-const fps = new FpsMonitor(() => { if (S.quality === 'high') setQuality('low'); }, { threshold: 28, window: 4 });
+const fps = new FpsMonitor(() => {
+  if (S.quality !== 'high') return;
+  setQuality('low');
+  toastMsg('화면이 느려서 그래픽을 \'낮음\'으로 바꿨어요. 오른쪽 위 단추로 다시 높일 수 있어요.', 8000, 'var(--ink)');
+}, { threshold: 28, window: 4 });
 let frame = 0, lastRenderTheta = null;
 const tmp = new THREE.Vector3();
 
@@ -966,8 +1017,11 @@ function tick() {
   // 깜박이는 표시점·달 둘레 고리가 움직이는 동안만 다시 그림
   const nearI = nearestIdx(S.theta);
   const onMarker = Math.abs(angDiff(S.theta, nearI * 45)) < 0.6 && !S.dragging;
-  const haloTarget = S.dragging ? 0.75 : onMarker ? 0.35 : 0;
-  if (Math.abs(haloTarget - moonHalo.material.opacity) > 0.01) {
+  // 시작 안내가 떠 있는 동안 달 둘레 고리를 천천히 깜박여 '이 달을 끌 수 있어요'를 알림
+  const hintPulse = hintShown && predModal.hidden && !isLocked();
+  const haloTarget = S.dragging ? 0.75 : hintPulse ? 0.25 + 0.55 * (0.5 + 0.5 * Math.sin(clock.elapsedTime * 4)) : onMarker ? 0.35 : 0;
+  if (hintPulse) { moonHalo.material.opacity = haloTarget; dirty = true; }
+  else if (Math.abs(haloTarget - moonHalo.material.opacity) > 0.01) {
     moonHalo.material.opacity += (haloTarget - moonHalo.material.opacity) * Math.min(1, dt * 8); dirty = true;
   }
   for (let i = 0; i < 8; i++) {
@@ -979,8 +1033,7 @@ function tick() {
   else if (pendingSend && performance.now() - lastSent > 200) pushState(true);
 
   if (!dirty) return;
-  // 품질 낮음: 끌기 중이 아니면 한 프레임 걸러 그림(약 30fps)
-  if (S.quality === 'low' && !S.dragging && frame % 2) { needsRender = true; return; }
+  // 품질 낮음도 프레임은 거르지 않음(바뀐 것이 있을 때만 그리므로 가벼운 장면은 그대로 매끄럽게)
   needsRender = false; lastRenderTheta = S.theta;
 
   // 달·덧그림 위치
@@ -1030,7 +1083,7 @@ new ResizeObserver(() => {
 }).observe(stageEl);
 // 개발 확인용 접근점 (정답 정보 없음)
 window.__moon = {
-  S, moveTo, setPlaying, setQuality,
+  S, moveTo, setPlaying, setQuality, fps,
   get renderer() { return renderer; }, scene, camera, drawMoonView, labelRenderer, posOf,
   screenOf(deg) { const v = posOf(deg).project(camera), r = stageEl.getBoundingClientRect(); return { x: r.left + (v.x + 1) / 2 * r.width, y: r.top + (1 - v.y) / 2 * r.height }; },
 };
