@@ -96,13 +96,13 @@ button:focus-visible, input:focus-visible + .sw, #stage:focus-visible, .card:foc
 /* 지구에서 본 달 + 수치판 */
 .view-panel { display: flex; gap: 12px; align-items: center; }
 .moonview-box { flex: none; text-align: center; }
-.moonview { position: relative; width: 140px; height: 140px; border-radius: 50%; overflow: hidden; background: #02040c; box-shadow: inset 0 0 0 3px #1d2752, 0 2px 8px rgba(0,0,0,.25); }
+.moonview { position: relative; width: 124px; height: 124px; border-radius: 50%; overflow: hidden; background: #02040c; box-shadow: inset 0 0 0 3px #1d2752, 0 2px 8px rgba(0,0,0,.25); }
 .moonview canvas { width: 100% !important; height: 100% !important; }
 .moonview-ring { position: absolute; left: 50%; top: 50%; width: 71%; height: 71%; transform: translate(-50%, -50%); border-radius: 50%; border: 1.5px dashed rgba(160, 180, 230, .35); pointer-events: none; z-index: 2; }
 .moonview-cap { font-size: 13px; font-weight: 700; margin-top: 3px; }
 .moonview-cap small { font-weight: 400; color: var(--muted); display: block; font-size: 13px; line-height: 1.15; }
-.stats { margin: 0; flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-.stats .row { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; border-bottom: 1px solid #eef0f4; padding: 2px 0; flex-wrap: wrap; }
+.stats { margin: 0; flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.stats .row { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; border-bottom: 1px solid #eef0f4; padding: 1px 0; flex-wrap: wrap; }
 .stats dt { color: var(--muted); font-size: 14px; line-height: 1.15; flex: 1 1 auto; min-width: 0; }
 .stats dt small { font-size: 13px; color: #6b7487; margin-left: 3px; }
 .stats dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; font-size: 15px; }
@@ -115,7 +115,7 @@ button:focus-visible, input:focus-visible + .sw, #stage:focus-visible, .card:foc
 
 /* 보기 설정 */
 .toggles { display: flex; gap: 5px; flex-wrap: wrap; }
-.stage-shadow-note { position: absolute; right: 8px; top: 8px; margin: 0; max-width: min(46%, 380px); color: #e2deff; font-size: 14px; line-height: 1.35; background: rgba(12, 10, 34, .82); border: 1px solid #5a5396; border-radius: 8px; padding: 4px 9px; pointer-events: none; }
+.stage-shadow-note { position: absolute; right: 8px; top: 8px; margin: 0; max-width: min(calc(100% - 290px), 420px); color: #e2deff; font-size: 14px; line-height: 1.35; background: rgba(12, 10, 34, .82); border: 1px solid #5a5396; border-radius: 8px; padding: 4px 9px; pointer-events: none; }
 .stage-shadow-note b { color: #fff; margin-right: 4px; }
 .stage-shadow-note[hidden] { display: none; }
 
@@ -135,7 +135,7 @@ button:focus-visible, input:focus-visible + .sw, #stage:focus-visible, .card:foc
 .task.done { border-color: var(--good); background: #e5f6ed; color: var(--good); }
 .task.done .chk { color: var(--good); }
 .task.ghost { color: var(--muted); }
-.task-msg { margin: 4px 2px 0; font-size: 14px; min-height: 18px; line-height: 1.35; color: var(--accent); font-weight: 600; }
+.task-msg { margin: 4px 2px 0; font-size: 14px; min-height: 38px; line-height: 1.35; color: var(--accent); font-weight: 600; }
 
 /* 붙임딱지 */
 .board-panel { display: flex; flex-direction: column; min-height: 0; }
@@ -154,7 +154,7 @@ button:focus-visible, input:focus-visible + .sw, #stage:focus-visible, .card:foc
 .slot.bad { animation: shake .4s; border-color: var(--red); background: #fff1ef; }
 @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
 .cards { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px; margin-top: 5px; padding: 2px 4px; background: #eef1f6; border-radius: 10px; }
-.card-cell { display: grid; place-items: center; min-height: 50px; }
+.card-cell { display: grid; place-items: center; min-height: 48px; }
 .card { width: 48px; height: 48px; border-radius: 9px; background: #0b1026; display: grid; place-items: center; cursor: grab; touch-action: none; box-shadow: 0 2px 4px rgba(0,0,0,.25); transition: transform .15s, box-shadow .15s, opacity .2s; border: 2px solid transparent; }
 .card canvas { width: 40px; height: 40px; pointer-events: none; }
 .card:hover { transform: translateY(-2px); }
@@ -241,7 +241,7 @@ button:disabled { cursor: not-allowed; opacity: .55; }
   .feedback { min-height: 46px; flex: none; margin-top: 4px; }
   .speed { width: 120px; }
   .pos-btns button { min-width: 40px; }
-  .stage-hint { max-width: calc(100% - 270px); }
+  .stage-hint, .stage-shadow-note { max-width: calc(100% - 270px); }
 }
 @media (max-width: 600px) {
   .slots { grid-template-columns: repeat(4, 1fr); }

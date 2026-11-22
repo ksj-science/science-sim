@@ -385,8 +385,13 @@ function fitDistance(top = false) {
   const r = stageEl.getBoundingClientRect(), W = Math.max(1, r.width), H = Math.max(1, r.height);
   const tagR = document.querySelector('.stage-tag').getBoundingClientRect().right - r.left + 46;
   // 오른쪽 위 시작 안내 자리(사라진 뒤에도 자리는 그대로 비워 둠 → 카메라 거리가 바뀌지 않음)
+  // '지구 그림자' 안내 글도 같은 자리에 뜨므로 둘 중 큰 쪽만큼 비움(숨겨져 있어도 잠깐 보이지 않게 펼쳐 잼)
   const hr = hintEl.getBoundingClientRect();
-  const hintL = hr.left - r.left - 6, hintB = hr.bottom - r.top + 4;
+  const sn = document.getElementById('shadowNote'), wasHidden = sn.hidden;
+  if (wasHidden) { sn.style.visibility = 'hidden'; sn.hidden = false; }
+  const sr = sn.getBoundingClientRect();
+  if (wasHidden) { sn.hidden = true; sn.style.visibility = ''; }
+  const hintL = Math.min(hr.left, sr.left) - r.left - 6, hintB = Math.max(hr.bottom, sr.bottom) - r.top + 4;
   fitCam.copy(camera); fitCam.aspect = Math.max(0.3, W / H); fitCam.updateProjectionMatrix();
   const tilt = top ? 0.02 : homeTilt();
   const dir = new THREE.Vector3(0, Math.cos(tilt), Math.sin(tilt));
@@ -737,9 +742,9 @@ const predModal = document.getElementById('predModal');
 const PRED_TEXT = { '그림자': '①', '방향': '②', '거리': '③' };
 // 실험 도중 처음 예측을 한 번 되물음(맞고 틀림은 알려 주지 않고, 고른 생각을 직접 확인할 거리만 줌)
 const RECHECK = {
-  '그림자': '처음에 ① 지구 그림자를 골랐죠? \'지구 그림자\'를 켜고 (나)·(다)에 달을 놓아 보세요. 그림자가 달에 닿나요?',
-  '방향': '처음에 ② 햇빛 받는 쪽과 보는 쪽을 골랐죠? 노란·파란 반쪽을 켜고 두 반쪽이 겹치는 부분을 달 모양과 견주어 보세요.',
-  '거리': '처음에 ③ 지구와 달 사이 거리를 골랐죠? 공전하는 동안 지구와 달 사이 거리가 바뀌나요? 그런데도 모양은 바뀌나요?',
+  '그림자': '처음 예측 ① — 지구 그림자를 켜고 (나)·(다)를 보세요. 그림자가 달에 닿나요?',
+  '방향': '처음 예측 ② — 노란·파란 반쪽을 켜고, 겹치는 부분을 달 모양과 견주어 보세요.',
+  '거리': '처음 예측 ③ — 공전하는 동안 지구와 달 사이 거리가 바뀌나요? 모양은요?',
 };
 let recheckDone = false;
 function recheckPrediction() {
