@@ -34,8 +34,7 @@
   <!-- 우주 시점 3D -->
   <section class="area-stage" id="stageWrap">
     <div id="stage" tabindex="0" aria-label="우주에서 본 태양, 지구, 달. 달을 끌어 옮기거나 왼쪽·오른쪽 화살표 키로 움직일 수 있어요."></div>
-    <div class="stage-tag">우주에서 내려다본 모습 <small>(북극 쪽 위에서)</small></div>
-    <div class="stage-note">크기와 거리는 실제 비율이 아님</div>
+    <div class="stage-tag">우주에서 내려다본 모습 <small>(북극 쪽 위에서)</small> <span class="stage-note">· 크기와 거리는 실제 비율이 아님</span></div>
     <div class="stage-hint" id="stageHint">달을 끌어서 궤도 위로 옮겨 보세요 · 빈 곳을 끌면 화면이 돌아가요</div>
   </section>
 
@@ -72,8 +71,8 @@
     </div>
     <dl class="stats">
       <div class="row big"><dt>위치</dt><dd id="vPos">(나) 초승달</dd></div>
-      <div class="row"><dt>공전 각도 θ</dt><dd id="vAngle">30°</dd></div>
-      <div class="row"><dt>삭 후 지난 날수</dt><dd id="vDays">약 2.5일</dd></div>
+      <div class="row"><dt>공전한 각도 θ <small>(가)=0°, 시계 반대 방향</small></dt><dd id="vAngle">30°</dd></div>
+      <div class="row"><dt>삭 후 지난 날수 <small>삭→삭 약 29.5일</small></dt><dd id="vDays">약 2.5일</dd></div>
       <div class="row bar-row"><dt>지구에서 밝게 보이는 비율</dt><dd id="vLit">7 %</dd>
         <div class="meter blue"><i id="mLit"></i></div></div>
       <div class="row bar-row"><dt>햇빛 받는 부분</dt><dd>50 % <small>(항상)</small></dd>
@@ -88,7 +87,7 @@
       <label class="tog"><input type="checkbox" id="tSeen"><span class="sw blue"></span>지구에서 보이는 반쪽</label>
       <label class="tog"><input type="checkbox" id="tShadow"><span class="sw dark"></span>지구 그림자</label>
     </div>
-    <p class="tiny" id="shadowNote" hidden>실제로는 달 궤도가 조금 기울어 있어 보름달 때 대부분 그림자를 비껴가요.</p>
+    <p class="tiny" id="shadowNote" hidden>(마)에서도 달을 밝게 그린 까닭: 실제 달 궤도는 조금 기울어 있어 보름달 때 대부분 지구 그림자를 비껴가요.</p>
     <div class="tasks">
       <button id="taskFull" class="task" aria-pressed="false"><b class="chk">○</b> 보름달 만들기</button>
       <button id="taskFQ" class="task" aria-pressed="false"><b class="chk">○</b> 상현달 만들기</button>
@@ -99,7 +98,7 @@
 
   <!-- 붙임딱지 판 -->
   <section class="area-board panel board-panel">
-    <h2>붙임딱지 붙이기 <small>카드를 끌어 알맞은 칸에 놓으세요 (눌러서 고른 뒤 칸을 눌러도 돼요)</small></h2>
+    <h2>붙임딱지 붙이기 <small>카드를 끌어 알맞은 칸에 놓으세요 (눌러서 고른 뒤 칸을 눌러도 돼요) · 10장 중 2장은 남아요</small></h2>
     <div class="slots" id="slots"></div>
     <div class="cards" id="cards"></div>
     <div class="feedback" id="feedback" aria-live="polite"></div>

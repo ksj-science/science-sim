@@ -18,7 +18,9 @@ const LAP_SECONDS = 24;     // 1배일 때 한 바퀴 (화면 시간, 초)
 const SNAP_DEG = 3;         // 끌어 놓을 때 표시점에 붙는 범위
 const POS = ['가', '나', '다', '라', '마', '바', '사', '아'];
 const NAMES = ['삭', '초승달', '상현달', '', '망(보름달)', '', '하현달', '그믐달'];
-const posLabel = i => `(${POS[i]}) ${NAMES[i] || '(이름 없음)'}`;
+// 교과서에 이름이 없는 (라)·(바)는 어디쯤인지만 알려 줌
+const BETWEEN = { 3: '상현달과 보름달 사이', 5: '보름달과 하현달 사이' };
+const posLabel = i => `(${POS[i]}) ${NAMES[i] || BETWEEN[i]}`;
 
 const norm = d => ((d % 360) + 360) % 360;
 const angDiff = (a, b) => { let d = norm(b - a); if (d > 180) d -= 360; return d; }; // a→b 최단 (−180~180]
@@ -60,6 +62,9 @@ const S = {
   showLitHalf: false, showSeenHalf: false, showShadow: false,
   quality: 'high',
 };
+let needsRender = true;       // 바뀐 것이 있을 때만 3D를 다시 그림
+// 웹앱의 잠금 메시지(SimBridge) 또는 html.sim-locked 클래스 둘 다 잠금으로 봄
+function isLocked() { return SimBridge.locked || document.documentElement.classList.contains('sim-locked'); }
 
 /* ───────── 절차적 텍스처 ───────── */
 function hash3(x, y, z) {
@@ -138,11 +143,18 @@ function glowTexture(inner, outer) {
 /* ───────── 3D 장면 ───────── */
 const L_SHARED = 0, L_MAIN = 1; // L_MAIN: 우주 시점에만 보이는 것
 const stageEl = document.getElementById('stage');
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-renderer.outputColorSpace = THREE.SRGBColorSpace;
-renderer.setClearColor(0x000000, 0);
-stageEl.appendChild(renderer.domElement);
+// WebGL 렌더러는 하나만 씀(우주 시점 + '지구에서 본 달'을 같은 캔버스에서 차례로 그림).
+// 품질 '낮음'은 안티에일리어싱을 끄려고 렌더러를 새로 만듦 → 이벤트는 캔버스가 아니라 stageEl에 붙임.
+let renderer = null;
+function makeRenderer(aa) {
+  if (renderer) { renderer.dispose(); renderer.forceContextLoss(); renderer.domElement.remove(); }
+  renderer = new THREE.WebGLRenderer({ antialias: aa, powerPreference: 'low-power' });
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.setClearColor(0x000000, 0);
+  renderer.domElement.style.display = 'block';
+  stageEl.prepend(renderer.domElement);
+}
+makeRenderer(true);
 const labelRenderer = new CSS2DRenderer();
 labelRenderer.domElement.style.cssText = 'position:absolute;inset:0;pointer-events:none;';
 stageEl.appendChild(labelRenderer.domElement);
@@ -183,7 +195,8 @@ function makeStars(n) {
 // 태양 (우주 시점에만)
 const sun = new THREE.Group();
 sun.position.set(SUN_X, 0, 0);
-sun.add(new THREE.Mesh(new THREE.SphereGeometry(SUN_R, 48, 32), new THREE.MeshBasicMaterial({ color: 0xffe9a8 })));
+const sunBall = new THREE.Mesh(new THREE.SphereGeometry(SUN_R, 32, 20), new THREE.MeshBasicMaterial({ color: 0xffe9a8 }));
+sun.add(sunBall);
 const sunGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture('rgba(255,220,120,0.9)', 'rgba(255,170,40,0)'), blending: THREE.AdditiveBlending, depthWrite: false }));
 sunGlow.scale.set(SUN_R * 5, SUN_R * 5, 1); sun.add(sunGlow);
 scene.add(onMain(sun));
@@ -203,7 +216,7 @@ scene.add(onMain(rays));
 label('햇빛', 'ray', new THREE.Vector3(7.6, 0, -4.3));
 
 // 지구 (우주 시점에만 — 지구에서 본 달 카메라가 지구 안에 있으므로)
-const earth = new THREE.Mesh(new THREE.SphereGeometry(EARTH_R, 64, 40), new THREE.MeshStandardMaterial({ roughness: 0.85, metalness: 0 }));
+const earth = new THREE.Mesh(new THREE.SphereGeometry(EARTH_R, 48, 32), new THREE.MeshStandardMaterial({ roughness: 0.85, metalness: 0 }));
 earth.material.map = sphereTexture(512, 256, earthShade);
 scene.add(onMain(earth));
 label('지구', 'earth', new THREE.Vector3(0, 0, EARTH_R + 0.45));
@@ -218,12 +231,14 @@ const orbit = new THREE.Line(new THREE.BufferGeometry().setFromPoints(orbitPts),
 scene.add(onMain(orbit));
 const posOf = (deg, r = R_ORBIT) => new THREE.Vector3(r * Math.cos(deg * DEG), 0, -r * Math.sin(deg * DEG));
 const markers = [], markerLabels = [];
+// 위치 라벨은 달(반지름 0.5)과 겹치지 않게 궤도 바깥으로 넉넉히
+const labelR = i => R_ORBIT + 1.5 + 0.5 * Math.max(0, Math.sin(i * 45 * DEG)) + 0.45 * Math.abs(Math.cos(i * 45 * DEG));
 const markerMat = new THREE.MeshBasicMaterial({ color: 0xe0453a });
 for (let i = 0; i < 8; i++) {
   const m = new THREE.Mesh(new THREE.SphereGeometry(0.09, 16, 10), markerMat.clone());
   m.position.copy(posOf(i * 45)); scene.add(onMain(m)); markers.push(m);
   const name = NAMES[i] ? `<small>${NAMES[i]}</small>` : '';
-  markerLabels.push(label(`(${POS[i]})${name}`, 'pos', posOf(i * 45, R_ORBIT + 1.2 + 0.55 * Math.max(0, Math.sin(i * 45 * DEG)) + 0.5 * Math.abs(Math.cos(i * 45 * DEG)))));
+  markerLabels.push(label(`(${POS[i]})${name}`, 'pos', posOf(i * 45, labelR(i))));
 }
 const arrowMat = new THREE.MeshBasicMaterial({ color: 0xff6a4d });
 for (let i = 0; i < 8; i++) {
@@ -236,7 +251,7 @@ for (let i = 0; i < 8; i++) {
 }
 
 // 달 (두 화면 모두)
-const moon = new THREE.Mesh(new THREE.SphereGeometry(MOON_R, 64, 40), new THREE.MeshStandardMaterial({ roughness: 1, metalness: 0 }));
+const moon = new THREE.Mesh(new THREE.SphereGeometry(MOON_R, 48, 32), new THREE.MeshStandardMaterial({ roughness: 1, metalness: 0 }));
 moon.material.map = sphereTexture(512, 256, moonShade);
 scene.add(moon);
 const moonHit = new THREE.Mesh(new THREE.SphereGeometry(MOON_R * 2.1, 12, 8), new THREE.MeshBasicMaterial({ visible: false }));
@@ -276,15 +291,14 @@ const shEdge = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.Cylinder
   new THREE.LineBasicMaterial({ color: 0x9a92e0, transparent: true, opacity: 0.6 }));
 shadow.add(shEdge);
 shadow.visible = false; scene.add(onMain(shadow));
-const shadowLabel = label('지구 그림자', 'shadow', new THREE.Vector3(-2.9, 0, 1.3));
+const shadowLabel = label('지구 그림자', 'shadow', new THREE.Vector3(-2.3, 0, 0));
 shadowLabel.visible = false;
 
-/* ───────── 지구에서 본 달 (두 번째 렌더러, 같은 장면) ───────── */
+/* ───────── 지구에서 본 달 (같은 렌더러로 캔버스 귀퉁이에 그린 뒤 2D 캔버스로 복사) ───────── */
 const moonViewEl = document.getElementById('moonView');
-const viewRenderer = new THREE.WebGLRenderer({ antialias: true });
-viewRenderer.outputColorSpace = THREE.SRGBColorSpace;
-viewRenderer.setClearColor(0x02040c, 1);
-moonViewEl.prepend(viewRenderer.domElement);
+const mvCanvas = document.createElement('canvas');
+moonViewEl.prepend(mvCanvas);
+const mvCtx = mvCanvas.getContext('2d');
 // 달 반지름이 보이는 각: atan(0.5/4.2)≈6.8° → 시야 19°면 원 지름이 창의 약 71 %
 const viewCam = new THREE.PerspectiveCamera(19, 1, 0.5, 200);
 viewCam.layers.set(L_SHARED);
@@ -295,9 +309,11 @@ const raycaster = new THREE.Raycaster(); raycaster.layers.set(L_MAIN);
 const ndc = new THREE.Vector2();
 const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 let hintShown = true;
-function hideHint() { if (hintShown) { hintShown = false; document.getElementById('stageHint').classList.add('hide'); } }
+const hintEl = document.getElementById('stageHint');
+function hideHint() { if (hintShown) { hintShown = false; hintEl.classList.add('hide'); } }
+function showHint() { hintShown = true; hintEl.classList.remove('hide'); }
 function setNdc(e) {
-  const r = renderer.domElement.getBoundingClientRect();
+  const r = stageEl.getBoundingClientRect();
   ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
 }
 function angleAtPointer(e) {
@@ -308,57 +324,80 @@ function angleAtPointer(e) {
 }
 let dragId = null;
 // OrbitControls보다 먼저 등록해서 달을 잡으면 화면 회전을 막음
-renderer.domElement.addEventListener('pointerdown', e => {
-  if (SimBridge.locked) { e.stopImmediatePropagation(); return; }
+stageEl.addEventListener('pointerdown', e => {
+  if (isLocked()) { e.stopImmediatePropagation(); return; }
   setNdc(e); raycaster.setFromCamera(ndc, camera);
   if (raycaster.intersectObject(moonHit).length) {
     e.stopImmediatePropagation(); e.preventDefault();
-    dragId = e.pointerId; renderer.domElement.setPointerCapture(e.pointerId);
+    dragId = e.pointerId; stageEl.setPointerCapture(e.pointerId);
     S.dragging = true; S.tween = null; if (S.playing) setPlaying(false);
-    renderer.domElement.style.cursor = 'grabbing'; sfx.pick(); hideHint();
+    stageEl.style.cursor = 'grabbing'; sfx.pick(); hideHint(); needsRender = true;
   }
 });
-renderer.domElement.addEventListener('pointermove', e => {
+stageEl.addEventListener('pointermove', e => {
   if (S.dragging && e.pointerId === dragId) {
     const a = angleAtPointer(e); if (a !== null) S.theta = a;
     return;
   }
-  if (e.pointerType === 'mouse' && !S.dragging) {
+  if (e.pointerType === 'mouse' && !S.dragging && !e.buttons) {
     setNdc(e); raycaster.setFromCamera(ndc, camera);
-    renderer.domElement.style.cursor = raycaster.intersectObject(moonHit).length ? 'grab' : '';
+    stageEl.style.cursor = raycaster.intersectObject(moonHit).length ? 'grab' : '';
   }
 });
 function endDrag(e) {
   if (!S.dragging || e.pointerId !== dragId) return;
-  S.dragging = false; dragId = null; renderer.domElement.style.cursor = '';
+  S.dragging = false; dragId = null; stageEl.style.cursor = ''; needsRender = true;
   const i = nearestIdx(S.theta);
   if (Math.abs(angDiff(S.theta, i * 45)) <= SNAP_DEG) moveTo(i * 45, { fast: true });
   else { placed(); pushState(true); }
 }
-renderer.domElement.addEventListener('pointerup', endDrag);
-renderer.domElement.addEventListener('pointercancel', endDrag);
+stageEl.addEventListener('pointerup', endDrag);
+stageEl.addEventListener('pointercancel', endDrag);
 
-const controls = new OrbitControls(camera, renderer.domElement);
+const controls = new OrbitControls(camera, stageEl);
 controls.enablePan = false; controls.enableDamping = true; controls.dampingFactor = 0.08;
+controls.rotateSpeed = 0.55;               // 빈 곳을 조금 끌어도 확 돌아가지 않게
 controls.minDistance = 7; controls.maxDistance = 34;
-controls.maxPolarAngle = 88 * DEG;
+controls.minPolarAngle = 0; controls.maxPolarAngle = 62 * DEG; // 옆에서 보는 시점(라벨이 한 줄로 몰림)은 막음
 controls.target.copy(VIEW_TARGET);
 controls.addEventListener('start', hideHint);
+controls.addEventListener('change', () => { needsRender = true; });
 
 let camTween = null;
-function fitDistance() {
-  const r = stageEl.getBoundingClientRect();
-  const aspect = Math.max(0.3, r.width / Math.max(1, r.height));
-  const halfW = 8.9, halfH = 5.9; // 보여야 할 범위(궤도 글자 + 태양)
-  const vt = Math.tan(camera.fov / 2 * DEG);
-  return Math.max(halfH / vt, halfW / (vt * aspect)) + 1.0;
+// 위치 라벨·태양·햇빛 화살표가 모두 화면 안에 들어오는 가장 가까운 거리를 찾음(화면비가 달라도 궤도를 최대한 크게)
+// [점, 가로 여백 px, 위 여백 px, 아래 여백 px] — 라벨은 글자 크기만큼, 위쪽은 왼쪽 위 안내 글 자리만큼 더 비움
+const FIT_PTS = [];
+for (let i = 0; i < 8; i++) FIT_PTS.push([posOf(i * 45, labelR(i)), 44, 50, 22]);
+for (let i = 0; i < 16; i++) FIT_PTS.push([posOf(i * 22.5 + 11.25, R_ORBIT + 0.6), 10, 30, 10]);
+FIT_PTS.push([new THREE.Vector3(SUN_X + SUN_R + 0.2, 0, 0), 6, 30, 6], [new THREE.Vector3(SUN_X, 0, SUN_R + 0.9), 24, 30, 16],
+  [new THREE.Vector3(SUN_X, 0, -SUN_R - 0.2), 6, 30, 6], [new THREE.Vector3(7.6, 0, -4.3), 24, 44, 12]);
+const fitCam = new THREE.PerspectiveCamera();
+function fitDistance(top = false) {
+  const r = stageEl.getBoundingClientRect(), W = Math.max(1, r.width), H = Math.max(1, r.height);
+  fitCam.copy(camera); fitCam.aspect = Math.max(0.3, W / H); fitCam.updateProjectionMatrix();
+  const tilt = top ? 0.02 : 40 * DEG;
+  const dir = new THREE.Vector3(0, Math.cos(tilt), Math.sin(tilt));
+  const v = new THREE.Vector3();
+  const fits = d => {
+    fitCam.position.copy(VIEW_TARGET).addScaledVector(dir, d); fitCam.lookAt(VIEW_TARGET); fitCam.updateMatrixWorld();
+    return FIT_PTS.every(([p, mx, mt, mb]) => {
+      v.copy(p).project(fitCam);
+      const x = (v.x + 1) / 2 * W, y = (1 - v.y) / 2 * H;
+      return x > mx && x < W - mx && y > mt && y < H - mb;
+    });
+  };
+  let lo = 6, hi = 80;
+  for (let k = 0; k < 22; k++) { const m = (lo + hi) / 2; if (fits(m)) hi = m; else lo = m; }
+  return hi;
 }
 function camHome(top) {
-  const d = fitDistance();
+  const d = fitDistance(top);
   const tilt = top ? 0.02 : 40 * DEG; // 연직에서 기울인 각
-  return new THREE.Vector3(VIEW_TARGET.x, d * Math.cos(tilt), VIEW_TARGET.z + d * Math.sin(tilt));
+  return new THREE.Vector3(VIEW_TARGET.x, VIEW_TARGET.y + d * Math.cos(tilt), VIEW_TARGET.z + d * Math.sin(tilt));
 }
+let camIsTop = false;
 function flyCamera(top) {
+  camIsTop = top;
   camTween = { from: camera.position.clone(), to: camHome(top), fromT: controls.target.clone(), t: 0, dur: 0.9 };
 }
 
@@ -370,9 +409,11 @@ function resize() {
   labelRenderer.setSize(r.width, r.height);
   camera.aspect = r.width / Math.max(1, r.height); camera.updateProjectionMatrix();
   const v = moonViewEl.getBoundingClientRect();
-  viewRenderer.setSize(v.width, v.height, false);
+  const pr = S.quality === 'high' ? Math.min(devicePixelRatio || 1, 2) : 1;
+  mvCanvas.width = Math.max(1, Math.round(v.width * pr)); mvCanvas.height = Math.max(1, Math.round(v.height * pr));
   viewCam.aspect = 1; viewCam.updateProjectionMatrix();
   lastViewTheta = null; // 크기를 바꾸면 캔버스가 지워지므로 다시 그림
+  needsRender = true;
   layoutStrip();
 }
 new ResizeObserver(() => resize()).observe(stageEl);
@@ -441,7 +482,7 @@ function moveTo(deg, { fast = false } = {}) {
   S.tween = { from: S.theta, delta, t: 0, dur: fast ? 0.18 : clamp(0.35 + Math.abs(delta) / 180 * 0.9, 0.35, 1.25) };
 }
 posBtns.forEach(b => b.addEventListener('click', () => {
-  if (SimBridge.locked) return;
+  if (isLocked()) return;
   if (S.playing) setPlaying(false);
   sfx.toggle(); hideHint(); moveTo(+b.dataset.pos * 45);
 }));
@@ -476,14 +517,17 @@ function setPlaying(p) {
   btnPlay.textContent = p ? '❚❚ 멈춤' : '▶ 공전';
   if (p) { sfx.start(); hideHint(); } else { sfx.stop(); placed(); pushState(true); }
 }
-btnPlay.addEventListener('click', () => { if (!SimBridge.locked) setPlaying(!S.playing); });
+btnPlay.addEventListener('click', () => { if (!isLocked()) setPlaying(!S.playing); });
 const speedEl = document.getElementById('speed'), speedOut = document.getElementById('speedOut');
 function setSpeed(v) { S.speed = v; speedOut.textContent = v.toFixed(1) + '배'; paintRange(speedEl); }
-speedEl.addEventListener('input', () => { setSpeed(+speedEl.value); sound.tick((S.speed - 0.5) / 3.5); });
+speedEl.addEventListener('input', () => {
+  if (isLocked()) { speedEl.value = S.speed; paintRange(speedEl); return; }
+  setSpeed(+speedEl.value); sound.tick((S.speed - 0.5) / 3.5);
+});
 
 // 키보드: 무대에서 ←/→ (Shift = 1°)
 stageEl.addEventListener('keydown', e => {
-  if (SimBridge.locked) return;
+  if (isLocked()) return;
   const step = e.shiftKey ? 1 : 5;
   let d = 0;
   if (e.key === 'ArrowRight' || e.key === 'ArrowUp') d = step;
@@ -497,7 +541,7 @@ stageEl.addEventListener('keydown', e => {
 });
 let keySettle;
 
-document.getElementById('btnTop').addEventListener('click', () => { sfx.toggle(); flyCamera(true); });
+document.getElementById('btnTop').addEventListener('click', () => { sfx.toggle(); hideHint(); flyCamera(true); });
 
 /* ───────── 보기 설정 ───────── */
 const tLit = document.getElementById('tLit'), tSeen = document.getElementById('tSeen'), tShadow = document.getElementById('tShadow');
@@ -507,8 +551,12 @@ function applyToggles() {
   seenRing.visible = sight.visible = S.showSeenHalf;
   shadow.visible = shadowLabel.visible = S.showShadow;
   document.getElementById('shadowNote').hidden = !S.showShadow;
+  needsRender = true;
 }
-[tLit, tSeen, tShadow].forEach(t => t.addEventListener('change', () => { sfx.toggle(); applyToggles(); pushState(true); }));
+[tLit, tSeen, tShadow].forEach(t => t.addEventListener('change', () => {
+  if (isLocked()) { t.checked = !t.checked; return; } // 잠긴 뒤에는 키보드로도 못 바꿈
+  sfx.toggle(); applyToggles(); pushState(true);
+}));
 
 /* ───────── 과제 ───────── */
 const taskFullBtn = document.getElementById('taskFull'), taskFQBtn = document.getElementById('taskFQ'), taskMsg = document.getElementById('taskMsg');
@@ -520,6 +568,11 @@ function setTask(name) {
   S.activeTask = S.activeTask === name ? null : name;
   for (const [k, t] of Object.entries(TASKS)) t.btn.setAttribute('aria-pressed', S.activeTask === k && !S[t.key]);
   taskMsg.style.color = ''; taskMsg.textContent = S.activeTask ? TASKS[S.activeTask].ask : '';
+  // 과제를 고를 때 달이 이미 표시점에 멈춰 있으면 그 자리를 바로 확인함(이미 알맞은 자리면 바로 완성)
+  if (S.activeTask && !S.playing && !S.tween && !S.dragging) {
+    const i = nearestIdx(S.theta);
+    if (Math.abs(angDiff(S.theta, i * 45)) < 0.01 && i === TASKS[S.activeTask].idx) checkTask(i);
+  }
 }
 function checkTask(i) {
   const t = TASKS[S.activeTask]; if (!t) return;
@@ -532,8 +585,8 @@ function checkTask(i) {
     taskMsg.style.color = ''; taskMsg.textContent = `(${POS[i]})에서는 다른 모양이에요. '지구에서 본 달' 창을 보며 다시 옮겨 보세요.`;
   }
 }
-taskFullBtn.addEventListener('click', () => { if (SimBridge.locked) return; sfx.toggle(); setTask('full'); });
-taskFQBtn.addEventListener('click', () => { if (SimBridge.locked) return; sfx.toggle(); setTask('fq'); });
+taskFullBtn.addEventListener('click', () => { if (isLocked()) return; sfx.toggle(); setTask('full'); });
+taskFQBtn.addEventListener('click', () => { if (isLocked()) return; sfx.toggle(); setTask('fq'); });
 
 /* ───────── 붙임딱지 ───────── */
 // 위상 카드 8장 + 좌우가 바뀐 반달 카드 2장(서로 짝이 바뀐 모양)
@@ -546,8 +599,8 @@ function buildBoard() {
     const s = document.createElement('div'); s.className = 'slot'; s.tabIndex = 0; s.dataset.idx = i;
     s.setAttribute('role', 'button'); s.setAttribute('aria-label', `${posLabel(i)} 칸`);
     s.innerHTML = `<div class="nm">(${POS[i]}) ${NAMES[i] ? `<small>${NAMES[i]}</small>` : ''}</div><div class="hole"></div>`;
-    s.addEventListener('click', () => { if (selected && !SimBridge.locked) tryPlace(selected, i); });
-    s.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && selected) { e.preventDefault(); tryPlace(selected, i); } });
+    s.addEventListener('click', () => { if (selected && !isLocked()) tryPlace(selected, i); });
+    s.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && selected && !isLocked()) { e.preventDefault(); tryPlace(selected, i); } });
     slotsEl.appendChild(s); slots.push({ el: s, filled: false });
   }
   const angles = [0, 45, 90, 135, 180, 225, 270, 315, 90, 270];
@@ -556,7 +609,7 @@ function buildBoard() {
     const cell = document.createElement('div'); cell.className = 'card-cell';
     const c = document.createElement('div'); c.className = 'card'; c.tabIndex = 0; c.setAttribute('role', 'button');
     c.setAttribute('aria-label', `달 모양 카드 ${n + 1}`);
-    c.appendChild(phaseCanvas(a, 32));
+    c.appendChild(phaseCanvas(a, 40));
     const card = { el: c, cell, deg: a, used: false };
     c.addEventListener('pointerdown', e => startCardDrag(e, card));
     c.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectCard(card); } });
@@ -564,7 +617,7 @@ function buildBoard() {
   });
 }
 function selectCard(card) {
-  if (SimBridge.locked || card.used) return;
+  if (isLocked() || card.used) return;
   selected = selected === card ? null : card;
   cards.forEach(c => c.el.classList.toggle('sel', c === selected));
   slots.forEach(s => s.el.classList.toggle('target', !!selected && !s.filled));
@@ -572,7 +625,7 @@ function selectCard(card) {
 }
 let cd = null;
 function startCardDrag(e, card) {
-  if (SimBridge.locked || card.used || e.button > 0) return;
+  if (isLocked() || card.used || e.button > 0) return;
   e.preventDefault();
   cd = { card, id: e.pointerId, x0: e.clientX, y0: e.clientY, moved: false, over: null };
   card.el.setPointerCapture(e.pointerId);
@@ -599,8 +652,8 @@ function endCardDrag(e) {
   ghost.hidden = true; card.el.classList.remove('lifted');
   slots.forEach(s => s.el.classList.remove('over'));
   if (!moved) { selectCard(card); return; }
-  if (over !== null && !SimBridge.locked) tryPlace(card, over);
-  else { card.el.classList.remove('back'); void card.el.offsetWidth; card.el.classList.add('back'); }
+  if (over !== null && !isLocked()) tryPlace(card, over);
+  else { card.el.classList.remove('return-anim'); void card.el.offsetWidth; card.el.classList.add('return-anim'); }
 }
 window.addEventListener('pointerup', endCardDrag);
 window.addEventListener('pointercancel', endCardDrag);
@@ -612,14 +665,14 @@ function tryPlace(card, i) {
   const actual = i * 45; // 그 위치에서 지구에서 본 달의 모양
   if (card.deg === actual) {
     card.used = true; slot.filled = true; S.cardsPlaced++;
-    card.el.classList.remove('back'); slot.el.querySelector('.hole').appendChild(card.el);
+    card.el.classList.remove('return-anim'); slot.el.querySelector('.hole').appendChild(card.el);
     slot.el.classList.add('filled'); slot.el.removeAttribute('role'); slot.el.tabIndex = -1;
     card.el.tabIndex = -1;
     fbEl.className = 'feedback ok';
     fbEl.innerHTML = `<span><b>${posLabel(i)}</b> 칸에 붙였어요. (${S.cardsPlaced}/8)</span>`;
     sfx.right();
     if (S.cardsPlaced === 8) {
-      setTimeout(() => { sfx.done(); fbEl.innerHTML = '<span><b>8칸 모두 완성!</b> 달이 시계 반대 방향으로 돌며 모양이 차례로 바뀌어요.</span>'; }, 450);
+      setTimeout(() => { sfx.done(); fbEl.innerHTML = '<span><b>8칸 모두 완성!</b> 달이 시계 반대 방향으로 돌며 모양이 차례로 바뀌어요. 남은 카드 2장은 이미 붙인 반달과 같은 모양이라 붙일 칸이 없어요.</span>'; }, 450);
       setTimeout(() => openPrediction(true), 1800);
     }
   } else {
@@ -628,7 +681,7 @@ function tryPlace(card, i) {
     if (mirror) S.mirrorMistake = true;
     slot.el.classList.remove('bad'); void slot.el.offsetWidth; slot.el.classList.add('bad');
     setTimeout(() => slot.el.classList.remove('bad'), 450);
-    card.el.classList.remove('back'); void card.el.offsetWidth; card.el.classList.add('back');
+    card.el.classList.remove('return-anim'); void card.el.offsetWidth; card.el.classList.add('return-anim');
     sfx.wrong();
     fbEl.className = 'feedback no'; fbEl.innerHTML = '';
     const pair = document.createElement('div'); pair.className = 'pair';
@@ -646,9 +699,10 @@ function tryPlace(card, i) {
 
 /* ───────── 예측 ───────── */
 const predModal = document.getElementById('predModal');
+const PRED_TEXT = { '그림자': '① 지구 그림자', '방향': '② 햇빛 받는 쪽과 보는 쪽' };
 let predAfterMode = false;
 function openPrediction(after) {
-  if (SimBridge.locked) return;
+  if (isLocked()) return;
   predAfterMode = after;
   document.getElementById('predTitle').textContent = after ? '다시 생각해 보세요' : '먼저 예측해 보세요';
   document.getElementById('predText').textContent = after
@@ -663,17 +717,23 @@ function openPrediction(after) {
   predModal.querySelector('.modal-box').focus();
 }
 predModal.querySelectorAll('[data-pred]').forEach(b => b.addEventListener('click', () => {
+  if (isLocked()) return;
   if (predAfterMode) S.predictionAfter = b.dataset.pred; else S.prediction = b.dataset.pred;
   predModal.hidden = true; sfx.right(); pushState(true);
   if (!predAfterMode) stageEl.focus({ preventScroll: true });
+  else if (S.prediction) {
+    // 처음 생각과 지금 생각을 나란히 보여 줌(맞고 틀림은 알려 주지 않음)
+    const same = S.prediction === S.predictionAfter;
+    toastMsg(`처음 생각: ${PRED_TEXT[S.prediction]} → 지금 생각: ${PRED_TEXT[S.predictionAfter]}. ${same ? '생각이 그대로예요. 어떤 관찰이 근거인지 떠올려 보세요.' : '생각이 바뀌었어요. 무엇을 보고 바뀌었는지 떠올려 보세요.'}`, 9000);
+  }
 }));
 document.getElementById('btnRethink').addEventListener('click', () => { sfx.toggle(); openPrediction(true); });
 
 /* ───────── 알림 ───────── */
 let toastTimer;
-function toastMsg(t) {
+function toastMsg(t, ms = 4000) {
   taskMsg.style.color = 'var(--good)'; taskMsg.textContent = t;
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => { if (taskMsg.textContent === t) taskMsg.textContent = ''; }, 4000);
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { if (taskMsg.textContent === t) taskMsg.textContent = ''; }, ms);
 }
 
 /* ───────── 머리줄 단추 ───────── */
@@ -687,15 +747,25 @@ function setQuality(q) {
   S.quality = q;
   btnQuality.textContent = q === 'high' ? '그래픽: 높음' : '그래픽: 낮음';
   btnQuality.setAttribute('aria-pressed', q === 'low');
-  renderer.setPixelRatio(q === 'high' ? Math.min(devicePixelRatio, 2) : 1);
-  viewRenderer.setPixelRatio(q === 'high' ? Math.min(devicePixelRatio, 2) : 1);
-  makeStars(q === 'high' ? 1800 : 600);
-  sunGlow.visible = q === 'high';
+  const hi = q === 'high';
+  // 낮음: 안티에일리어싱 끔(렌더러 새로 만듦) · 화소 비율 1 · 구 분할 줄임 · 별 줄임 · 빛무리 끔 · 공전 중 30fps
+  if (renderer.getContextAttributes()?.antialias !== hi) makeRenderer(hi);
+  renderer.setPixelRatio(hi ? Math.min(devicePixelRatio, 2) : 1);
+  setSegments(hi);
+  makeStars(hi ? 1800 : 500);
+  sunGlow.visible = hi;
+  rayMat.opacity = 0.5;
   resize();
+}
+function setSegments(hi) {
+  const swap = (mesh, r, w, h) => { mesh.geometry.dispose(); mesh.geometry = new THREE.SphereGeometry(r, w, h); };
+  swap(earth, EARTH_R, hi ? 48 : 24, hi ? 32 : 16);
+  swap(moon, MOON_R, hi ? 48 : 28, hi ? 32 : 18);
+  swap(sunBall, SUN_R, hi ? 32 : 16, hi ? 20 : 10);
 }
 btnQuality.addEventListener('click', () => { sfx.toggle(); setQuality(S.quality === 'high' ? 'low' : 'high'); });
 
-document.getElementById('btnReset').addEventListener('click', () => { if (SimBridge.locked) return; sound.reset(); resetAll(); });
+document.getElementById('btnReset').addEventListener('click', () => { if (isLocked()) return; sound.reset(); resetAll(); });
 function resetAll() {
   setPlaying(false);
   Object.assign(S, {
@@ -707,7 +777,8 @@ function resetAll() {
   posBtns.forEach(b => b.classList.remove('seen'));
   for (const t of Object.values(TASKS)) { t.btn.classList.remove('done'); t.btn.querySelector('.chk').textContent = '○'; t.btn.setAttribute('aria-pressed', 'false'); }
   taskMsg.textContent = ''; fbEl.className = 'feedback'; fbEl.innerHTML = '';
-  clearStrip(); buildBoard(); flyCamera(false);
+  clearStrip(); buildBoard(); flyCamera(false); showHint();
+  needsRender = true; lastShown = '';
   pushState(true);
 }
 
@@ -716,12 +787,16 @@ const vPos = document.getElementById('vPos'), vAngle = document.getElementById('
 let lastShown = '', lastSent = 0, pendingSend = false;
 function readout() {
   const th = norm(S.theta), deg = Math.round(th) % 360, i = nearestIdx(th);
-  const key = deg + '|' + i;
+  const key = deg + '|' + i + '|' + Math.round(th * 2);
   if (key === lastShown) return false;
   lastShown = key;
-  vPos.textContent = posLabel(i);
+  // 표시점 위면 이름, 가까우면 '근처', 두 표시점 가운데쯤이면 '사이'
+  const off = angDiff(i * 45, th);
+  if (Math.abs(off) < 0.5) vPos.textContent = posLabel(i);
+  else if (Math.abs(off) <= 10) vPos.textContent = posLabel(i) + ' 근처';
+  else { const a = off > 0 ? i : (i + 7) % 8, b = (a + 1) % 8; vPos.textContent = `(${POS[a]})와 (${POS[b]}) 사이`; }
   vAngle.textContent = deg + '°';
-  vDays.textContent = '약 ' + daysAfterNew(deg).toFixed(1) + '일';
+  vDays.textContent = deg === 0 ? '0일 (삭)' : '약 ' + daysAfterNew(deg).toFixed(1) + '일';
   const lp = litPercent(deg);
   vLit.textContent = lp + ' %'; mLit.style.width = lp + '%';
   posBtns.forEach((b, k) => b.classList.toggle('cur', k === i));
@@ -755,17 +830,47 @@ function pushState(force) {
     showShadow: S.showShadow,
   });
 }
-SimBridge.onLock = () => { setPlaying(false); predModal.hidden = true; if (cd) { cd = null; ghost.hidden = true; } S.dragging = false; };
+let lockApplied = false;
+function applyLock() {
+  if (lockApplied) return; lockApplied = true;
+  setPlaying(false); S.tween = null; predModal.hidden = true;
+  if (cd) { cd = null; ghost.hidden = true; } S.dragging = false; selected = null;
+  // 키보드(Tab·Space)로도 못 바꾸게 조작 요소를 모두 끔(소리·그래픽 품질은 그대로 둠)
+  document.querySelectorAll('.app button, .app input, .modal button, #btnReset').forEach(el => { el.disabled = true; });
+  document.querySelectorAll('.card, .slot').forEach(el => { el.tabIndex = -1; });
+}
+SimBridge.onLock = applyLock;
+new MutationObserver(() => { if (isLocked()) applyLock(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 
 /* ───────── 매 프레임 ───────── */
 const clock = new THREE.Clock();
 const fps = new FpsMonitor(() => { if (S.quality === 'high') setQuality('low'); }, { threshold: 28, window: 4 });
-let frame = 0;
-const tmp = new THREE.Vector3();
+let frame = 0, lastRenderTheta = null;
+const tmp = new THREE.Vector3(), sizeV = new THREE.Vector2();
+
+// '지구에서 본 달': 같은 렌더러로 캔버스 왼쪽 아래 귀퉁이에 그린 뒤 2D 캔버스로 복사(바로 뒤에 우주 시점이 덮어 그림)
+function renderMoonView(p) {
+  const dom = renderer.domElement, w = mvCanvas.width, h = mvCanvas.height;
+  if (w > dom.width || h > dom.height) return false;
+  const pr = renderer.getPixelRatio();
+  renderer.getSize(sizeV);
+  viewCam.position.set(0, 0, 0); viewCam.lookAt(p);
+  renderer.setViewport(0, 0, w / pr, h / pr); renderer.setScissor(0, 0, w / pr, h / pr); renderer.setScissorTest(true);
+  renderer.setClearColor(0x02040c, 1);
+  // 달은 실제로 람베르트 면보다 가장자리까지 고르게 밝으므로 이 창에서만 빛을 조금 세게(초승·그믐달이 잘 보이게)
+  const li = sunLight.intensity; sunLight.intensity = 4.6;
+  renderer.render(scene, viewCam);
+  sunLight.intensity = li;
+  renderer.setScissorTest(false); renderer.setViewport(0, 0, sizeV.x, sizeV.y); renderer.setClearColor(0x000000, 0);
+  mvCtx.drawImage(dom, 0, dom.height - h, w, h, 0, 0, w, h);
+  return true;
+}
+
 function tick() {
   requestAnimationFrame(tick);
   const dt = Math.min(clock.getDelta(), 0.1);
   frame++; fps.update(dt);
+  if (S.playing && isLocked()) setPlaying(false);
 
   // 공전
   if (S.playing && !S.dragging) {
@@ -779,7 +884,6 @@ function tick() {
       arriveAt(idx, false);
     }
     S.theta = norm(raw);
-    if (S.theta < before) { /* 한 바퀴 넘김 */ }
   } else if (S.tween) {
     const tw = S.tween; tw.t += dt / tw.dur;
     const e = ease.inOutCubic(Math.min(1, tw.t));
@@ -787,15 +891,43 @@ function tick() {
     if (tw.t >= 1) { S.theta = norm(Math.round(tw.from + tw.delta)); S.tween = null; placed(); pushState(true); }
   }
 
+  // 카메라 이동
+  let dirty = needsRender || S.theta !== lastRenderTheta;
+  if (camTween) {
+    camTween.t += dt / camTween.dur; const e = ease.inOutCubic(Math.min(1, camTween.t));
+    camera.position.lerpVectors(camTween.from, camTween.to, e);
+    controls.target.lerpVectors(camTween.fromT, VIEW_TARGET, e);
+    if (camTween.t >= 1) camTween = null;
+    dirty = true;
+  }
+  if (controls.update()) dirty = true;
+
+  // 깜박이는 표시점·달 둘레 고리가 움직이는 동안만 다시 그림
+  const nearI = nearestIdx(S.theta);
+  const onMarker = Math.abs(angDiff(S.theta, nearI * 45)) < 0.6 && !S.dragging;
+  const haloTarget = S.dragging ? 0.75 : onMarker ? 0.35 : 0;
+  if (Math.abs(haloTarget - moonHalo.material.opacity) > 0.01) {
+    moonHalo.material.opacity += (haloTarget - moonHalo.material.opacity) * Math.min(1, dt * 8); dirty = true;
+  }
+  for (let i = 0; i < 8; i++) {
+    if (flashT[i] > 0) { flashT[i] = Math.max(0, flashT[i] - dt * 1.6); dirty = true; }
+  }
+  if (S.playing && S.quality === 'high') rayMat.opacity = 0.4 + 0.18 * Math.sin(clock.elapsedTime * 2.2);
+
+  if (readout()) pushState(false);
+  else if (pendingSend && performance.now() - lastSent > 200) pushState(true);
+
+  if (!dirty) return;
+  // 품질 낮음: 끌기 중이 아니면 한 프레임 걸러 그림(약 30fps)
+  if (S.quality === 'low' && !S.dragging && frame % 2) { needsRender = true; return; }
+  needsRender = false; lastRenderTheta = S.theta;
+
   // 달·덧그림 위치
   const p = posOf(S.theta);
   moon.position.copy(p); moonHit.position.copy(p);
   moon.rotation.y = S.theta * DEG; // 같은 면이 늘 지구를 향함
   moonHalo.position.copy(p);
   moonLabel.position.copy(p).multiplyScalar(1 - (MOON_R + 0.45) / R_ORBIT);
-  const nearI = nearestIdx(S.theta);
-  const onMarker = Math.abs(angDiff(S.theta, nearI * 45)) < 0.6 && !S.dragging;
-  moonHalo.material.opacity += ((S.dragging ? 0.75 : onMarker ? 0.35 : 0) - moonHalo.material.opacity) * Math.min(1, dt * 8);
   litRing.position.copy(p); litRing.rotation.y = 0;
   seenRing.position.copy(p); seenRing.rotation.y = (S.theta + 180) * DEG;
   if (S.showSeenHalf) {
@@ -803,37 +935,17 @@ function tick() {
     const pa = sightGeo.attributes.position; pa.setXYZ(0, p.x * EARTH_R * 1.2 / R_ORBIT, 0, p.z * EARTH_R * 1.2 / R_ORBIT); pa.setXYZ(1, tmp.x, 0, tmp.z); pa.needsUpdate = true;
     sight.computeLineDistances();
   }
+  // 그림자 라벨은 달이 (마) 근처에 오면 '달' 라벨과 겹치므로 숨김
+  shadowLabel.visible = S.showShadow && Math.abs(angDiff(S.theta, 180)) > 40;
   for (let i = 0; i < 8; i++) {
     const m = markers[i];
-    flashT[i] = Math.max(0, flashT[i] - dt * 1.6);
-    const s = 1 + flashT[i] * 0.8 + (i === nearI ? 0.25 : 0);
-    m.scale.setScalar(s);
+    m.scale.setScalar(1 + flashT[i] * 0.8 + (i === nearI ? 0.25 : 0));
     m.material.color.setHex(flashT[i] > 0 ? 0xffd45a : (i === nearI ? 0xff7a5a : 0xe0453a));
   }
-  rayMat.opacity = 0.4 + 0.18 * Math.sin(clock.elapsedTime * 2.2);
 
-  // 카메라 이동
-  if (camTween) {
-    camTween.t += dt / camTween.dur; const e = ease.inOutCubic(Math.min(1, camTween.t));
-    camera.position.lerpVectors(camTween.from, camTween.to, e);
-    controls.target.lerpVectors(camTween.fromT, VIEW_TARGET, e);
-    if (camTween.t >= 1) camTween = null;
-  }
-  controls.update();
-
+  if (lastViewTheta === null || S.theta !== lastViewTheta) { if (renderMoonView(p)) lastViewTheta = S.theta; }
   renderer.render(scene, camera);
   labelRenderer.render(scene, camera);
-
-  // 지구에서 본 달: 바뀌었을 때만(품질 낮음이면 더 드물게)
-  const changed = lastViewTheta === null || Math.abs(S.theta - lastViewTheta) > 0.05;
-  if (changed && (S.quality === 'high' || frame % 2 === 0)) {
-    viewCam.position.set(0, 0, 0); viewCam.lookAt(p);
-    viewRenderer.render(scene, viewCam);
-    lastViewTheta = S.theta;
-  }
-
-  if (readout()) pushState(false);
-  else if (pendingSend && performance.now() - lastSent > 200) pushState(true);
 }
 
 /* ───────── 시작 ───────── */
@@ -848,14 +960,14 @@ readout(); pushState(true);
 tick();
 openPrediction(false);
 // 화면 크기가 바뀌면 카메라 거리도 다시 맞춤(사용자가 돌려 놓은 방향은 유지)
-let lastFit = fitDistance();
+let lastFit = fitDistance(camIsTop);
 new ResizeObserver(() => {
-  const d = fitDistance(); if (Math.abs(d - lastFit) < 0.3) return;
+  const d = fitDistance(camIsTop); if (Math.abs(d - lastFit) < 0.3) return;
   const dir = camera.position.clone().sub(controls.target).normalize();
-  camera.position.copy(controls.target).addScaledVector(dir, d); lastFit = d;
+  camera.position.copy(controls.target).addScaledVector(dir, d); lastFit = d; needsRender = true;
 }).observe(stageEl);
 // 개발 확인용 접근점 (정답 정보 없음)
 window.__moon = {
-  S, moveTo, setPlaying,
-  screenOf(deg) { const v = posOf(deg).project(camera), r = renderer.domElement.getBoundingClientRect(); return { x: r.left + (v.x + 1) / 2 * r.width, y: r.top + (1 - v.y) / 2 * r.height }; },
+  S, moveTo, setPlaying, setQuality,
+  screenOf(deg) { const v = posOf(deg).project(camera), r = stageEl.getBoundingClientRect(); return { x: r.left + (v.x + 1) / 2 * r.width, y: r.top + (1 - v.y) / 2 * r.height }; },
 };
