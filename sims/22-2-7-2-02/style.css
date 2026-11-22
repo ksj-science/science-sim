@@ -96,6 +96,7 @@ body { background: #e9edf4; }
   padding: 3px 9px; border-radius: 8px;
 }
 #fixedNote .lock { font-size: 11px; }
+#fixedNote .ratio-note { display: none; }
 #orbitBox {
   background: rgba(10, 18, 44, .8); color: #e8eeff; border: 1px solid rgba(160, 180, 255, .3);
   border-radius: 10px; padding: 6px 10px; min-width: 150px;
@@ -126,18 +127,18 @@ body { background: #e9edf4; }
 
 /* 3D 라벨 */
 .l3 {
-  font-size: 13px; font-weight: 700; color: #e9efff; white-space: nowrap; padding: 1px 6px; border-radius: 6px;
+  font-size: 14px; font-weight: 700; color: #e9efff; white-space: nowrap; padding: 1px 6px; border-radius: 6px;
   background: rgba(14, 24, 60, .72); border: 1px solid rgba(150, 170, 255, .28); transition: opacity .2s;
   text-shadow: 0 1px 2px #000;
 }
 .l3.oph { color: #c3c8da; background: rgba(40, 44, 62, .8); border-color: rgba(170, 175, 200, .35); font-weight: 600; }
 .l3.hot { border-color: rgba(255, 200, 60, .95); box-shadow: 0 0 0 1px rgba(255, 200, 60, .5); }
 .l3.cold { border-color: rgba(110, 165, 255, .95); box-shadow: 0 0 0 1px rgba(110, 165, 255, .5); }
-.l3.tag { background: rgba(10, 18, 44, .5); border: 0; font-weight: 600; color: #ffd9a8; font-size: 12.5px; }
+.l3.tag { background: rgba(10, 18, 44, .5); border: 0; font-weight: 600; color: #ffd9a8; font-size: 13.5px; }
 .l3.tag.sun, .l3.tag.earth { background: transparent; }
-.l3.drag-hint { background: transparent; border: 0; padding: 0; }
+.l3.drag-hint { background: transparent; border: 0; padding: 0; z-index: 4; }
 .l3.drag-hint span {
-  display: inline-block; background: rgba(47, 128, 237, .94); color: #fff; font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 999px;
+  display: inline-block; background: rgba(47, 128, 237, .94); color: #fff; font-size: 14px; font-weight: 700; padding: 3px 10px; border-radius: 999px;
   text-shadow: none; box-shadow: 0 2px 8px rgba(0, 0, 0, .35);
 }
 .l3.tag.sun { color: #ffe9a8; }
@@ -153,7 +154,7 @@ body { background: #e9edf4; }
 #space.small .lg.zone { display: none; }
 
 /* 하늘 */
-.skytime { color: #fff; font-weight: 700; font-size: 14px; text-shadow: 0 1px 3px rgba(0, 0, 0, .7); }
+.skytime { color: #fff; font-weight: 700; font-size: 14px; text-shadow: 0 1px 3px rgba(0, 0, 0, .7); background: rgba(6, 14, 40, .6); padding: 3px 9px 4px; border-radius: 8px; }
 .skytime .alt { display: block; font-size: 13.5px; font-weight: 600; opacity: .95; }
 .skynote {
   background: rgba(255, 255, 255, .94); color: #3b3000; border-radius: 8px; padding: 4px 10px; font-size: 14px; line-height: 1.35;
@@ -173,8 +174,8 @@ body { background: #e9edf4; }
 #rec { width: 100%; border-collapse: separate; border-spacing: 4px 4px; table-layout: fixed; margin: -4px 0 0; }
 #rec th, #rec td { font-size: 14px; text-align: center; }
 #rec th.rh { width: 31%; word-break: keep-all; text-align: left; font-size: 14px; color: var(--ink); line-height: 1.25; font-weight: 700; }
-#rec thead th.corner { font-size: 13px; font-weight: 700; color: #8a5a00; line-height: 1.25; vertical-align: middle; }
-#rec th.rh small { color: #4d586b; font-weight: 600; font-size: 13px; }
+#rec thead th.corner { font-size: 14px; font-weight: 700; color: #8a5a00; line-height: 1.25; vertical-align: middle; }
+#rec th.rh small { color: #4d586b; font-weight: 600; font-size: 13.5px; }
 #rec thead th.col {
   background: #f1f4f9; border-radius: 8px; padding: 3px 2px; cursor: pointer; line-height: 1.2; font-weight: 700; border: 1px solid transparent;
 }
@@ -233,7 +234,22 @@ body { background: #e9edf4; }
 .ssn-row { position: absolute; left: 8px; right: 8px; top: 0; height: 14px; }
 .ssn-row .ssn { position: absolute; top: 0; font-size: 13px; line-height: 14px; color: #3f4859; font-weight: 700; transform: translateX(-50%); pointer-events: none; }
 .season { position: absolute; left: 8px; right: 8px; top: 15px; height: 5px; border-radius: 3px; opacity: .9; }
-#daySlider { position: absolute; left: 0; right: 0; top: 16px; width: 100%; height: 22px; margin: 0; accent-color: var(--accent); cursor: pointer; }
+/* 슬라이더: 누를 수 있는 높이 40px, 손잡이 26px */
+#daySlider {
+  position: absolute; left: 0; right: 0; top: 7px; width: 100%; height: 40px; margin: 0; cursor: pointer;
+  -webkit-appearance: none; appearance: none; background: transparent; touch-action: none;
+}
+#daySlider::-webkit-slider-runnable-track { height: 8px; border-radius: 4px; background: #d5dbe6; }
+#daySlider::-moz-range-track { height: 8px; border-radius: 4px; background: #d5dbe6; }
+#daySlider::-moz-range-progress { height: 8px; border-radius: 4px; background: var(--accent); }
+#daySlider::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 26px; height: 26px; margin-top: -9px; border-radius: 50%;
+  background: #fff; border: 3px solid var(--accent); box-shadow: 0 1px 4px rgba(0, 0, 0, .3);
+}
+#daySlider::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: #fff; border: 3px solid var(--accent); box-shadow: 0 1px 4px rgba(0, 0, 0, .3); }
+#daySlider:active::-webkit-slider-thumb { transform: scale(1.1); }
+#daySlider:focus-visible { outline: none; }
+#daySlider:focus-visible::-webkit-slider-thumb { outline: 3px solid rgba(31, 111, 235, .45); outline-offset: 2px; }
 .ticks { position: absolute; left: 0; right: 0; top: 37px; height: 17px; }
 .ticks .tk { position: absolute; transform: translateX(-50%); font-size: 13px; line-height: 14px; color: var(--muted); white-space: nowrap; padding-top: 3px; cursor: pointer; pointer-events: auto; }
 .ticks .tk::before { content: ""; position: absolute; left: 50%; top: -2px; width: 1.5px; height: 5px; background: #9aa5b8; }
@@ -248,7 +264,7 @@ body { background: #e9edf4; }
 .switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
 .switch { min-height: 40px; }
 .sw-lbl { display: flex; flex-direction: column; line-height: 1.1; }
-.sw-lbl small { font-size: 12.5px; color: var(--muted); font-weight: 600; }
+.sw-lbl small { font-size: 13.5px; color: var(--muted); font-weight: 600; }
 .cbtn .pdot { display: none; margin-left: 5px; font-size: 11.5px; font-weight: 800; color: #fff; background: #8a5cf6; border-radius: 999px; padding: 1px 6px; vertical-align: 1px; }
 .cbtn.pred .pdot { display: inline-block; }
 .switch .track { width: 46px; height: 26px; border-radius: 13px; background: #c9d0dc; position: relative; transition: background .2s; }
@@ -273,11 +289,36 @@ body { background: #e9edf4; }
 .pk-act { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
 
 .toast {
-  position: fixed; left: 28%; bottom: 258px; transform: translate(-50%, 10px); opacity: 0; z-index: 60;
-  background: rgba(20, 28, 50, .94); color: #fff; padding: 8px 16px; border-radius: 10px; font-size: 14px;
-  transition: opacity .25s, transform .25s; pointer-events: none; max-width: 90vw; text-align: center;
+  /* 머리글 가운데 빈자리에 띄움 → 우주 화면의 별자리 이름표를 가리지 않음 */
+  position: fixed; left: calc(50% + 120px); top: 5px; transform: translate(-50%, -6px); opacity: 0; z-index: 60;
+  background: rgba(20, 28, 50, .95); color: #fff; padding: 6px 14px; border-radius: 10px; font-size: 14px; line-height: 1.3;
+  transition: opacity .25s, transform .25s; pointer-events: none; max-width: min(480px, 90vw); text-align: center;
 }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* 12개월 끝 */
+.year-done {
+  left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 6; pointer-events: auto; cursor: pointer;
+  width: max-content; max-width: 92%; text-align: center; line-height: 1.4;
+  background: linear-gradient(135deg, rgba(255, 196, 60, .96), rgba(255, 150, 60, .96)); color: #2b1a00;
+  padding: 8px 18px 9px; border-radius: 14px; box-shadow: 0 6px 24px rgba(0, 0, 0, .4), 0 0 0 2px rgba(255, 240, 200, .8);
+}
+.year-done b { display: block; font-size: 16px; }
+.year-done span { display: block; font-size: 14px; font-weight: 600; }
+.year-done.show { animation: ydIn .6s cubic-bezier(.2, 1.4, .4, 1) both; }
+@keyframes ydIn { from { opacity: 0; transform: translateX(-50%) translateY(20px) scale(.9); } to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); } }
+.yd-ring { position: absolute; left: 50%; top: 50%; width: 60px; height: 60px; margin: -30px 0 0 -30px; border-radius: 50%; border: 3px solid rgba(255, 220, 120, .9); pointer-events: none; opacity: 0; }
+.year-done.show .yd-ring { animation: ydRing 1.4s ease-out .1s 2; }
+@keyframes ydRing { from { opacity: .9; transform: scale(.5); } to { opacity: 0; transform: scale(6); } }
+
+/* 하늘 말풍선(누른 곳 근처) */
+.sky-bubble {
+  position: absolute; z-index: 5; pointer-events: none; max-width: 300px; width: max-content;
+  background: rgba(255, 255, 255, .96); color: #2a2f45; font-size: 14px; font-weight: 600; line-height: 1.35;
+  padding: 5px 10px; border-radius: 10px; box-shadow: 0 3px 12px rgba(0, 0, 0, .35); word-break: keep-all;
+}
+.sky-bubble.show { animation: bubIn .25s ease-out; }
+@keyframes bubIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
@@ -305,7 +346,12 @@ body { background: #e9edf4; }
   .cg.play { gap: 8px; }
   .cg.play { grid-area: play; }
   #top .unit { font-size: 12px; }
+  #top .ttl { gap: 8px; padding-right: 4px; }
+  #top h1 { font-size: 17px; }
   .toast { left: 50%; bottom: auto; top: 96px; }
+  /* ① 아래 설명 줄 대신 왼쪽 위 안내에 짧게 붙임 → 그만큼 ①·②를 키움 */
+  #spaceFoot { display: none; }
+  #fixedNote .ratio-note { display: inline; }
 }
 @media (max-width: 640px) {
   #top .lbl { display: none; }

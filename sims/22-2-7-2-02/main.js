@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 import { sound } from '../../lib/sound.js';
-import { clamp, ease, toast, FpsMonitor } from '../../lib/utils.js';
+import { clamp, ease, toast } from '../../lib/utils.js';
 import * as A from './astro.js';
 import { CONSTELLATIONS } from './stars.js';
 
@@ -113,13 +113,14 @@ sunGlow.scale.setScalar(4.6); scene.add(sunGlow);
 const sunHalo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture('rgba(255,190,90,0.28)', 'rgba(255,150,40,0)'), blending: THREE.AdditiveBlending, depthWrite: false }));
 sunHalo.scale.setScalar(9); scene.add(sunHalo);
 
+let orbitLine = null;
 // 지구 공전 궤도 + 공전 방향 화살표(시계 반대, 주황) — 굵은 선은 가는 관(메시)으로 그림
 {
   const pts = [];
   for (let i = 0; i <= 180; i++) pts.push(P(i / 180 * 360, R_ORBIT));
-  const orbit = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),
+  orbitLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),
     new THREE.LineBasicMaterial({ color: 0x9fb4ff, transparent: true, opacity: .5 }));
-  scene.add(orbit);
+  scene.add(orbitLine);
 }
 {
   const arrowMat = new THREE.MeshBasicMaterial({ color: 0xff8a2a });
@@ -236,7 +237,9 @@ for (let k = 0; k < A.BOUNDS.length; k++) {
   // 전갈·뱀주인자리는 황도 위 구간이 좁아 옆 이름과 겹치지 않게 띠 아래에
   const y = (name === '전갈자리' || oph) ? -H_BAND / 2 - 0.6 : H_BAND / 2 + 0.6;
   const o = label3(name, oph ? 'oph' : '', P(mid, R_BAND - 0.05, y));
-  bandLabels.push({ o, el: o.element, prio: oph ? 1.5 : 3, lam: mid, zone: k });
+  // 위에서 보기: 띠 위·아래 구분이 없어지므로 띠 바깥쪽에 반지름을 달리해 놓음(전갈·뱀주인은 한 칸 더 바깥)
+  const low = name === '전갈자리' || oph;
+  bandLabels.push({ o, el: o.element, prio: oph ? 1.5 : 3, lam: mid, zone: k, pos0: o.position.clone(), posTop: P(mid, R_BAND + (low ? 3.4 : 1.3), 0) });
 }
 const sunTag = label3('태양', 'tag sun', new THREE.Vector3(0, 0, 0), 36);
 bandLabels.push({ o: sunTag, el: sunTag.element, prio: 4, dy: -36 });
@@ -288,7 +291,7 @@ const earthTag = label3('지구', 'tag earth', new THREE.Vector3(), 24);
 const dragHint = label3('↔ 지구를 끌어 옮겨 보세요', 'drag-hint', new THREE.Vector3(), -30);
 const dragHintL = { o: dragHint, el: dragHint.element, prio: 4.5, dy: 30 };
 bandLabels.push(dragHintL);
-bandLabels.push({ o: earthTag, el: earthTag.element, prio: 5, dy: -24 });
+bandLabels.push({ o: earthTag, el: earthTag.element, prio: 10, dy: -24 });
 let spinOff = 0, spinTween = null; // 낮 12시 0, 밤 12시 π
 
 // 시선선: 지구 → 태양 → 띠(노랑), 지구 → 태양 반대쪽 → 띠(파랑)
@@ -415,6 +418,7 @@ let camTween = null, userCam = false;
 function checkTopView() {
   const sph = new THREE.Spherical().setFromVector3(camera.position);
   const top = sph.phi < 10 * RAD;
+  if ($('topNote').hidden !== !top) ovRects = null;
   $('topNote').hidden = !top; $('hint3d').hidden = top;
   if (top && !S.viewTop) { S.viewTop = true; stateDirty = true; }
   document.querySelectorAll('#viewSeg button').forEach((b) => {
@@ -427,20 +431,20 @@ function flyTo(t) {
   let dth = t.theta - from.theta; dth = Math.atan2(Math.sin(dth), Math.cos(dth));
   camTween = { from: { r: from.radius, phi: from.phi, theta: from.theta }, to: { r: t.r, phi: t.phi, theta: from.theta + dth }, t0: performance.now(), dur: 800 };
 }
-function hideHint() { $('hint3d').style.opacity = '0'; }
+function hideHint() { if ($('hint3d').style.opacity !== '0') { $('hint3d').style.opacity = '0'; ovRects = null; need3D = true; } }
 
 let SPW = 1, SPH = 1; // ① 패널 크기(매 프레임 읽으면 레이아웃 계산이 강제돼 느려서 크기 바뀔 때만 읽음)
 function resize3D() {
   const w = spaceEl.clientWidth, h = spaceEl.clientHeight;
   if (!w || !h) return;
-  SPW = w; SPH = h;
+  SPW = w; SPH = h; ovRects = null;
   // 픽셀 비율 상한: 높음 1.5, 낮음 1 이하(패널이 크면 0.75까지 줄여 칠할 픽셀 수를 줄임 — 글자는 HTML이라 또렷함)
   const dpr = window.devicePixelRatio || 1;
   const pr = S.quality === 'high' ? Math.min(dpr, 1.5) : clamp(560 / Math.max(w, h), 0.75, 1);
   renderer.setPixelRatio(pr);
   renderer.setSize(w, h, false);
   labelR.setSize(w, h);
-  spaceEl.classList.toggle('small', h < 300 || w < 420);
+  spaceEl.classList.toggle('small', h < 240 || w < 420);
   camera.aspect = w / h;
   camera.fov = w / h < 1.25 ? 44 : 36;
   camera.updateProjectionMatrix();
@@ -504,22 +508,78 @@ function render3D() {
 const _rects = [];
 const _v = new THREE.Vector3();
 let curSunLam = 0;
+let labelTop = false, ovRects = null;
+// ① 위에 겹친 안내 상자들(고정 안내·공전 각도·범례·회전 안내) 자리 — 이름표가 그 밑에 숨지 않게 피함
+function overlayRects() {
+  const base = spaceEl.getBoundingClientRect(), out = [];
+  for (const id of ['fixedNote', 'orbitBox', 'legend', 'hint3d', 'topNote', 'spaceFoot']) {
+    const el = $(id);
+    if (!el || el.hidden || !spaceEl.contains(el) && id !== 'spaceFoot') continue;
+    const cs = getComputedStyle(el);
+    if (cs.display === 'none' || cs.position !== 'absolute' || el.style.opacity === '0') continue;
+    const r = el.getBoundingClientRect();
+    if (!r.width) continue;
+    out.push({ x0: r.left - base.left - 2, x1: r.right - base.left + 2, y0: r.top - base.top - 2, y1: r.bottom - base.top + 2 });
+  }
+  return out;
+}
 function cullLabels() {
   const w = SPW, h = SPH;
-  const list = bandLabels.map((L) => {
+  const top = new THREE.Spherical().setFromVector3(camera.position).phi < 30 * RAD;
+  if (top !== labelTop) {
+    labelTop = top;
+    for (const L of bandLabels) if (L.pos0) L.o.position.copy(top ? L.posTop : L.pos0);
+  }
+  if (!ovRects) ovRects = overlayRects();
+  // '지구를 끌어 옮겨 보세요' 안내는 지구에서 태양 반대쪽을 먼저 — 태양·'태양' 이름·노란 시선선을 가리지 않음
+  // (다른 이름표와 겹치면 아래·위·옆 자리 차례로)
+  let hintC = null;
+  if (!dragged) {
+    _v.copy(earthG.position).project(camera);
+    const ex = (_v.x + 1) / 2 * w, ey = (1 - _v.y) / 2 * h;
+    _v.set(0, 0, 0).project(camera);
+    const sx = (_v.x + 1) / 2 * w, sy = (1 - _v.y) / 2 * h;
+    let ux = ex - sx, uy = ey - sy; const n = Math.hypot(ux, uy) || 1; ux /= n; uy /= n;
+    const hw = (dragHint.element._w || 180) / 2;
+    const fix = ([dx, dy]) => {
+      if (dy < 0) dy = Math.min(dy, -50); // 위쪽이면 '지구' 이름 위로
+      return [clamp(ex + dx, hw + 4, w - hw - 4) - ex, clamp(ey + dy, 14, h - 14) - ey];
+    };
+    // 노랑(태양 쪽)·파랑(반대쪽) 시선선은 둘 다 태양-지구 방향 → 그 선과 엇갈리는 쪽(선이 가로면 위아래, 세로면 옆)부터
+    const side = [[hw + 22, 0], [-hw - 22, 0], [hw + 22, 28], [-hw - 22, 28], [hw + 22, -28], [-hw - 22, -28]];
+    const vert = [[0, 34], [0, -52]];
+    const first = Math.abs(ux) >= Math.abs(uy) ? [...vert, ...side] : [...side, ...vert];
+    hintC = { ex, ey, sx, sy, ux, uy, list: [...first, [ux * 40, uy * 30 + (uy >= 0 ? 6 : -6)], [0, 64], [0, -80]].map(fix) };
+  }
+    const list = bandLabels.map((L) => {
     _v.copy(L.o.position).project(camera);
     const zs = L.zone !== undefined && L.zone === hotZones.sun, zn = L.zone !== undefined && L.zone === hotZones.night;
     if (L.zone !== undefined) { L.el.classList.toggle('hot', zs); L.el.classList.toggle('cold', zn); }
     const near = zs || zn ? 10 : 0; // 시선이 닿는 구역의 이름은 늘 보이게(다른 이름표보다 먼저 자리 차지)
-    return { L, near, x: (_v.x + 1) / 2 * w, y: (1 - _v.y) / 2 * h + (L.dy || 0), d: camera.position.distanceTo(L.o.position), z: _v.z };
+    return { L, near: L === dragHintL ? 5 : near, x: (_v.x + 1) / 2 * w, y: (1 - _v.y) / 2 * h + (L.dy || 0), d: camera.position.distanceTo(L.o.position), z: _v.z };
   });
   list.sort((a, b) => (b.L.prio + b.near - a.L.prio - a.near) || (b.d - a.d));
   _rects.length = 0;
+  const over = (r) => _rects.some((q) => r.x0 < q.x1 && r.x1 > q.x0 && r.y0 < q.y1 && r.y1 > q.y0);
   for (const it of list) {
     const el = it.L.el;
     if (!el._w) { el._w = el.offsetWidth || 70; el._h = el.offsetHeight || 18; }
+    if (it.L === dragHintL && hintC) {
+      const rr = ([dx, dy]) => ({ x0: hintC.ex + dx - el._w / 2 - 2, x1: hintC.ex + dx + el._w / 2 + 2, y0: hintC.ey + dy - el._h / 2 - 1, y1: hintC.ey + dy + el._h / 2 + 1 });
+      const sunBox = { x0: hintC.sx - 34, x1: hintC.sx + 34, y0: hintC.sy - 50, y1: hintC.sy + 30 };
+      // 시선선(지구를 지나는 태양-지구 방향 직선)과 겹치는지
+      const onLine = (r) => { for (let t = -420; t <= 420; t += 6) { if (Math.abs(t) < 10) continue; const x = hintC.ex + hintC.ux * t, y = hintC.ey + hintC.uy * t; if (x > r.x0 && x < r.x1 && y > r.y0 && y < r.y1) return true; } return false; };
+      const pick = hintC.list.find((c) => { const r = rr(c); return !onLine(r) && !over(r) && !ovRects.some((q) => r.x0 < q.x1 && r.x1 > q.x0 && r.y0 < q.y1 && r.y1 > q.y0) && !(r.x0 < sunBox.x1 && r.x1 > sunBox.x0 && r.y0 < sunBox.y1 && r.y1 > sunBox.y0); })
+        || hintC.list.find((c) => { const r = rr(c); return !over(r) && !ovRects.some((q) => r.x0 < q.x1 && r.x1 > q.x0 && r.y0 < q.y1 && r.y1 > q.y0) && !(r.x0 < sunBox.x1 && r.x1 > sunBox.x0 && r.y0 < sunBox.y1 && r.y1 > sunBox.y0); })
+        || hintC.list.find((c) => { const r = rr(c); return !over(r) && !(r.x0 < sunBox.x1 && r.x1 > sunBox.x0 && r.y0 < sunBox.y1 && r.y1 > sunBox.y0); }) // 좁은 화면: 안내 상자 위에 겹쳐도 됨
+        || hintC.list[0];
+      const sp = el.firstChild, k = `${Math.round(pick[0])},${Math.round(pick[1])}`;
+      if (sp._k !== k) { sp._k = k; sp.style.left = `${Math.round(pick[0])}px`; sp.style.top = `${Math.round(pick[1])}px`; }
+      it.x = hintC.ex + pick[0]; it.y = hintC.ey + pick[1];
+    }
     const r = { x0: it.x - el._w / 2 - 2, x1: it.x + el._w / 2 + 2, y0: it.y - el._h / 2 - 1, y1: it.y + el._h / 2 + 1 };
-    const clash = _rects.some((q) => r.x0 < q.x1 && r.x1 > q.x0 && r.y0 < q.y1 && r.y1 > q.y0);
+    const ov = !it.near && ovRects.some((q) => r.x0 < q.x1 && r.x1 > q.x0 && r.y0 < q.y1 && r.y1 > q.y0);
+    const clash = ov || _rects.some((q) => r.x0 < q.x1 && r.x1 > q.x0 && r.y0 < q.y1 && r.y1 > q.y0);
     el.classList.toggle('hid', clash || it.z > 1);
     if (!clash) _rects.push(r);
   }
@@ -545,16 +605,19 @@ function resizeSky() {
 }
 
 // 남쪽 지평선(방위 180°, 고도 0°)을 가운데로 한 평사 투영 — 별자리 모양이 찌그러지지 않고 지평선은 곧은 선
-function skyGeom(focusAlt = 80) {
+const ZONE_B = 13; // ② 강조 구역 띠의 위아래 폭(황도에서 ±13°) — 구역 이름이 띠 안에 들어갈 만큼
+function skyGeom(focusAlt = 80, zb = ZONE_B) {
   const groundH = clamp(SH * 0.12, 30, 54);
   const hy = SH - groundH, top = 24;
-  const U_TOP = 2 * Math.tan(40 * RAD);         // 남쪽 고도 80°
   const HMAX = 1.75;                             // 가로로 최대 약 ±82°까지
   // 보통은 남쪽 고도 80°까지. 아주 납작한 패널(세로 화면)은 다 담으면 별자리가 너무 작아져서
   // 지금 보는 곳(낮: 태양, 밤: 정남 황도 점)이 들어올 만큼(그 고도 + 16°, 최소 50°)까지만 보여 줌
   // → 겨울 밤 정남 구역·여름 낮 태양(고도 75° 넘음)도 늘 화면 안. 가로는 1.45배까지만 늘리고 남는 폭은 더 동·서쪽까지 보여 줌
-  const ky80 = (hy - top) / U_TOP, needKx = (SW / 2) / HMAX;
-  const topAlt = clamp(focusAlt + 16, 50, 80);
+  // 강조 구역(황도 위아래 ZONE_B°)이 위로 잘리지 않게, 보는 점이 높으면(겨울 밤·여름 낮) 위 끝을 그만큼 더 올림
+  const topNeed = Math.min(89, focusAlt + zb + 4);
+  const kyTop = (hy - top) / (2 * Math.tan(Math.max(80, topNeed) / 2 * RAD));
+  const ky80 = kyTop, needKx = (SW / 2) / HMAX;
+  const topAlt = clamp(focusAlt + zb + 4, 50, 89);
   const ky = needKx <= ky80 * 1.45 ? ky80 : clamp((hy - top) / (2 * Math.tan(topAlt / 2 * RAD)), ky80, needKx / 1.45);
   const kx = clamp(needKx, ky, ky * 1.45);
   return { hy, ky, kx, groundH };
@@ -575,7 +638,12 @@ function drawSky() {
   const pre = A.precess(d);
   // 남쪽 자오선 근처에서 지금 보는 점(낮: 태양, 밤: 정남 황도 점)의 고도
   const fq = noon ? A.eclToEq(A.sunLongitude(d) * RAD, 0) : A.eclToEq(A.midnightSouthLam(S.day).lam * RAD, 0);
-  const G = skyGeom(A.altAz(fq.ra, fq.dec, L).alt);
+  // 강조 구역 띠 폭: 보통 ±13°, 하늘 칸이 낮아 1°가 작게 그려지면 화면에서 위아래 34px 이상 되게(최대 ±26°)
+  // 띠 위 끝이 잘리지 않게 그 폭을 넣어 화면 배율을 한 번 더 맞춤
+  const fAlt = A.altAz(fq.ra, fq.dec, L).alt;
+  const zbOf = (g) => clamp(34 / (g.ky * RAD), ZONE_B, 26);
+  const ZB = zbOf(skyGeom(fAlt));
+  const G = skyGeom(fAlt, ZB);
   const { hy, ky, kx } = G;
   const X = (az) => SW / 2 + 2 * Math.tan(((az - 180) / 2) * RAD) * kx; // 지평선 위 방위(남쪽을 보면 왼쪽이 동쪽)
   hits = [];
@@ -616,21 +684,24 @@ function drawSky() {
 
   // 별자리 구역(IAU 경계)과 강조 구역 — 낮 12시: 태양이 들어 있는 구역(노랑), 밤 12시: 지금 정남에 있는 구역(파랑)
   // 밤 구역은 ① 우주 화면의 파란 시선선·강조 구역, 상태 키 nightSouthCon과 같은 계산(nightLamJ)
-  let zoneLabelAt = null;
+  let zone = null;
   if (!sunOn) {
     {
       const lamJ = noon ? A.sunLongitude(d) - pre : nightLamJ(S.day);
       const k = zoneIndex(lamJ);
       const s0 = A.BOUNDS[k][1], len = A.norm360(A.BOUNDS[(k + 1) % A.BOUNDS.length][1] - s0);
-      const up = [], dn = [];
-      for (let i = 0; i <= 24; i++) { const l = s0 + len * i / 24; up.push(projEcl(l, 8)); dn.push(projEcl(l, -8)); }
-      if (up.some((p) => p.alt > 0)) {
+      const up = [], dn = [], N = 32;
+      for (let i = 0; i <= N; i++) { const l = s0 + len * i / N; up.push(projEcl(l, ZB)); dn.push(projEcl(l, -ZB)); }
+      if (up.some((p) => p.alt > 0) || dn.some((p) => p.alt > 0)) {
+        const poly = [...up, ...dn.slice().reverse()];
         ctx.beginPath();
-        up.forEach((p, i) => (i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)));
-        for (let i = dn.length - 1; i >= 0; i--) ctx.lineTo(dn[i].x, dn[i].y);
-        ctx.closePath(); ctx.fillStyle = noon ? 'rgba(255,214,102,.2)' : 'rgba(80,150,255,.3)'; ctx.fill();
-        ctx.strokeStyle = noon ? 'rgba(255,214,102,.35)' : 'rgba(110,170,255,.5)'; ctx.lineWidth = 1; ctx.stroke();
-        zoneLabelAt = dn[12];
+        poly.forEach((p, i) => (i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)));
+        ctx.closePath(); ctx.fillStyle = noon ? 'rgba(255,214,102,.2)' : 'rgba(80,150,255,.28)'; ctx.fill();
+        // 테두리: 넓고 옅은 빛 + 또렷한 선 → 좁은 구역(전갈자리 등)도 잘 보이게
+        ctx.lineJoin = 'round';
+        ctx.strokeStyle = noon ? 'rgba(255,200,60,.35)' : 'rgba(90,160,255,.4)'; ctx.lineWidth = 6; ctx.stroke();
+        ctx.strokeStyle = noon ? 'rgba(255,214,102,.95)' : 'rgba(130,185,255,.95)'; ctx.lineWidth = 2; ctx.stroke();
+        zone = { k, name: A.BOUNDS[k][0], s0, len, lamJ, poly };
       }
       if (dbg) dbg.skyZone = A.BOUNDS[k][0];
     }
@@ -643,7 +714,7 @@ function drawSky() {
     ctx.setLineDash([4, 4]); ctx.lineWidth = 1.3; ctx.strokeStyle = noon ? 'rgba(220,230,255,.6)' : 'rgba(170,190,255,.55)';
     ctx.beginPath();
     for (const [, l] of A.BOUNDS) {
-      const p1 = projEcl(l, -9), p2 = projEcl(l, 0), p3 = projEcl(l, 9);
+      const p1 = projEcl(l, -ZB), p2 = projEcl(l, 0), p3 = projEcl(l, ZB);
       if (p2.alt < 0 || p2.x < 0 || p2.x > SW) continue;
       ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.lineTo(p3.x, p3.y);
     }
@@ -716,7 +787,7 @@ function drawSky() {
   }
 
   // 태양 발자취와 태양 (낮 12시)
-  let sunRect = null, trailLabel = null;
+  let sunRect = null, sunDisc = null, sunText = null, trailLabel = null;
   if (noon) {
     const sunAt = (day) => {
       const dd = A.jdays(day, 12);
@@ -736,7 +807,7 @@ function drawSky() {
       const oldest = tr.reduce((m, t) => (Math.abs(S.day - t) > Math.abs(S.day - m) ? t : m), tr[0]);
       if (oldest !== undefined) {
         const p = sunAt(oldest), dd = A.ymd(oldest);
-        if (p.alt > 0) trailLabel = { p, text: `${dd.m}/${dd.d}의 태양` };
+        if (p.alt > 0) trailLabel = { p, text: `${dd.m}월 ${dd.d}일 태양` };
       }
     }
     const p = sunAt(S.day);
@@ -752,12 +823,10 @@ function drawSky() {
       ctx.fillStyle = gl2; ctx.beginPath(); ctx.arc(p.x, p.y, R * 3.2, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = '#fff4c2'; ctx.beginPath(); ctx.arc(p.x, p.y, R, 0, Math.PI * 2); ctx.fill();
       ctx.strokeStyle = '#ffb627'; ctx.lineWidth = 2; ctx.stroke();
-      ctx.font = '800 14px ' + FONT; ctx.textAlign = 'center';
       const below = p.y - R - 22 < 2; // 태양이 화면 위 끝 가까이면 이름을 아래에
-      const ty = below ? p.y + R + 17 : p.y - R - 6;
-      ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(40,30,0,.55)'; ctx.strokeText('태양', p.x, ty);
-      ctx.fillStyle = '#ffe9a0'; ctx.fillText('태양', p.x, ty);
-      sunRect = below ? { x0: p.x - R - 18, x1: p.x + R + 18, y0: p.y - R - 4, y1: p.y + R + 22 } : { x0: p.x - R - 18, x1: p.x + R + 18, y0: p.y - R - 24, y1: p.y + R + 4 };
+      sunText = { x: p.x, y: below ? p.y + R + 17 : p.y - R - 6 }; // '태양' 글자는 구역 이름 자리를 정한 뒤 씀
+      sunDisc = { x0: p.x - R - 3, x1: p.x + R + 3, y0: p.y - R - 3, y1: p.y + R + 3 };
+      sunRect = below ? { x0: p.x - R - 18, x1: p.x + R + 18, y0: p.y - R - 3, y1: p.y + R + 22 } : { x0: p.x - R - 18, x1: p.x + R + 18, y0: p.y - R - 24, y1: p.y + R + 3 };
     }
   }
 
@@ -785,55 +854,146 @@ function drawSky() {
   }
 
   // 글자 놓기: 후보 자리를 차례로 보고 이미 놓인 글자·(strict면) 별·선과 안 겹치는 첫 자리
-  const tryPlace = (tw, th, cands, strict) => {
+  // forbid(r)가 참인 자리(강조 구역 안·배지 둘레)는 건너뜀
+  const tryPlace = (tw, th, cands, strict, forbid) => {
     for (const [x, y] of cands) {
       const r = { x0: x - tw / 2 - 3, x1: x + tw / 2 + 3, y0: y - th + 2, y1: y + 4 };
       if (r.x0 < 2 || r.x1 > SW - 2 || r.y0 < 34 || r.y1 > hy - 6) continue;
-      if (hitAny(r, placed) || (strict && hitAny(r, obst))) continue;
+      if (hitAny(r, placed) || (strict && hitAny(r, obst)) || (forbid && forbid(r))) continue;
       placed.push(r); return { x, y, r };
     }
     return null;
   };
+
+  // ---- 강조 구역: 구역 밖 배지(▲ 지금 정남에 있는 구역 / 태양이 들어 있는 구역) + 구역 이름은 구역 안
+  // 배지는 정남 세로선(밤)·태양(낮) 바로 아래 구역 테두리를 가리키고, 다른 별자리 이름은 구역 안·배지 둘레에 놓지 않음
+  const inPoly = (x, y, poly) => {
+    let c = false;
+    for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+      const a = poly[i], b = poly[j];
+      if ((a.y > y) !== (b.y > y) && x < (b.x - a.x) * (y - a.y) / (b.y - a.y) + a.x) c = !c;
+    }
+    return c;
+  };
+  let badge = null, badgePad = null, hotLab = null;
+  if (zone) {
+    const ap = projEcl(zone.lamJ, 0), pU = projEcl(zone.lamJ, ZB), pD = projEcl(zone.lamJ, -ZB);
+    const lowE = pU.y > pD.y ? pU : pD, highE = pU.y > pD.y ? pD : pU; // 화면에서 구역 아래·위 테두리
+    const text = noon ? '태양이 들어 있는 구역' : '지금 정남에 있는 구역';
+    ctx.font = '800 14px ' + FONT;
+    const bw = ctx.measureText(text).width + 34, bh = 26, gap = 11;
+    const ax = clamp(ap.x, 14, SW - 14);
+    // 아래쪽(땅 위 빈 하늘)에 두고, 자리가 없으면 위쪽에
+    const tries = [];
+    for (const below of [true, false]) {
+      const edge = below ? lowE : highE;
+      const y0 = below ? edge.y + gap : edge.y - gap - bh;
+      for (const dx of [0, -0.3, 0.3, -0.45, 0.45]) tries.push({ below, edge, y0, x: ax + dx * bw });
+    }
+    for (const t of tries) {
+      const x0 = clamp(t.x - bw / 2, 4, SW - bw - 4);
+      const r = { x0, x1: x0 + bw, y0: t.y0, y1: t.y0 + bh };
+      if (r.y0 < 30 || r.y1 > hy - 2) continue;
+      if (hitAny(r, placed)) continue;
+      badge = { ...r, text, below: t.below, px: clamp(ax, x0 + 14, x0 + bw - 14), tipY: t.edge.y + (t.below ? 2 : -2) };
+      break;
+    }
+    if (!badge) { // 마지막: 구역 아래쪽에 그대로(다른 글자보다 먼저 자리 잡음)
+      const x0 = clamp(ax - bw / 2, 4, SW - bw - 4), y0 = clamp(lowE.y + gap, 30, hy - bh - 2);
+      badge = { x0, x1: x0 + bw, y0, y1: y0 + bh, text, below: true, px: clamp(ax, x0 + 14, x0 + bw - 14), tipY: lowE.y + 2 };
+    }
+    placed.push(badge);
+    badgePad = { x0: badge.x0 - 16, x1: badge.x1 + 16, y0: Math.min(badge.y0, badge.tipY) - 14, y1: Math.max(badge.y1, badge.tipY) + 14 };
+
+    // 구역 이름: 구역 안에서 별·선·태양과 안 겹치는 자리 — ① 글자 전체가 구역 안 ② 가운데가 구역 안 ③ 별·선은 무시
+    ctx.font = '800 14px ' + FONT;
+    const nm = zone.name, tw = ctx.measureText(nm).width + 10, th = 20;
+    const cands = [];
+    for (const f of [0.5, 0.38, 0.62, 0.26, 0.74, 0.14, 0.86, 0.05, 0.95]) {
+      const l = zone.s0 + zone.len * f;
+      for (const b of [0, .42, -.42, .62, -.62, .23, -.23, .77, -.77, .88, -.88]) cands.push(projEcl(l, b * ZB));
+    }
+    const rectOf = (p) => ({ x0: p.x - tw / 2 - 2, x1: p.x + tw / 2 + 2, y0: p.y - th / 2 - 1, y1: p.y + th / 2 + 1 });
+    const fullyIn = (r) => [[r.x0, r.y0], [r.x1, r.y0], [r.x0, r.y1], [r.x1, r.y1]].every(([x, y]) => inPoly(x, y, zone.poly));
+    const ok = (p, r) => p.alt > 1 && r.x0 >= 2 && r.x1 <= SW - 2 && r.y0 >= 32 && r.y1 <= hy - 4 && !hitAny(r, placed);
+    const search = () => {
+      for (const pass of [0, 1, 2, 3]) {
+        for (const p of cands) {
+          const r = rectOf(p);
+          if (!ok(p, r) || !inPoly(p.x, p.y, zone.poly)) continue;
+          if (pass === 0 && (!fullyIn(r) || hitAny(r, obst))) continue;
+          if (pass === 1 && hitAny(r, obst)) continue;
+          if (pass === 2 && !fullyIn(r)) continue;
+          return { x: p.x, y: p.y, r, name: nm, tw, pass };
+        }
+      }
+      return null;
+    };
+    hotLab = search();
+    if (!hotLab && sunRect) { // 낮고 납작한 하늘: '태양' 글자를 빼고 해 원반만 피해서 다시 찾음
+      placed[placed.indexOf(sunRect)] = sunDisc; sunText = null;
+      hotLab = search();
+    }
+    if (!hotLab) { // 그래도 없으면 태양·배지만 피해서 가운데가 구역 안인 자리(나무·날짜 상자는 무시)
+      const must = [badge, sunDisc].filter(Boolean);
+      const p = cands.find((q) => { const r = rectOf(q); return q.alt > 0 && inPoly(q.x, q.y, zone.poly) && !hitAny(r, must) && r.y1 <= hy && r.x0 >= 0 && r.x1 <= SW; })
+        || projEcl(zone.s0 + zone.len / 2, 0);
+      const x = clamp(p.x, tw / 2 + 4, SW - tw / 2 - 4), y = clamp(p.y, 34 + th / 2, hy - th / 2 - 4);
+      hotLab = { x, y, r: rectOf({ x, y }), name: nm, tw, pass: 4 };
+    }
+    placed.push(hotLab.r);
+  }
+  // 다른 별자리 이름이 강조 구역 안에 들어가거나 배지 바로 옆에 붙지 않게
+  const forbidZone = zone ? (r) => {
+    if (hitAny(r, [badgePad])) return true;
+    for (let y = r.y0; y <= r.y1 + 0.1; y += (r.y1 - r.y0) / 2) {
+      for (let x = r.x0; x <= r.x1 + 0.1; x += Math.max(4, (r.x1 - r.x0) / Math.ceil((r.x1 - r.x0) / 7))) if (inPoly(x, y, zone.poly)) return true;
+    }
+    return false;
+  } : null;
+  const forbidBadge = zone ? (r) => hitAny(r, [badgePad]) : null;
+
   // 별자리 이름 — 아래·위·오른쪽·왼쪽 순서로 빈자리를 찾고(별·선도 피함), 없으면 글자끼리만 안 겹치게, 그래도 없으면 생략
-  ctx.font = '700 13.5px ' + FONT;
+  ctx.font = '700 14px ' + FONT;
   labels.sort((a, b) => (b.isHot - a.isHot) || (b.con.zodiac - a.con.zodiac));
+  const placedLabels = [];
   for (const lb of labels) {
-    const name = lb.con.name, tw = ctx.measureText(name).width, th = 15;
+    const name = lb.con.name;
+    if (zone && name === zone.name) continue; // 강조 구역의 별자리 이름은 구역 안에 따로 씀
+    const tw = ctx.measureText(name).width, th = 15;
     const my = (lb.bb.y0 + lb.bb.y1) / 2 + 5;
     const cands = [
       [lb.cx, lb.bb.y1 + 16], [lb.cx, lb.bb.y0 - 9], [lb.bb.x1 + tw / 2 + 8, my], [lb.bb.x0 - tw / 2 - 8, my],
       [lb.cx - tw * 0.6, lb.bb.y1 + 16], [lb.cx + tw * 0.6, lb.bb.y1 + 16], [lb.cx, lb.bb.y1 + 30], [lb.cx, lb.bb.y0 - 23],
+      [lb.bb.x1 + tw / 2 + 8, lb.bb.y0 + 5], [lb.bb.x0 - tw / 2 - 8, lb.bb.y0 + 5], [lb.bb.x1 + tw / 2 + 8, lb.bb.y1 + 5], [lb.bb.x0 - tw / 2 - 8, lb.bb.y1 + 5],
+      [lb.cx, lb.bb.y1 + 44], [lb.cx, lb.bb.y0 - 37], [lb.bb.x1 + tw / 2 + 24, my], [lb.bb.x0 - tw / 2 - 24, my],
     ];
     // 화면 밖이면 안쪽으로 당긴 자리도 시도(12개 별자리 이름은 되도록 남김)
     for (const [x, y] of cands.slice(0, 4)) cands.push([clamp(x, tw / 2 + 4, SW - tw / 2 - 4), clamp(y, 36 + th, hy - 8)]);
-    const at = tryPlace(tw, th, cands, true) || tryPlace(tw, th, cands, false);
+    const at = tryPlace(tw, th, cands, true, forbidZone) || tryPlace(tw, th, cands, false, forbidZone);
     if (!at) continue;
     ctx.textAlign = 'center';
     ctx.lineWidth = 3; ctx.strokeStyle = noon ? 'rgba(10,25,60,.6)' : 'rgba(0,0,0,.65)'; ctx.strokeText(name, at.x, at.y);
     ctx.fillStyle = lb.isHot ? '#ffe08a' : lb.con.zodiac ? (noon ? '#ffffff' : '#cfe0ff') : '#ffc9a8';
     ctx.fillText(name, at.x, at.y);
     const h = hits.find((q) => q.con === lb.con); if (h) h.rect = at.r;
+    placedLabels.push({ name, r: at.r });
   }
 
   // 작은 안내 글자들(별·선·이름과 겹치면 생략)
   const smallText = (text, cands, color, loose) => {
-    ctx.font = '600 12px ' + FONT;
+    ctx.font = '600 13px ' + FONT;
     const tw = ctx.measureText(text).width;
-    const at = tryPlace(tw, 13, cands, true) || (loose ? tryPlace(tw, 13, cands, false) : null);
+    const at = tryPlace(tw, 14, cands, true, forbidBadge) || (loose ? tryPlace(tw, 14, cands, false, forbidBadge) : null);
     if (!at) return;
     ctx.textAlign = 'center';
-    ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(10,20,50,.55)'; ctx.strokeText(text, at.x, at.y);
+    ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(10,20,50,.6)'; ctx.strokeText(text, at.x, at.y);
     ctx.fillStyle = color; ctx.fillText(text, at.x, at.y);
   };
   if (trailLabel) {
     const { p } = trailLabel;
-    smallText(trailLabel.text, [[p.x, p.y + 18], [p.x, p.y - 9], [p.x + 44, p.y + 4], [p.x - 44, p.y + 4], [p.x, p.y + 32], [p.x, p.y - 23],
-      [p.x + 30, p.y + 20], [p.x - 30, p.y + 20], [p.x + 30, p.y - 12], [p.x - 30, p.y - 12], [p.x, p.y + 46], [p.x, p.y - 37]], '#ffd9a8', true);
-  }
-  if (zoneLabelAt && zoneLabelAt.alt > 0) {
-    const p = zoneLabelAt;
-    smallText(noon ? '태양이 들어 있는 구역' : '지금 정남에 있는 구역', [[p.x, p.y + 14], [p.x, p.y + 28], [p.x + 30, p.y + 14], [p.x - 30, p.y + 14],
-      [p.x, p.y + 42], [p.x + 60, p.y + 20], [p.x - 60, p.y + 20]], noon ? '#ffe3a0' : '#b9d6ff');
+    smallText(trailLabel.text, [[p.x, p.y + 18], [p.x, p.y - 9], [p.x + 50, p.y + 4], [p.x - 50, p.y + 4], [p.x, p.y + 32], [p.x, p.y - 23],
+      [p.x + 34, p.y + 20], [p.x - 34, p.y + 20], [p.x + 34, p.y - 12], [p.x - 34, p.y - 12], [p.x, p.y + 46], [p.x, p.y - 37]], '#ffd9a8', true);
   }
   // '태양이 지나는 길' — 화면 오른쪽 황도 위아래에서 빈자리를 찾음
   if (eclPts.length) {
@@ -843,6 +1003,50 @@ function drawSky() {
     for (const p of eclPts.filter((q) => q.x <= SW * 0.5).sort((a, b) => a.x - b.x)) cands.push([p.x + 50, p.y + 15], [p.x + 50, p.y - 8]);
     smallText('태양이 지나는 길', cands, 'rgba(255,224,140,.95)');
   }
+
+  if (sunText) {
+    ctx.font = '800 14px ' + FONT; ctx.textAlign = 'center';
+    ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(40,30,0,.55)'; ctx.strokeText('태양', sunText.x, sunText.y);
+    ctx.fillStyle = '#ffe9a0'; ctx.fillText('태양', sunText.x, sunText.y);
+  }
+  // 강조 구역 이름(구역 안, 구역 색 테두리로 묶음)과 배지 — 맨 위에 그림
+  if (zone) {
+    const zc = noon ? '#ffc21a' : '#6aaeff';
+    if (hotLab) {
+      const { r } = hotLab, con = CONS.find((c) => c.name === hotLab.name);
+      const hot = con && (con.id === hl || con.id === S.hover);
+      ctx.beginPath(); ctx.roundRect(r.x0 + 2, r.y0 + 1, r.x1 - r.x0 - 4, r.y1 - r.y0 - 2, 6);
+      ctx.fillStyle = noon ? 'rgba(60,40,0,.72)' : 'rgba(6,16,48,.78)'; ctx.fill();
+      ctx.lineWidth = 2; ctx.strokeStyle = zc; ctx.stroke();
+      ctx.font = '800 14px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = hot ? '#ffe08a' : hotLab.name === '뱀주인자리' ? '#d6dae8' : '#ffffff';
+      ctx.fillText(hotLab.name, hotLab.x, hotLab.y + 1);
+      ctx.textBaseline = 'alphabetic';
+      if (con) { const h = hits.find((q) => q.con === con); if (h) h.rect = r; else hits.push({ con, pts: [], bb: r, rect: r }); }
+    }
+    if (badge) {
+      const b = badge, mid = (b.y0 + b.y1) / 2;
+      ctx.fillStyle = noon ? '#f5b301' : '#2f7bf0';
+      ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1.5;
+      // 꼬리(구역 테두리를 가리키는 화살표)
+      const by = b.below ? b.y0 : b.y1, bc = ctx.fillStyle;
+      ctx.beginPath(); ctx.roundRect(b.x0, b.y0, b.x1 - b.x0, b.y1 - b.y0, 13); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(b.px - 8, by); ctx.lineTo(b.px, b.tipY); ctx.lineTo(b.px + 8, by); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(b.px - 8, by); ctx.lineTo(b.px, b.tipY); ctx.lineTo(b.px + 8, by); ctx.stroke();
+      ctx.fillStyle = bc; ctx.fillRect(b.px - 7, b.below ? by - 1 : by - 2, 14, 3);
+      // 글 앞 작은 세모(가리키는 방향)
+      const tx = b.x0 + 14;
+      ctx.fillStyle = noon ? '#3b2a00' : '#ffffff';
+      ctx.beginPath();
+      if (b.below) { ctx.moveTo(tx - 5, mid + 4); ctx.lineTo(tx + 5, mid + 4); ctx.lineTo(tx, mid - 4); }
+      else { ctx.moveTo(tx - 5, mid - 4); ctx.lineTo(tx + 5, mid - 4); ctx.lineTo(tx, mid + 4); }
+      ctx.closePath(); ctx.fill();
+      ctx.font = '800 14px ' + FONT; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      ctx.fillText(b.text, b.x0 + 24, mid + 1);
+      ctx.textBaseline = 'alphabetic';
+    }
+  }
+  if (dbg) dbg.sky = { zone: zone && { name: zone.name, poly: zone.poly.map((p) => [p.x, p.y]) }, badge, badgePad, hot: hotLab, labels: placedLabels, sunRect: sunText ? sunRect : sunDisc, SW, hy };
 
   // 방위
   ctx.textAlign = 'center';
@@ -882,15 +1086,29 @@ cv.addEventListener('pointerdown', (e) => {
   if (isLocked()) return;
   const c = skyPick(e);
   if (!c) return;
-  if (!c.zodiac) { toast(`${c.name}는 자료의 12개 별자리가 아니에요`); sound.soft(); return; }
+  const rc = cv.getBoundingClientRect();
+  if (!c.zodiac) { skyBubble(`${c.name}는 태양이 지나는 길의 12개 별자리가 아니에요`, e.clientX - rc.left, e.clientY - rc.top); sound.soft(); return; }
   S.flash = { id: c.id, until: performance.now() + 900 }; skyDirty = true;
   const col = S.cols.indexOf(S.day);
   if (col < 0) {
-    toast('표의 날짜(오늘·3개월 뒤…)에 맞추면 기록할 수 있어요 — 3개월 ▶ 버튼을 써 보세요', 2600);
+    skyBubble('표의 날짜(오늘·3개월 뒤…)에 맞추면 기록할 수 있어요 — 3개월 ▶ 버튼을 써 보세요', e.clientX - rc.left, e.clientY - rc.top, 2800);
     sound.soft(); return;
   }
   setRecord(S.timeMode, col, c.name);
 });
+
+// 하늘을 누른 곳 근처에 잠깐 뜨는 말풍선
+let bubbleTimer = 0;
+function skyBubble(text, x, y, ms = 2400) {
+  const b = $('skyBubble');
+  b.textContent = text; b.hidden = false;
+  const w = b.offsetWidth, h = b.offsetHeight;
+  const left = clamp(x - w / 2, 6, SW - w - 6);
+  const top = y - h - 14 >= 4 ? y - h - 14 : Math.min(y + 16, SH - h - 4);
+  b.style.left = `${left}px`; b.style.top = `${top}px`;
+  b.classList.remove('show'); void b.offsetWidth; b.classList.add('show');
+  clearTimeout(bubbleTimer); bubbleTimer = setTimeout(() => { b.hidden = true; }, ms);
+}
 
 // ---------------------------------------------------------------- 날짜 다루기
 function setBase(b) {
@@ -910,16 +1128,29 @@ function setDay(d) {
   d = clamp(Math.round(d), S.base, S.base + S.max);
   if (d === S.day) return;
   S.day = d;
-  if (d === S.base + S.max && !S.fullYear) {
+  if (d !== S.base + S.max) hideYearDone();
+  if (d === S.base + S.max && (!S.fullYear || S.playing)) {
+    const first = !S.fullYear;
     S.fullYear = true;
-    sound.bell();
-    toast('1년 — 지구가 태양을 한 바퀴 돌고, 태양도 처음 별자리로 돌아왔어요', 3600);
+    showYearDone(first);
   }
   skyDirty = true; need3D = true; stateDirty = true;
   // 재생 중에는 글자·표 갱신을 1초에 약 12번으로 줄임(저사양 크롬북에서 화면 다시 배치하는 일을 덜어 줌)
   if (S.playing) uiDirty = true; else updateUI();
 }
 let uiDirty = false, lastUI = 0;
+// 12개월 끝: 지구가 한 바퀴 돈 순간 — 궤도가 반짝이고 짧은 정리 문구(답은 학생이 하늘·표에서 확인)
+let yearTimer = 0, orbitFlash = 0;
+function showYearDone(first) {
+  const el = $('yearDone');
+  el.hidden = false; el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  orbitFlash = performance.now(); need3D = true;
+  if (first) { sound.bell(); setTimeout(() => sound.chime(), 450); } else sound.bell();
+  clearTimeout(yearTimer);
+  yearTimer = setTimeout(hideYearDone, 6500);
+}
+$('yearDone').addEventListener('click', () => hideYearDone());
+function hideYearDone() { const el = $('yearDone'); if (!el.hidden) { el.classList.remove('show'); el.hidden = true; } }
 function addTrail(day) {
   if (S.trail.includes(day)) return;
   S.trail.push(day); if (S.trail.length > 40) S.trail.shift();
@@ -936,15 +1167,17 @@ function stepDay(n) {
 function jump3(dir) {
   if (isLocked()) return;
   stopPlay();
-  const col = S.cols.indexOf(S.day);
+  // 이동 중(이징)이면 도착할 날짜를 기준으로, 칸 날짜가 아니면 그 방향의 가장 가까운 칸 날짜로
+  const ref = tween ? tween.to : S.day;
+  const col = S.cols.indexOf(ref);
   let t;
   if (col >= 0) t = S.cols[clamp(col + dir, 0, 4)];
-  else t = clamp(A.addMonths(S.day, 3 * dir), S.base, S.base + S.max);
-  if (t === S.day) { sound.soft(); toast(dir > 0 ? '12개월 뒤가 마지막 칸이에요' : '시작 날짜(오늘)가 첫 칸이에요'); return; }
+  else t = dir > 0 ? (S.cols.find((c) => c > ref) ?? S.cols[4]) : ([...S.cols].reverse().find((c) => c < ref) ?? S.cols[0]);
+  if (t === ref) { sound.soft(); toast(dir > 0 ? '12개월 뒤가 마지막 칸이에요' : '시작 날짜(오늘)가 첫 칸이에요'); return; }
   const go = () => { tween = { from: visDay, to: t, t0: performance.now(), dur: 800 }; sound.whoosh(); sound._tone({ freq: dir > 0 ? 420 : 760, freq2: dir > 0 ? 760 : 420, type: 'sine', dur: .5, vol: .08 }); };
   if (dir > 0 && S.predictOn) {
     const md = A.ymd(t), mode = S.timeMode;
-    const when = col >= 0 ? `${MONTHS[col + 1]}개월 뒤(${md.m}월 ${md.d}일)` : `3개월 뒤(${md.m}월 ${md.d}일)`;
+    const when = `${MONTHS[S.cols.indexOf(t)]}개월 뒤(${md.m}월 ${md.d}일)`;
     openPicker({
       title: mode === 'noon' ? `${when} 낮 12시, 태양과 가장 가까운 별자리는?` : `${when} 밤 12시, 남쪽 하늘에 보이는 별자리는?`,
       sub: '먼저 예측하고, 날짜를 옮긴 뒤 지금 보는 하늘과 비교해 보세요. (맞고 틀림은 표시하지 않아요)',
@@ -1083,10 +1316,12 @@ $('pickCancel').addEventListener('click', closePicker);
 $('pickErase').addEventListener('click', () => { const cb = pickCb; closePicker(); if (cb) cb(''); });
 $('picker').addEventListener('pointerdown', (e) => { if (e.target.id === 'picker') closePicker(); });
 
+let confirmDone = null;
 function askConfirm(msg) {
   return new Promise((res) => {
     $('confirmMsg').textContent = msg; $('confirmBox').hidden = false; $('confirmNo').focus();
-    const done = (v) => { $('confirmBox').hidden = true; $('confirmYes').onclick = $('confirmNo').onclick = null; res(v); };
+    const done = (v) => { $('confirmBox').hidden = true; $('confirmYes').onclick = $('confirmNo').onclick = null; confirmDone = null; res(v); };
+    confirmDone = done;
     $('confirmYes').onclick = () => done(true); $('confirmNo').onclick = () => done(false);
   });
 }
@@ -1289,15 +1524,21 @@ $('btnReset').addEventListener('click', () => {
   stopPlay();
   S.sunlight = false; S.trail = []; S.myPred = null;
   if (S.timeMode !== 'noon') { S.timeMode = 'noon'; spinTween = { from: spinOff, to: 0, t0: performance.now(), dur: 650 }; }
-  tween = null; visDay = S.base; S.day = S.base + 1; setDay(S.base);
+  tween = null; visDay = S.base; S.day = S.base + 1; setDay(S.base); hideYearDone();
   flyTo(CAM_TILT);
   sound.reset(); skyDirty = true; need3D = true; stateDirty = true; updateUI();
 });
+function showMute() {
+  const m = sound.muted, b = $('btnMute');
+  b.textContent = m ? '🔇' : '🔊';
+  b.setAttribute('aria-pressed', String(m));
+  b.title = m ? '소리 켜기' : '소리 끄기'; b.setAttribute('aria-label', b.title);
+}
 $('btnMute').addEventListener('click', () => {
-  const m = sound.toggleMute(); $('btnMute').textContent = m ? '🔇' : '🔊';
+  const m = sound.toggleMute(); showMute();
   if (!m) sound.click();
 });
-$('btnMute').textContent = sound.muted ? '🔇' : '🔊';
+showMute();
 function applyQuality() {
   const hi = S.quality === 'high';
   $('qLbl').textContent = `품질: ${hi ? '높음' : '낮음'}`;
@@ -1313,7 +1554,7 @@ $('btnQuality').addEventListener('click', () => {
 
 document.addEventListener('keydown', (e) => {
   if (!$('picker').hidden) { if (e.key === 'Escape') closePicker(); return; }
-  if (!$('confirmBox').hidden) return;
+  if (!$('confirmBox').hidden) { if (e.key === 'Escape' && confirmDone) confirmDone(false); return; }
   if (e.key === 'Escape' && !$('astroPop').hidden) { $('astroPop').hidden = true; return; }
   const tg = e.target;
   if (tg === slider || (tg.tagName === 'INPUT' && tg.type !== 'checkbox') || tg.tagName === 'SELECT') return;
@@ -1332,12 +1573,24 @@ SimBridge.onLock = () => { stopPlay(); closePicker(); };
 new ResizeObserver(() => { resize3D(); }).observe(spaceEl);
 new ResizeObserver(() => { resizeSky(); }).observe(skyWrap);
 
-// 품질 높음에서 재생 중 너무 느리면(3초 평균 30fps 미만) 한 번만 자동으로 낮음으로 바꿈
-const fpsMon = new FpsMonitor(() => {
-  if (S.quality !== 'high') return;
+// 품질 높음에서 움직이는 동안(재생·이동·지구 끌기·화면 회전) 3초 평균이 30fps 미만이면 자동으로 낮음
+// 학생이 다시 '높음'을 골라도 계속 느리면 다시 낮추고 알려 줌
+const fpsMon = { frames: 0, time: 0, n: 0 };
+let camBusy = false;
+controls.addEventListener('start', () => { camBusy = true; });
+controls.addEventListener('end', () => { camBusy = false; });
+function watchFps(dt, busy) {
+  if (!busy || S.quality !== 'high' || document.hidden) { fpsMon.frames = 0; fpsMon.time = 0; return; }
+  fpsMon.frames++; fpsMon.time += dt;
+  if (fpsMon.time < 3) return;
+  const fps = fpsMon.frames / fpsMon.time;
+  fpsMon.frames = 0; fpsMon.time = 0;
+  if (dbg) dbg.lastFps = fps;
+  if (fps >= 30) return;
+  fpsMon.n++;
   S.quality = 'low'; applyQuality();
-  toast('화면이 느려서 그래픽 품질을 낮음으로 바꿨어요 (✦ 버튼으로 다시 높일 수 있어요)', 3600);
-}, { threshold: 30, window: 3 });
+  toast(fpsMon.n > 1 ? '아직 화면이 느려서 그래픽 품질을 다시 낮음으로 바꿨어요' : '화면이 느려서 그래픽 품질을 낮음으로 바꿨어요 (✦ 버튼으로 다시 높일 수 있어요)', 3600);
+}
 
 // 예측한 날짜에 도착: 내 예측 별자리를 하늘에서 잠깐 반짝이고 '같은가요?' 말풍선(맞고 틀림은 표시하지 않음)
 function comparePred() {
@@ -1354,7 +1607,7 @@ function loop() {
   // 재생은 실제 흐른 시간(dt)으로 진행 → 화면이 느려도 '1초에 ○일' 속도가 그대로
   const dt = Math.min(0.5, (t - last) / 1000); last = t;
   if ((S.playing || tween) && isLocked()) { stopPlay(); tween = null; visDay = S.day; need3D = true; } // 제출 후 잠기면 재생·이동 멈춤
-  if (S.playing && !document.hidden) fpsMon.update(dt);
+  watchFps(dt, S.playing || !!tween || dragEarth || camBusy || !!camTween);
   // 재생
   if (S.playing) {
     playAcc += dt * S.speed;
@@ -1397,6 +1650,13 @@ function loop() {
     need3D = true; checkTopView();
   } else if (controls.update()) need3D = true;
   if (S.flash && t < S.flash.until + 50) skyDirty = true;
+  if (orbitFlash) { // 1년 끝: 궤도가 2.4초 동안 금빛으로 세 번 반짝임
+    const k = (t - orbitFlash) / 2400;
+    const m = orbitLine.material;
+    if (k >= 1) { orbitFlash = 0; m.color.setHex(0x9fb4ff); m.opacity = .5; }
+    else { const w = 0.5 + 0.5 * Math.sin(k * Math.PI * 6 - Math.PI / 2); m.color.setRGB(0.62 + 0.38 * w, 0.7 + 0.15 * w, 1 - 0.6 * w); m.opacity = .5 + .5 * w; }
+    need3D = true;
+  }
   const t1 = dbg ? performance.now() : 0;
   // 품질 낮음에서 재생 중에는 3D를 1초에 약 30번만 그림(지구는 하루 1° 남짓 움직여 눈으로는 차이가 거의 없음)
   if (need3D && (!S.playing || S.quality === 'high' || t - last3D > 30)) { need3D = false; last3D = t; render3D(); }

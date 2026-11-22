@@ -28,7 +28,7 @@
     <div class="hact">
       <button class="hbtn" id="btnReset" title="처음 상태로 (기록 표는 그대로)">↺ <span class="lbl">초기화</span></button>
       <button class="hbtn" id="btnQuality" title="그래픽 품질 바꾸기">✦ <span class="lbl" id="qLbl">품질: 높음</span></button>
-      <button class="hbtn icon" id="btnMute" title="소리 켜기/끄기" aria-label="소리 켜기/끄기">🔊</button>
+      <button class="hbtn icon" id="btnMute" title="소리 끄기" aria-label="소리 끄기" aria-pressed="false">🔊</button>
     </div>
   </header>
 
@@ -43,7 +43,7 @@
         </div>
       </div>
       <div id="space" class="stage">
-        <div class="ov tl" id="fixedNote"><span class="lock">🔒</span> 별자리는 그대로, 지구가 움직여요</div>
+        <div class="ov tl" id="fixedNote"><span class="lock">🔒</span> 별자리는 그대로, 지구가 움직여요<span class="ratio-note"> · 크기·거리 비율은 실제와 달라요</span></div>
         <div class="ov tr" id="orbitBox">
           <div class="ob-row"><span>공전한 각도</span><b id="obAngle">0.0°</b></div>
           <div class="ob-row"><span>지난 날수</span><b id="obDays">0일</b></div>
@@ -57,8 +57,13 @@
           <div class="lg zone"><b class="zs"></b><b class="zn"></b>시선이 닿는 별자리 구역 <span class="bd">┆</span> 경계</div>
         </div>
         <div class="ov br hint3d" id="hint3d">빈 곳을 끌면 회전 · 휠/두 손가락으로 확대</div>
+        <div class="ov year-done" id="yearDone" hidden role="status">
+          <div class="yd-ring" aria-hidden="true"></div>
+          <b>1년 동안 지구가 태양 둘레를 한 바퀴 돌았어요!</b>
+          <span>태양은 처음 별자리로 돌아왔나요? ② 하늘과 ③ 기록 표에서 확인해 보세요.</span>
+        </div>
       </div>
-      <p class="foot">크기·거리 비율은 실제와 달라요. 별자리의 별들은 훨씬 멀리 있고, 지구에서의 거리도 서로 달라요.</p>
+      <p class="foot" id="spaceFoot">크기·거리 비율은 실제와 달라요. 별자리의 별들은 훨씬 멀리 있고, 지구에서의 거리도 서로 달라요.</p>
     </section>
 
     <section id="right">
@@ -77,6 +82,7 @@
           <div class="ov tl skytime" id="skyTime"></div>
           <div class="ov bc skynote" id="skyNote" hidden></div>
           <div class="ov tr predict-tag" id="predTag" hidden></div>
+          <div class="sky-bubble" id="skyBubble" hidden role="status"></div>
         </div>
         <p class="foot sky-foot" id="skyFoot">
           <span class="it"><b class="k bd">┆</b> 별자리 구역의 경계</span>
@@ -173,7 +179,7 @@
 </div>
 
 <!-- 확인 창 -->
-<div class="picker" id="confirmBox" hidden role="dialog" aria-modal="true">
+<div class="picker" id="confirmBox" hidden role="dialog" aria-modal="true" aria-labelledby="confirmMsg">
   <div class="picker-box narrow">
     <div class="pk-title" id="confirmMsg"></div>
     <div class="pk-act">
