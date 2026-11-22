@@ -143,7 +143,7 @@ function glowTexture(inner, outer) {
 /* ───────── 3D 장면 ───────── */
 const L_SHARED = 0, L_MAIN = 1; // L_MAIN: 우주 시점에만 보이는 것
 const stageEl = document.getElementById('stage');
-// WebGL 렌더러는 하나만 씀(우주 시점 + '지구에서 본 달'을 같은 캔버스에서 차례로 그림).
+// WebGL 렌더러는 하나만 씀('지구에서 본 달'은 2D 캔버스에 빛 계산으로 그림).
 // 품질 '낮음'은 안티에일리어싱을 끄려고 렌더러를 새로 만듦 → 이벤트는 캔버스가 아니라 stageEl에 붙임.
 let renderer = null;
 function makeRenderer(aa) {
@@ -232,13 +232,14 @@ scene.add(onMain(orbit));
 const posOf = (deg, r = R_ORBIT) => new THREE.Vector3(r * Math.cos(deg * DEG), 0, -r * Math.sin(deg * DEG));
 const markers = [], markerLabels = [];
 // 위치 라벨은 달(반지름 0.5)과 겹치지 않게 궤도 바깥으로 넉넉히
-const labelR = i => R_ORBIT + 1.5 + 0.5 * Math.max(0, Math.sin(i * 45 * DEG)) + 0.45 * Math.abs(Math.cos(i * 45 * DEG));
+const labelR = i => R_ORBIT + 1.5 + 0.85 * Math.max(0, Math.sin(i * 45 * DEG)) + 0.2 * Math.max(0, -Math.sin(i * 45 * DEG)) + 0.45 * Math.abs(Math.cos(i * 45 * DEG));
 const markerMat = new THREE.MeshBasicMaterial({ color: 0xe0453a });
 for (let i = 0; i < 8; i++) {
   const m = new THREE.Mesh(new THREE.SphereGeometry(0.09, 16, 10), markerMat.clone());
   m.position.copy(posOf(i * 45)); scene.add(onMain(m)); markers.push(m);
   const name = NAMES[i] ? `<small>${NAMES[i]}</small>` : '';
-  markerLabels.push(label(`(${POS[i]})${name}`, 'pos', posOf(i * 45, labelR(i))));
+  const ml = label(`<span class="in">(${POS[i]})${name}</span>`, 'pos', posOf(i * 45, labelR(i)));
+  ml.inner = ml.element.firstChild; ml.push = 0; markerLabels.push(ml);
 }
 const arrowMat = new THREE.MeshBasicMaterial({ color: 0xff6a4d });
 for (let i = 0; i < 8; i++) {
@@ -253,6 +254,7 @@ for (let i = 0; i < 8; i++) {
 // 달 (두 화면 모두)
 const moon = new THREE.Mesh(new THREE.SphereGeometry(MOON_R, 48, 32), new THREE.MeshStandardMaterial({ roughness: 1, metalness: 0 }));
 moon.material.map = sphereTexture(512, 256, moonShade);
+const moonTexImg = moon.material.map.image.getContext('2d').getImageData(0, 0, 512, 256); // '지구에서 본 달'에도 같은 무늬를 씀
 scene.add(moon);
 const moonHit = new THREE.Mesh(new THREE.SphereGeometry(MOON_R * 2.1, 12, 8), new THREE.MeshBasicMaterial({ visible: false }));
 scene.add(onMain(moonHit));
@@ -294,15 +296,12 @@ shadow.visible = false; scene.add(onMain(shadow));
 const shadowLabel = label('지구 그림자', 'shadow', new THREE.Vector3(-2.3, 0, 0));
 shadowLabel.visible = false;
 
-/* ───────── 지구에서 본 달 (같은 렌더러로 캔버스 귀퉁이에 그린 뒤 2D 캔버스로 복사) ───────── */
+/* ───────── 지구에서 본 달 (2D 캔버스, 아래 drawMoonView) ───────── */
 const moonViewEl = document.getElementById('moonView');
 const mvCanvas = document.createElement('canvas');
 moonViewEl.prepend(mvCanvas);
 const mvCtx = mvCanvas.getContext('2d');
 // 달 반지름이 보이는 각: atan(0.5/4.2)≈6.8° → 시야 19°면 원 지름이 창의 약 71 %
-const viewCam = new THREE.PerspectiveCamera(19, 1, 0.5, 200);
-viewCam.layers.set(L_SHARED);
-viewCam.up.set(0, 1, 0); // 북쪽이 위
 
 /* ───────── 카메라 조작 ───────── */
 const raycaster = new THREE.Raycaster(); raycaster.layers.set(L_MAIN);
@@ -311,7 +310,9 @@ const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 let hintShown = true;
 const hintEl = document.getElementById('stageHint');
 function hideHint() { if (hintShown) { hintShown = false; hintEl.classList.add('hide'); } }
-function showHint() { hintShown = true; hintEl.classList.remove('hide'); }
+let hintTimer;
+// 안내 말풍선은 아래쪽 라벨을 가릴 수 있어 8초 뒤 저절로 사라짐(첫 조작 때도 사라짐)
+function showHint() { hintShown = true; hintEl.classList.remove('hide'); clearTimeout(hintTimer); hintTimer = setTimeout(hideHint, 8000); }
 function setNdc(e) {
   const r = stageEl.getBoundingClientRect();
   ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
@@ -367,15 +368,16 @@ let camTween = null;
 // 위치 라벨·태양·햇빛 화살표가 모두 화면 안에 들어오는 가장 가까운 거리를 찾음(화면비가 달라도 궤도를 최대한 크게)
 // [점, 가로 여백 px, 위 여백 px, 아래 여백 px] — 라벨은 글자 크기만큼, 위쪽은 왼쪽 위 안내 글 자리만큼 더 비움
 const FIT_PTS = [];
-for (let i = 0; i < 8; i++) FIT_PTS.push([posOf(i * 45, labelR(i)), 44, 50, 22]);
+for (let i = 0; i < 8; i++) FIT_PTS.push([posOf(i * 45, labelR(i)), 44, -1, 22]); // 위 여백 -1: 왼쪽 위 제목 글 아래면 44, 아니면 22
 for (let i = 0; i < 16; i++) FIT_PTS.push([posOf(i * 22.5 + 11.25, R_ORBIT + 0.6), 10, 30, 10]);
 FIT_PTS.push([new THREE.Vector3(SUN_X + SUN_R + 0.2, 0, 0), 6, 30, 6], [new THREE.Vector3(SUN_X, 0, SUN_R + 0.9), 24, 30, 16],
   [new THREE.Vector3(SUN_X, 0, -SUN_R - 0.2), 6, 30, 6], [new THREE.Vector3(7.6, 0, -4.3), 24, 44, 12]);
 const fitCam = new THREE.PerspectiveCamera();
 function fitDistance(top = false) {
   const r = stageEl.getBoundingClientRect(), W = Math.max(1, r.width), H = Math.max(1, r.height);
+  const tagR = document.querySelector('.stage-tag').getBoundingClientRect().right - r.left + 46;
   fitCam.copy(camera); fitCam.aspect = Math.max(0.3, W / H); fitCam.updateProjectionMatrix();
-  const tilt = top ? 0.02 : 40 * DEG;
+  const tilt = top ? 0.02 : homeTilt();
   const dir = new THREE.Vector3(0, Math.cos(tilt), Math.sin(tilt));
   const v = new THREE.Vector3();
   const fits = d => {
@@ -383,16 +385,19 @@ function fitDistance(top = false) {
     return FIT_PTS.every(([p, mx, mt, mb]) => {
       v.copy(p).project(fitCam);
       const x = (v.x + 1) / 2 * W, y = (1 - v.y) / 2 * H;
-      return x > mx && x < W - mx && y > mt && y < H - mb;
+      const t = mt >= 0 ? mt : (x < tagR ? 44 : 22);
+      return x > mx && x < W - mx && y > t && y < H - mb;
     });
   };
   let lo = 6, hi = 80;
   for (let k = 0; k < 22; k++) { const m = (lo + hi) / 2; if (fits(m)) hi = m; else lo = m; }
   return hi;
 }
+// 연직에서 기울인 각: 가로로 아주 넓은 무대(태블릿 세로 화면)는 조금 더 눕혀 궤도를 크게
+function homeTilt() { const r = stageEl.getBoundingClientRect(); return (r.width / Math.max(1, r.height) > 2 ? 50 : 40) * DEG; }
 function camHome(top) {
   const d = fitDistance(top);
-  const tilt = top ? 0.02 : 40 * DEG; // 연직에서 기울인 각
+  const tilt = top ? 0.02 : homeTilt();
   return new THREE.Vector3(VIEW_TARGET.x, VIEW_TARGET.y + d * Math.cos(tilt), VIEW_TARGET.z + d * Math.sin(tilt));
 }
 let camIsTop = false;
@@ -411,7 +416,7 @@ function resize() {
   const v = moonViewEl.getBoundingClientRect();
   const pr = S.quality === 'high' ? Math.min(devicePixelRatio || 1, 2) : 1;
   mvCanvas.width = Math.max(1, Math.round(v.width * pr)); mvCanvas.height = Math.max(1, Math.round(v.height * pr));
-  viewCam.aspect = 1; viewCam.updateProjectionMatrix();
+  prepMoonView();
   lastViewTheta = null; // 크기를 바꾸면 캔버스가 지워지므로 다시 그림
   needsRender = true;
   layoutStrip();
@@ -458,8 +463,8 @@ for (let i = 0; i <= 8; i++) {
   const cv = document.createElement('canvas'); cv.dataset.size = 36;
   const day = i === 8 ? LUNAR_MONTH : Math.round(i * 45 / 360 * LUNAR_MONTH * 10) / 10;
   const t = document.createElement('div'); t.className = 't';
-  t.dataset.full = i === 8 ? `다시 삭 ${day}일` : `${NAMES[i] || `(${POS[i]})`} · ${day}일`;
-  t.dataset.empty = `${day}일`;
+  t.dataset.full = i === 8 ? `다시 삭\n${day}일` : `${NAMES[i] || `(${POS[i]})`}\n${day}일`;
+  t.dataset.empty = `\n${day}일`;
   t.textContent = t.dataset.empty;
   d.append(cv, t); stripEl.appendChild(d); stripSlots.push({ el: d, cv, t, got: false });
 }
@@ -571,7 +576,7 @@ function setTask(name) {
   // 과제를 고를 때 달이 이미 표시점에 멈춰 있으면 그 자리를 바로 확인함(이미 알맞은 자리면 바로 완성)
   if (S.activeTask && !S.playing && !S.tween && !S.dragging) {
     const i = nearestIdx(S.theta);
-    if (Math.abs(angDiff(S.theta, i * 45)) < 0.01 && i === TASKS[S.activeTask].idx) checkTask(i);
+    if (Math.abs(angDiff(S.theta, i * 45)) < 0.01 && i === TASKS[S.activeTask].idx) { checkTask(i); pushState(true); }
   }
 }
 function checkTask(i) {
@@ -598,7 +603,7 @@ function buildBoard() {
   for (let i = 0; i < 8; i++) {
     const s = document.createElement('div'); s.className = 'slot'; s.tabIndex = 0; s.dataset.idx = i;
     s.setAttribute('role', 'button'); s.setAttribute('aria-label', `${posLabel(i)} 칸`);
-    s.innerHTML = `<div class="nm">(${POS[i]}) ${NAMES[i] ? `<small>${NAMES[i]}</small>` : ''}</div><div class="hole"></div>`;
+    s.innerHTML = `<div class="nm">(${POS[i]}) ${NAMES[i] ? `<small>${NAMES[i].replace('(', '<br>(')}</small>` : ''}</div><div class="hole"></div>`;
     s.addEventListener('click', () => { if (selected && !isLocked()) tryPlace(selected, i); });
     s.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && selected && !isLocked()) { e.preventDefault(); tryPlace(selected, i); } });
     slotsEl.appendChild(s); slots.push({ el: s, filled: false });
@@ -612,6 +617,7 @@ function buildBoard() {
     c.appendChild(phaseCanvas(a, 40));
     const card = { el: c, cell, deg: a, used: false };
     c.addEventListener('pointerdown', e => startCardDrag(e, card));
+    c.addEventListener('animationend', () => c.classList.remove('return-anim'));
     c.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectCard(card); } });
     cell.appendChild(c); cardsEl.appendChild(cell); cards.push(card);
   });
@@ -685,8 +691,8 @@ function tryPlace(card, i) {
     sfx.wrong();
     fbEl.className = 'feedback no'; fbEl.innerHTML = '';
     const pair = document.createElement('div'); pair.className = 'pair';
-    const f1 = document.createElement('figure'); f1.append(phaseCanvas(card.deg, 36), '고른 카드');
-    const f2 = document.createElement('figure'); f2.append(phaseCanvas(actual, 36), `(${POS[i]})의 달`);
+    const f1 = document.createElement('figure'); f1.append(phaseCanvas(card.deg, 30), '고른 카드');
+    const f2 = document.createElement('figure'); f2.append(phaseCanvas(actual, 30), `(${POS[i]})의 달`);
     pair.append(f1, f2);
     const msg = document.createElement('span');
     msg.innerHTML = mirror
@@ -699,7 +705,7 @@ function tryPlace(card, i) {
 
 /* ───────── 예측 ───────── */
 const predModal = document.getElementById('predModal');
-const PRED_TEXT = { '그림자': '① 지구 그림자', '방향': '② 햇빛 받는 쪽과 보는 쪽' };
+const PRED_TEXT = { '그림자': '①', '방향': '②' };
 let predAfterMode = false;
 function openPrediction(after) {
   if (isLocked()) return;
@@ -720,11 +726,12 @@ predModal.querySelectorAll('[data-pred]').forEach(b => b.addEventListener('click
   if (isLocked()) return;
   if (predAfterMode) S.predictionAfter = b.dataset.pred; else S.prediction = b.dataset.pred;
   predModal.hidden = true; sfx.right(); pushState(true);
-  if (!predAfterMode) stageEl.focus({ preventScroll: true });
+  if (!predAfterMode) { stageEl.focus({ preventScroll: true }); if (hintShown) showHint(); }
   else if (S.prediction) {
     // 처음 생각과 지금 생각을 나란히 보여 줌(맞고 틀림은 알려 주지 않음)
     const same = S.prediction === S.predictionAfter;
-    toastMsg(`처음 생각: ${PRED_TEXT[S.prediction]} → 지금 생각: ${PRED_TEXT[S.predictionAfter]}. ${same ? '생각이 그대로예요. 어떤 관찰이 근거인지 떠올려 보세요.' : '생각이 바뀌었어요. 무엇을 보고 바뀌었는지 떠올려 보세요.'}`, 9000);
+    toastMsg(`처음 생각 ${PRED_TEXT[S.prediction]} → 지금 생각 ${PRED_TEXT[S.predictionAfter]} · ${same ? '어떤 관찰이 근거인가요?' : '무엇을 보고 바뀌었나요?'}`, 9000);
+    taskMsg.style.color = ''; // 맞고 틀림을 뜻하지 않게 기본 색
   }
 }));
 document.getElementById('btnRethink').addEventListener('click', () => { sfx.toggle(); openPrediction(true); });
@@ -750,7 +757,7 @@ function setQuality(q) {
   const hi = q === 'high';
   // 낮음: 안티에일리어싱 끔(렌더러 새로 만듦) · 화소 비율 1 · 구 분할 줄임 · 별 줄임 · 빛무리 끔 · 공전 중 30fps
   if (renderer.getContextAttributes()?.antialias !== hi) makeRenderer(hi);
-  renderer.setPixelRatio(hi ? Math.min(devicePixelRatio, 2) : 1);
+  renderer.setPixelRatio(hi ? Math.min(devicePixelRatio, 1.5) : 1); // 고해상도 화면도 1.5배까지만(안티에일리어싱이 켜져 있으므로)
   setSegments(hi);
   makeStars(hi ? 1800 : 500);
   sunGlow.visible = hi;
@@ -846,26 +853,80 @@ new MutationObserver(() => { if (isLocked()) applyLock(); }).observe(document.do
 const clock = new THREE.Clock();
 const fps = new FpsMonitor(() => { if (S.quality === 'high') setQuality('low'); }, { threshold: 28, window: 4 });
 let frame = 0, lastRenderTheta = null;
-const tmp = new THREE.Vector3(), sizeV = new THREE.Vector2();
+const tmp = new THREE.Vector3();
 
-// '지구에서 본 달': 같은 렌더러로 캔버스 왼쪽 아래 귀퉁이에 그린 뒤 2D 캔버스로 복사(바로 뒤에 우주 시점이 덮어 그림)
-function renderMoonView(p) {
-  const dom = renderer.domElement, w = mvCanvas.width, h = mvCanvas.height;
-  if (w > dom.width || h > dom.height) return false;
-  const pr = renderer.getPixelRatio();
-  renderer.getSize(sizeV);
-  viewCam.position.set(0, 0, 0); viewCam.lookAt(p);
-  renderer.setViewport(0, 0, w / pr, h / pr); renderer.setScissor(0, 0, w / pr, h / pr); renderer.setScissorTest(true);
-  renderer.setClearColor(0x02040c, 1);
-  // 달은 실제로 람베르트 면보다 가장자리까지 고르게 밝으므로 이 창에서만 빛을 조금 세게(초승·그믐달이 잘 보이게)
-  const li = sunLight.intensity; sunLight.intensity = 4.6;
-  renderer.render(scene, viewCam);
-  sunLight.intensity = li;
-  renderer.setScissorTest(false); renderer.setViewport(0, 0, sizeV.x, sizeV.y); renderer.setClearColor(0x000000, 0);
-  mvCtx.drawImage(dom, 0, dom.height - h, w, h, 0, 0, w, h);
-  return true;
+// '지구에서 본 달': 지구 중심에서 달 쪽을 본 모습(북쪽이 위)을 화소마다 빛 계산으로 그림.
+// 화면 오른쪽 방향 r=(sinθ,0,cosθ), 위 u=(0,1,0), 시선 f=(cosθ,0,−sinθ)일 때 표면 법선 n=r·x+u·y−f·μ, 햇빛 L=(1,0,0)
+// → 빛 받는 정도 s = n·L = x·sinθ − μ·cosθ. 모양(위상)은 그리는 사람이 정하는 것이 아니라 이 계산의 결과.
+// (WebGL 화면을 하나 더 쓰거나 읽어 오면 저사양 크롬북에서 느려서, 같은 계산을 2D 캔버스에서 직접 함)
+const MV_R = 0.355; // 창 지름에 대한 달 반지름 비율(점선 원과 같음)
+let mvBg = null, mvAlb = null, mvImg = null;
+function prepMoonView() {
+  const w = mvCanvas.width, h = mvCanvas.height;
+  mvImg = mvCtx.createImageData(w, h);
+  // 배경: 밤하늘 + 희미한 별 몇 개
+  mvBg = new Uint8ClampedArray(w * h * 4);
+  for (let k = 0; k < w * h; k++) { mvBg[k * 4] = 2; mvBg[k * 4 + 1] = 4; mvBg[k * 4 + 2] = 12; mvBg[k * 4 + 3] = 255; }
+  for (let n = 0; n < 26; n++) {
+    const x = Math.floor(hash3(n, 3, 1) * w), y = Math.floor(hash3(n, 7, 2) * h), b = 90 + hash3(n, 1, 9) * 140;
+    const k = (y * w + x) * 4; mvBg[k] = mvBg[k + 1] = b; mvBg[k + 2] = Math.min(255, b + 20);
+  }
+  // 달 표면 무늬(조석 고정이라 지구에서 늘 같은 면이 보임 → 한 번만 계산)
+  const R = w * MV_R, c = w / 2, tw = moonTexImg.width, th = moonTexImg.height, td = moonTexImg.data;
+  mvAlb = new Float32Array(w * h).fill(-1);
+  for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
+    const x = (i + 0.5 - c) / R, y = -(j + 0.5 - c) / R, rr = x * x + y * y;
+    if (rr > 1.04) continue;
+    const mu = Math.sqrt(Math.max(0, 1 - rr));
+    // 달 자체 좌표의 법선 (−μ, y, x) → 구 텍스처 좌표(three.js SphereGeometry 방식)
+    const lx = -mu, ly = Math.max(-1, Math.min(1, y)), lz = x;
+    let phi = Math.atan2(lz, -lx); if (phi < 0) phi += Math.PI * 2;
+    const tu = Math.min(tw - 1, Math.floor(phi / (Math.PI * 2) * tw)), tv = Math.min(th - 1, Math.floor((0.5 - Math.asin(ly) / Math.PI) * th));
+    mvAlb[j * w + i] = td[(tv * tw + tu) * 4] / 255;
+  }
+}
+function drawMoonView(thetaDeg) {
+  if (!mvImg) return;
+  const w = mvCanvas.width, h = mvCanvas.height, R = w * MV_R, c = w / 2;
+  const st = Math.sin(thetaDeg * DEG), ct = Math.cos(thetaDeg * DEG);
+  const d = mvImg.data; d.set(mvBg);
+  for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
+    const a = mvAlb[j * w + i]; if (a < 0) continue;
+    const x = (i + 0.5 - c) / R, y = -(j + 0.5 - c) / R, rr = x * x + y * y;
+    const cov = Math.max(0, Math.min(1, (1 - Math.sqrt(rr)) * R + 0.5)); // 가장자리 부드럽게
+    if (cov <= 0) continue;
+    const mu = Math.sqrt(Math.max(0, 1 - rr));
+    const s = Math.max(0, x * st - mu * ct);
+    // 람베르트 + 로멜-젤리거(실제 달처럼 가장자리까지 고르게 밝음) 섞음, 어두운 쪽은 아주 희미하게
+    const b = a * (0.6 * s + 1.1 * (s / (s + mu + 1e-4)) + 0.05);
+    const k = (j * w + i) * 4;
+    const r = Math.min(255, b * 300), g = Math.min(255, b * 294), bl = Math.min(255, b * 280);
+    d[k] = d[k] + (r - d[k]) * cov; d[k + 1] = d[k + 1] + (g - d[k + 1]) * cov; d[k + 2] = d[k + 2] + (bl - d[k + 2]) * cov;
+  }
+  mvCtx.putImageData(mvImg, 0, 0);
 }
 
+// 달이 위치 라벨 가까이 오면(특히 비스듬한 시점의 먼 쪽) 라벨을 달 반대쪽으로 살짝 밀어 겹치지 않게
+const scrA = new THREE.Vector3(), scrB = new THREE.Vector3(), camRight = new THREE.Vector3();
+function toScreen(v, out, W, H) { out.copy(v).project(camera); out.set((out.x + 1) / 2 * W, (1 - out.y) / 2 * H, 0); return out; }
+function nudgeLabels(p) {
+  const W = stageEl.clientWidth, H = stageEl.clientHeight;
+  camera.updateMatrixWorld();
+  camRight.setFromMatrixColumn(camera.matrixWorld, 0);
+  const mc = toScreen(p, new THREE.Vector3(), W, H);
+  const rr = toScreen(scrA.copy(p).addScaledVector(camRight, MOON_R * 2.05), scrB, W, H).distanceTo(mc); // 고리까지의 화면 반지름
+  markerLabels.forEach(l => {
+    const lc = toScreen(l.position, scrA, W, H);
+    const dx = lc.x - mc.x, dy = lc.y - mc.y, d = Math.hypot(dx, dy) || 1;
+    if (!l.half) { const w = l.inner.offsetWidth, h = l.inner.offsetHeight; if (w) l.half = [w / 2, h / 2]; }
+    const [halfW, halfH] = l.half || [30, 14];
+    // 라벨 상자 가장자리까지 거리(진행 방향 기준)
+    const reach = Math.abs(dy / d) * halfH + Math.abs(dx / d) * halfW;
+    const need = rr + reach + 3 - d;
+    const push = need > 0 ? need : 0;
+    if (Math.abs(push - l.push) > 0.5) { l.push = push; l.inner.style.translate = push ? `${(dx / d * push).toFixed(1)}px ${(dy / d * push).toFixed(1)}px` : ''; }
+  });
+}
 function tick() {
   requestAnimationFrame(tick);
   const dt = Math.min(clock.getDelta(), 0.1);
@@ -943,7 +1004,8 @@ function tick() {
     m.material.color.setHex(flashT[i] > 0 ? 0xffd45a : (i === nearI ? 0xff7a5a : 0xe0453a));
   }
 
-  if (lastViewTheta === null || S.theta !== lastViewTheta) { if (renderMoonView(p)) lastViewTheta = S.theta; }
+  nudgeLabels(p);
+  if (lastViewTheta === null || S.theta !== lastViewTheta) { drawMoonView(S.theta); lastViewTheta = S.theta; }
   renderer.render(scene, camera);
   labelRenderer.render(scene, camera);
 }
@@ -969,5 +1031,6 @@ new ResizeObserver(() => {
 // 개발 확인용 접근점 (정답 정보 없음)
 window.__moon = {
   S, moveTo, setPlaying, setQuality,
+  get renderer() { return renderer; }, scene, camera, drawMoonView, labelRenderer, posOf,
   screenOf(deg) { const v = posOf(deg).project(camera), r = stageEl.getBoundingClientRect(); return { x: r.left + (v.x + 1) / 2 * r.width, y: r.top + (1 - v.y) / 2 * r.height }; },
 };

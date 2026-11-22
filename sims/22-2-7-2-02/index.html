@@ -34,7 +34,9 @@
   <!-- 우주 시점 3D -->
   <section class="area-stage" id="stageWrap">
     <div id="stage" tabindex="0" aria-label="우주에서 본 태양, 지구, 달. 달을 끌어 옮기거나 왼쪽·오른쪽 화살표 키로 움직일 수 있어요."></div>
-    <div class="stage-tag">우주에서 내려다본 모습 <small>(북극 쪽 위에서)</small> <span class="stage-note">· 크기와 거리는 실제 비율이 아님</span></div>
+    <div class="stage-tag">우주에서 내려다본 모습 <small>(북극 쪽 위에서)</small></div>
+    <div class="stage-note">크기와 거리는 실제 비율이 아님</div>
+    <p class="stage-shadow-note" id="shadowNote" hidden><b>(마)에서도 달이 밝은 까닭</b> 실제 달 궤도는 조금 기울어 있어 보름달 때 대부분 지구 그림자를 비껴가요.</p>
     <div class="stage-hint" id="stageHint">달을 끌어서 궤도 위로 옮겨 보세요 · 빈 곳을 끌면 화면이 돌아가요</div>
   </section>
 
@@ -87,18 +89,20 @@
       <label class="tog"><input type="checkbox" id="tSeen"><span class="sw blue"></span>지구에서 보이는 반쪽</label>
       <label class="tog"><input type="checkbox" id="tShadow"><span class="sw dark"></span>지구 그림자</label>
     </div>
-    <p class="tiny" id="shadowNote" hidden>(마)에서도 달을 밝게 그린 까닭: 실제 달 궤도는 조금 기울어 있어 보름달 때 대부분 지구 그림자를 비껴가요.</p>
     <div class="tasks">
       <button id="taskFull" class="task" aria-pressed="false"><b class="chk">○</b> 보름달 만들기</button>
       <button id="taskFQ" class="task" aria-pressed="false"><b class="chk">○</b> 상현달 만들기</button>
-      <button id="btnRethink" class="task ghost">다시 생각해 보기</button>
     </div>
     <p class="task-msg" id="taskMsg" aria-live="polite"></p>
   </section>
 
   <!-- 붙임딱지 판 -->
   <section class="area-board panel board-panel">
-    <h2>붙임딱지 붙이기 <small>카드를 끌어 알맞은 칸에 놓으세요 (눌러서 고른 뒤 칸을 눌러도 돼요) · 10장 중 2장은 남아요</small></h2>
+    <div class="board-head">
+      <h2>붙임딱지 붙이기</h2>
+      <small>카드를 칸으로 끌거나, 카드를 누른 뒤 칸을 누르세요 · 2장은 남아요</small>
+      <button id="btnRethink" class="task ghost">다시 생각해 보기</button>
+    </div>
     <div class="slots" id="slots"></div>
     <div class="cards" id="cards"></div>
     <div class="feedback" id="feedback" aria-live="polite"></div>
