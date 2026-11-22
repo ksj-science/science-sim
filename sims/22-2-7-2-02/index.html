@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<title>달의 위상 변화 · 22-2-7-2-02</title>
+<link rel="stylesheet" href="../../lib/sim.css">
+<link rel="stylesheet" href="../../lib/vendor/jua-5.3.0/jua.css">
+<link rel="stylesheet" href="style.css">
+<script src="../../lib/sim-bridge.js"></script>
+<script type="importmap">
+{
+  "imports": {
+    "three": "../../lib/vendor/three-0.170.0/build/three.module.js",
+    "three/addons/": "../../lib/vendor/three-0.170.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+<header class="sim-header top">
+  <a class="back" href="../../index.html" aria-label="시뮬레이터 목록으로">← 목록</a>
+  <h1>달의 위상 변화</h1>
+  <span class="unit">22-2-7-2-02 · Ⅶ. 태양계 · 2. 지구와 달</span>
+  <div class="head-btns">
+    <button id="btnQuality" class="small" aria-pressed="false" title="그래픽 품질 바꾸기">그래픽: 높음</button>
+    <button id="btnMute" class="small" aria-pressed="false" title="소리 켜기/끄기">🔊 소리 켬</button>
+    <button id="btnReset" class="small" title="처음 상태로">↺ 처음부터</button>
+  </div>
+</header>
+
+<main class="app">
+  <!-- 우주 시점 3D -->
+  <section class="area-stage" id="stageWrap">
+    <div id="stage" tabindex="0" aria-label="우주에서 본 태양, 지구, 달. 달을 끌어 옮기거나 왼쪽·오른쪽 화살표 키로 움직일 수 있어요."></div>
+    <div class="stage-tag">우주에서 내려다본 모습 <small>(북극 쪽 위에서)</small></div>
+    <div class="stage-note">크기와 거리는 실제 비율이 아님</div>
+    <div class="stage-hint" id="stageHint">달을 끌어서 궤도 위로 옮겨 보세요 · 빈 곳을 끌면 화면이 돌아가요</div>
+  </section>
+
+  <!-- 아래 조작 줄 -->
+  <div class="area-bar bar">
+    <button id="btnPlay" class="primary play" aria-pressed="false">▶ 공전</button>
+    <label class="speed">
+      <span>공전 빠르기 <output id="speedOut">1.0배</output></span>
+      <input id="speed" type="range" min="0.5" max="4" step="0.5" value="1" aria-label="공전 빠르기">
+    </label>
+    <div class="pos-btns" role="group" aria-label="달 위치 고르기">
+      <button data-pos="0">가</button><button data-pos="1">나</button><button data-pos="2">다</button><button data-pos="3">라</button>
+      <button data-pos="4">마</button><button data-pos="5">바</button><button data-pos="6">사</button><button data-pos="7">아</button>
+    </div>
+    <button id="btnTop" class="small">⤓ 위에서 보기</button>
+  </div>
+
+  <!-- 위상 띠 -->
+  <div class="area-strip strip-wrap">
+    <div class="strip-title">위상 띠 <small>달이 지나간 위치의 모습이 날짜 순서로 남아요</small></div>
+    <div class="strip" id="strip">
+      <div class="strip-line"></div>
+      <div class="strip-cursor" id="stripCursor"></div>
+    </div>
+  </div>
+
+  <!-- 지구에서 본 달 + 수치판 -->
+  <section class="area-view panel view-panel">
+    <div class="moonview-box">
+      <div class="moonview" id="moonView">
+        <div class="moonview-ring"></div>
+      </div>
+      <div class="moonview-cap">지구에서 본 달 <small>(우리나라, 북쪽이 위)</small></div>
+    </div>
+    <dl class="stats">
+      <div class="row big"><dt>위치</dt><dd id="vPos">(나) 초승달</dd></div>
+      <div class="row"><dt>공전 각도 θ</dt><dd id="vAngle">30°</dd></div>
+      <div class="row"><dt>삭 후 지난 날수</dt><dd id="vDays">약 2.5일</dd></div>
+      <div class="row bar-row"><dt>지구에서 밝게 보이는 비율</dt><dd id="vLit">7 %</dd>
+        <div class="meter blue"><i id="mLit"></i></div></div>
+      <div class="row bar-row"><dt>햇빛 받는 부분</dt><dd>50 % <small>(항상)</small></dd>
+        <div class="meter yellow"><i style="width:50%"></i></div></div>
+    </dl>
+  </section>
+
+  <!-- 보기 설정 + 과제 -->
+  <section class="area-opts panel opts-panel">
+    <div class="toggles" role="group" aria-label="보기 설정">
+      <label class="tog"><input type="checkbox" id="tLit"><span class="sw yellow"></span>햇빛 받는 반쪽</label>
+      <label class="tog"><input type="checkbox" id="tSeen"><span class="sw blue"></span>지구에서 보이는 반쪽</label>
+      <label class="tog"><input type="checkbox" id="tShadow"><span class="sw dark"></span>지구 그림자</label>
+    </div>
+    <p class="tiny" id="shadowNote" hidden>실제로는 달 궤도가 조금 기울어 있어 보름달 때 대부분 그림자를 비껴가요.</p>
+    <div class="tasks">
+      <button id="taskFull" class="task" aria-pressed="false"><b class="chk">○</b> 보름달 만들기</button>
+      <button id="taskFQ" class="task" aria-pressed="false"><b class="chk">○</b> 상현달 만들기</button>
+      <button id="btnRethink" class="task ghost">다시 생각해 보기</button>
+    </div>
+    <p class="task-msg" id="taskMsg" aria-live="polite"></p>
+  </section>
+
+  <!-- 붙임딱지 판 -->
+  <section class="area-board panel board-panel">
+    <h2>붙임딱지 붙이기 <small>카드를 끌어 알맞은 칸에 놓으세요 (눌러서 고른 뒤 칸을 눌러도 돼요)</small></h2>
+    <div class="slots" id="slots"></div>
+    <div class="cards" id="cards"></div>
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+  </section>
+</main>
+
+<!-- 예측 창 -->
+<div class="modal" id="predModal" role="dialog" aria-modal="true" aria-labelledby="predTitle">
+  <div class="modal-box" tabindex="-1">
+    <h2 id="predTitle">먼저 예측해 보세요</h2>
+    <p id="predText">달은 날마다 모양이 조금씩 바뀌어 보여요. 달 모양이 바뀌는 까닭은 무엇일까요?</p>
+    <div class="pred-choices">
+      <button data-pred="그림자"><b>①</b> 지구 그림자가 달을 가려서</button>
+      <button data-pred="방향"><b>②</b> 햇빛 받는 쪽과 우리가 보는 쪽이 달라서</button>
+    </div>
+    <p class="tiny" id="predFoot">고르면 바로 시작해요. 맞는지는 실험하며 직접 확인해 보세요.</p>
+  </div>
+</div>
+
+<div class="drag-ghost" id="ghost" hidden></div>
+
+<script type="module" src="main.js"></script>
+</body>
+</html>
