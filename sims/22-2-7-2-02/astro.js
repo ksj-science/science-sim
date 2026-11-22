@@ -96,9 +96,14 @@ export function noonSun(i) {
   return { d, lam, con: conOfDate(lam, d) };
 }
 // 그날 밤 12시(다음 날 00:00) 남쪽 자오선 위 황도 점의 황경(그해 분점 기준)
-export function midnightSouth(i) {
+// i는 정수 날짜(소수를 넣으면 밤 12시가 아닌 시각이 됨 — 재생 중 소수 날짜는 main.js에서 앞뒤 날 값을 이어 붙임)
+// ①의 밤 시선선·강조 구역, ②의 '정남 구역', nightSouthCon이 모두 이 함수 하나를 씀
+export function midnightSouthLam(i) {
   const d = jdays(i + 1, 0);
   const a = lst(d) * RAD;
-  const lam = norm360(Math.atan2(Math.sin(a), Math.cos(a) * Math.cos(EPS)) / RAD);
+  return { d, lam: norm360(Math.atan2(Math.sin(a), Math.cos(a) * Math.cos(EPS)) / RAD) };
+}
+export function midnightSouth(i) {
+  const { d, lam } = midnightSouthLam(i);
   return { d, lam, con: conOfDate(lam, d) };
 }

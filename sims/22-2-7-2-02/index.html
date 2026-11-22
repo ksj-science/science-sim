@@ -48,12 +48,12 @@
           <div class="ob-row"><span>공전한 각도</span><b id="obAngle">0.0°</b></div>
           <div class="ob-row"><span>지난 날수</span><b id="obDays">0일</b></div>
           <div class="ob-row rate"><span>하루 평균</span><b id="obRate">–</b></div>
-          <div class="ob-sub">기준일(오늘)부터</div>
+          <div class="ob-sub">시작 날짜(오늘)부터</div>
         </div>
         <div class="ov tc" id="topNote" hidden>북극 위에서 본 모습 — 지구는 <b>시계 반대 방향</b>으로 공전</div>
         <div class="ov bl legend" id="legend">
           <div class="lg sunl" data-mode="noon"><i></i>지구 → 태양 쪽 (낮 12시)</div>
-          <div class="lg nightl" data-mode="midnight"><i></i>지구 → 태양 반대쪽 (밤 12시)</div>
+          <div class="lg nightl" data-mode="midnight"><i></i>지구 → 태양 반대쪽, 정남 (밤 12시)</div>
           <div class="lg zone"><b class="zs"></b><b class="zn"></b>시선이 닿는 별자리 구역 <span class="bd">┆</span> 경계</div>
         </div>
         <div class="ov br hint3d" id="hint3d">빈 곳을 끌면 회전 · 휠/두 손가락으로 확대</div>
@@ -79,9 +79,11 @@
           <div class="ov tr predict-tag" id="predTag" hidden></div>
         </div>
         <p class="foot sky-foot" id="skyFoot">
-          <span class="it"><b class="k bd">┆</b> 별자리 구역의 경계(국제천문연맹)</span>
+          <span class="it"><b class="k bd">┆</b> 별자리 구역의 경계</span>
           <span class="it noon-only"><b class="k zs">▮</b> 태양이 들어 있는 구역</span>
-          <span class="it noon-only"><b class="k tr">●</b> 태양의 발자취 → 태양의 연주 운동(겉보기 운동)</span>
+          <span class="it noon-only"><b class="k tr">●</b> 지난 날의 태양(태양의 연주 운동)</span>
+          <span class="it night-only"><b class="k zn">▮</b> 지금 정남에 있는 구역</span>
+          <span class="it night-only"><b class="k mr">┊</b> 정남(남쪽 한가운데) 선</span>
         </p>
       </section>
 
@@ -89,7 +91,6 @@
       <section id="recPanel" class="card">
         <div class="ph">
           <h2><span class="num">③</span> 관측 기록 표</h2>
-          <span class="hint" id="recHint">하늘의 별자리를 누르거나 칸을 눌러 기록해요</span>
           <div class="ph-act">
             <button class="chipbtn" id="btnAstro" aria-expanded="false">ⓘ 점성술 날짜와 달라요</button>
             <button class="chipbtn ghost" id="btnClear">기록 지우기</button>
@@ -97,7 +98,7 @@
         </div>
         <div class="tbl-wrap">
           <table id="rec">
-            <thead><tr><th class="rh"></th></tr></thead>
+            <thead><tr><th class="rh corner" id="recHint">하늘의 별자리나 빈칸을 눌러 기록해요</th></tr></thead>
             <tbody>
               <tr data-row="noon"><th class="rh">☀ 낮 12시<br><small>태양과 가장 가까운 별자리</small></th></tr>
               <tr data-row="midnight"><th class="rh">☾ 밤 12시<br><small>남쪽 하늘 별자리</small></th></tr>
@@ -106,9 +107,9 @@
         </div>
         <div class="pop" id="astroPop" hidden>
           <b>점성술 날짜는 실제 하늘과 달라요</b>
-          <p>별자리 운세의 날짜는 약 2000년 전 하늘을 기준으로, 태양이 지나는 길을 30°씩 똑같이 12칸으로 나눈 것이에요.
-          실제 별자리는 크기가 제각각이고, 2000년 동안 지구의 자전축이 가리키는 방향도 아주 천천히 바뀌어서 실제 태양 위치와 한 달 가까이 차이가 날 수 있어요.</p>
-          <p>이 시뮬레이터는 전 세계 천문학자들의 모임(국제천문연맹)이 정한 실제 별자리 구역(경계)을 써요. 하늘의 점선이 그 경계예요.</p>
+          <p>점성술 날짜는 약 2000년 전 별자리 위치에 맞춰, 똑같은 크기로 나눠 정한 날짜예요.</p>
+          <p>그동안 지구 자전축이 가리키는 방향이 조금씩 바뀌었고 실제 별자리는 크기도 제각각이라, 지금 하늘과 한 달 가까이 차이 나요.</p>
+          <p>이 시뮬레이터는 실제 별자리 구역(하늘의 점선)을 써요.</p>
           <button class="chipbtn" id="astroClose">닫기</button>
         </div>
       </section>
@@ -118,9 +119,9 @@
   <!-- 아래 조작판 -->
   <footer id="ctrl">
     <div class="cg base">
-      <label class="cap" for="baseInput">오늘(기준일)</label>
+      <label class="cap" for="baseInput">시작 날짜(오늘)</label>
       <input type="date" id="baseInput" />
-      <button class="cbtn sm" id="btnExample" title="교과서 예시 화면의 날짜(2025년 11월 3일)로 기준일 바꾸기">교과서 예시<span class="long"> 2025-11-03</span></button>
+      <button class="cbtn sm" id="btnExample" title="교과서 예시 화면의 날짜(2025년 11월 3일)로 시작 날짜 바꾸기">교과서 예시<span class="long"> 2025-11-03</span></button>
     </div>
 
     <div class="cg nav">
@@ -129,12 +130,12 @@
         <button class="cbtn" id="m1" title="하루 전으로 (←)">◀ 1일</button>
         <output id="dateOut" aria-live="polite">—</output>
         <button class="cbtn" id="p1" title="하루 뒤로 (→)">1일 ▶</button>
-        <button class="cbtn" id="p3" title="3개월 뒤로 (Shift+→)">3개월 ▶</button>
+        <button class="cbtn" id="p3" title="3개월 뒤로 (Shift+→)">3개월 ▶<span class="pdot">예측</span></button>
       </div>
       <div class="slider-wrap">
         <div class="ssn-row" id="ssnRow" aria-hidden="true"></div>
         <div class="season" id="seasonBand" aria-hidden="true"></div>
-        <input type="range" id="daySlider" min="0" max="365" step="1" value="0" aria-label="날짜 (기준일부터 지난 날수)" />
+        <input type="range" id="daySlider" min="0" max="365" step="1" value="0" aria-label="날짜 (시작 날짜부터 지난 날수)" />
         <div class="ticks" id="ticks" aria-hidden="true"></div>
       </div>
     </div>
@@ -149,10 +150,10 @@
           <button data-sp="30" aria-pressed="false">30일</button>
         </div>
       </div>
-      <label class="switch" title="3개월 ▶ 를 누르면 먼저 예측해요">
+      <label class="switch" title="켜면 3개월 ▶ 를 누를 때 먼저 예측해요">
         <input type="checkbox" id="predictToggle" />
         <span class="track"><span class="knob"></span></span>
-        <span class="sw-lbl">예측하기</span>
+        <span class="sw-lbl">예측하기<small>3개월 ▶ 전에</small></span>
       </label>
     </div>
   </footer>
