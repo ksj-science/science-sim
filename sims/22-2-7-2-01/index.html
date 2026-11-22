@@ -10,7 +10,7 @@
   :root { --muted: #3f4a5c; }
   html, body { height: 100%; overflow: hidden; }
   body { display: flex; flex-direction: column; }
-  .hint { font-size: 14px; color: var(--muted); }
+  .hint { font-size: 14px; color: var(--muted); word-break: keep-all; }
 
   /* 머리글 */
   .sim-header { padding: 6px 14px; align-items: center; gap: 10px; }
@@ -43,8 +43,8 @@
   #top { cursor: grab; }
 
   /* ① 방향 정하기 */
-  .place { display: grid; grid-template-columns: 190px 1fr; gap: 8px; align-items: center; }
-  .globe { position: relative; width: 190px; height: 170px; }
+  .place { display: grid; grid-template-columns: 176px 1fr; gap: 8px; align-items: center; }
+  .globe { position: relative; width: 176px; height: 180px; }
   .globe svg { position: absolute; inset: 0; }
   .slot { position: absolute; width: 44px; height: 44px; border-radius: 10px; background: rgba(255,255,255,.92);
           border: 2px dashed #6b7488; display: flex; align-items: center; justify-content: center; cursor: pointer; }
@@ -55,8 +55,9 @@
           background: #fff3cf; border: 1.5px solid #c99a2e; color: #5a3d00; touch-action: none; user-select: none; }
   .tile.sel { outline: 3px solid var(--accent); outline-offset: 1px; }
   .tile.drag { position: fixed; z-index: 10; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,.25); }
-  .slot .tile { width: 38px; height: 38px; }
-  .done-msg { color: var(--good); font-weight: 700; font-size: 14px; background: #e7f6ee; border-radius: 10px; padding: 8px 10px; }
+  .slot .tile { width: 40px; height: 40px; }
+  .done-msg { color: var(--good); font-weight: 700; font-size: 14px; background: #e7f6ee; border-radius: 10px; padding: 8px 10px; word-break: keep-all; }
+  .done-msg .cmp { display: block; font-weight: 600; font-size: 13px; line-height: 1.45; color: #1d5a3c; margin-top: 3px; }
 
   /* ② 범례 */
   .legend2 { display: flex; flex-wrap: wrap; gap: 2px 9px; font-size: 14px; color: var(--ink); margin-bottom: 4px; }
@@ -101,7 +102,7 @@
 
   /* 세로 화면(태블릿)·좁은 화면: ①②를 위에 나란히, ③과 조작판은 아래 한 열 */
   @media (orientation: portrait), (max-width: 980px) {
-    .sim-main { grid-template-columns: minmax(0, 1fr); grid-template-rows: 280px minmax(0, 1fr); }
+    .sim-main { grid-template-columns: minmax(0, 1fr); grid-template-rows: 300px minmax(0, 1fr); }
     .left { grid-template-columns: 340px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
     .left .panel { min-height: 0; }
     .p2 h2 .sub, .q, .long { display: none; }
@@ -139,30 +140,33 @@
       <h2>① 우리나라를 기준으로 방향 정하기</h2>
       <div class="place">
         <div class="globe" id="globe">
-          <svg viewBox="0 0 190 170" aria-hidden="true">
+          <svg viewBox="14 0 176 180" aria-hidden="true">
             <defs>
               <radialGradient id="sea" cx="40%" cy="35%" r="70%">
                 <stop offset="0" stop-color="#5aa3e6"/><stop offset="1" stop-color="#1c4f8f"/>
               </radialGradient>
             </defs>
-            <line x1="95" y1="2" x2="95" y2="168" stroke="#555" stroke-width="2"/>
-            <circle cx="95" cy="85" r="74" fill="url(#sea)"/>
-            <path d="M40 40 C60 30 80 42 88 52 C92 60 84 70 78 74 C70 80 74 92 66 100 C56 106 42 96 34 84 C28 70 30 52 40 40Z" fill="#6da35a" opacity=".9"/>
-            <path d="M104 70 C108 66 112 68 112 74 C112 80 108 86 104 84 C101 80 102 74 104 70Z" fill="#7fb36a"/>
-            <path d="M118 58 C124 52 132 58 128 66 C124 72 120 80 116 78 C114 72 114 64 118 58Z" fill="#6da35a" opacity=".9"/>
-            <path d="M58 120 C72 116 86 124 84 134 C80 144 64 146 56 138 C50 132 50 124 58 120Z" fill="#6da35a" opacity=".85"/>
-            <ellipse cx="95" cy="85" rx="74" ry="14" fill="none" stroke="#fff" stroke-opacity=".45" stroke-dasharray="3 3"/>
-            <circle cx="106" cy="76" r="4.5" fill="#e5533d" stroke="#fff" stroke-width="1.5"/>
-            <text x="100" y="167" font-size="12" text-anchor="start" fill="#333">자전축</text>
+            <line x1="95" y1="4" x2="95" y2="178" stroke="#555" stroke-width="2"/>
+            <!-- 지구를 적도보다 약 11° 위에서 본 모습: 적도 타원 ry/r = sin 11°. 빨간 점은 37.5°N에 오도록 계산한 자리 -->
+            <g transform="translate(95 98) scale(.946) translate(-95 -85)">
+              <circle cx="95" cy="85" r="74" fill="url(#sea)"/>
+              <path d="M40 40 C60 30 80 42 88 52 C92 60 84 70 78 74 C70 80 74 92 66 100 C56 106 42 96 34 84 C28 70 30 52 40 40Z" fill="#6da35a" opacity=".9"/>
+              <path d="M104 46 C108 42 112 44 112 50 C112 56 108 62 104 60 C101 56 102 50 104 46Z" fill="#7fb36a"/>
+              <path d="M118 58 C124 52 132 58 128 66 C124 72 120 80 116 78 C114 72 114 64 118 58Z" fill="#6da35a" opacity=".9"/>
+              <path d="M58 120 C72 116 86 124 84 134 C80 144 64 146 56 138 C50 132 50 124 58 120Z" fill="#6da35a" opacity=".85"/>
+              <ellipse cx="95" cy="85" rx="74" ry="14" fill="none" stroke="#fff" stroke-opacity=".45" stroke-dasharray="3 3"/>
+              <circle cx="106" cy="52" r="4.8" fill="#e5533d" stroke="#fff" stroke-width="1.6"/>
+            </g>
+            <text x="100" y="178" font-size="12" text-anchor="start" fill="#333">자전축</text>
           </svg>
-          <div class="slot" data-pos="0" tabindex="0" role="button" aria-label="위쪽 칸" style="left:84px; top:8px"></div>
-          <div class="slot" data-pos="1" tabindex="0" role="button" aria-label="오른쪽 칸" style="left:130px; top:54px"></div>
-          <div class="slot" data-pos="2" tabindex="0" role="button" aria-label="아래쪽 칸" style="left:84px; top:100px"></div>
-          <div class="slot" data-pos="3" tabindex="0" role="button" aria-label="왼쪽 칸" style="left:38px; top:54px"></div>
+          <div class="slot" data-pos="0" tabindex="0" role="button" aria-label="위쪽 칸" style="left:69px; top:1px"></div>
+          <div class="slot" data-pos="1" tabindex="0" role="button" aria-label="오른쪽 칸" style="left:113px; top:45px"></div>
+          <div class="slot" data-pos="2" tabindex="0" role="button" aria-label="아래쪽 칸" style="left:69px; top:89px"></div>
+          <div class="slot" data-pos="3" tabindex="0" role="button" aria-label="왼쪽 칸" style="left:25px; top:45px"></div>
         </div>
         <div>
-          <div class="hint" id="placeHint">빨간 점이 우리나라, 위쪽이 북극이에요. 카드를 끌어 칸에 놓으세요.<span class="q"> (눌러 고른 뒤 칸을 눌러도 돼요)</span></div>
-          <div class="done-msg" id="placeDone" hidden>✓ 다 채웠어요! ②에 나온 동서남북 화살표와 내 카드가 같은지 확인해 보세요.</div>
+          <div class="hint" id="placeHint">빨간 점이 우리나라, 위쪽이 북극이에요. 카드를 끌어 칸에 놓아요.<span class="q"> (눌러 고르고 칸을 눌러도 돼요)</span></div>
+          <div class="done-msg" id="placeDone" hidden>✓ 다 채웠어요!<span class="cmp">②는 북극 위에서 본 모습(가운데 = 북극)이에요. ②의 화살표와 비교해 봐요.</span></div>
           <div class="tray" id="tray">
             <button class="tile" data-d="동">동</button>
             <button class="tile" data-d="서">서</button>
@@ -229,6 +233,11 @@
           <button data-v="ccw" aria-pressed="true">시계 반대 (실제)</button>
           <button data-v="cw" aria-pressed="false">시계 (만약?)</button>
         </span></div>
+        <div><span class="lab">재생 속도</span><span class="seg" id="speedSeg" title="1초 동안 흐르는 시간">
+          <button data-v="0.5" aria-pressed="false">느리게</button>
+          <button data-v="1" aria-pressed="true">보통</button>
+          <button data-v="3" aria-pressed="false">빠르게</button>
+        </span></div>
       </div>
     </div>
   </section>
@@ -238,7 +247,7 @@
 import { sound } from '../../lib/sound.js';
 (function () {
   /* 단순화: 북극성은 천구의 북극에 둠, 낮·태양·대기 효과 없음, 별 배치는 대부분 가상, 하루 = 항성일 */
-  var D2R = Math.PI / 180, SPEED = 1.5;   // SPEED: 실제 1초에 1.5시간
+  var D2R = Math.PI / 180, SPEED = 1;     // SPEED: 실제 1초에 흐르는 시간(느리게 0.5 / 보통 1 / 빠르게 3)
   var LST0 = 4;                            // 시작 시각의 항성시(시)
   var latDeg = 37.5, LAT = latDeg * D2R, sphi = Math.sin(LAT), cphi = Math.cos(LAT);
   var LATNAME = { '90': '북극', '37.5': '우리나라', '0': '적도', '-90': '남극' };
@@ -285,7 +294,10 @@ import { sound } from '../../lib/sound.js';
   });
 
   // ---------- 상태 ----------
-  var hours = 0, trailFrom = 0, sense = 1, playing = false, last = null, lastH = 0;
+  var hours = 0, trailFrom = 0, sense = 1, playing = false, last = null;
+  var dayBase = 0;            // '하루 안의 경과 시간' 막대가 다루는 날의 시작 시각(막대로는 날이 넘어가지 않음)
+  var watchDir = {}, watchLat = {};   // 재생하거나 ② 지구를 돌리며 실제로 지켜본 시간(막대로 건너뛴 시간은 세지 않음)
+  var dirTarget = null;       // 바라보기 버튼으로 이동 중인 방향(누르자마자 선택 표시)
   var viewAz = 320, camEl = 22, zoom = 0, lookUp = 0;     // 바라보는 방위각, 천구 밖 카메라 높이, 시점(0 천구 밖 ~ 1 관측자)
   var viewed = {}, latsViewed = {}, placed = ['', '', '', ''], dirDone = false;
   var WIND = ['북', '북동', '동', '남동', '남', '남서', '서', '북서'];
@@ -723,8 +735,8 @@ import { sound } from '../../lib/sound.js';
     var NOTE = '※ 낮에는 햇빛 때문에 별이 보이지 않지만, 여기서는 늘 밤하늘로 보여 줘요.';
     if (wIn > 0.5) {
       lines.push(['600 14px ', '#fff', where + '의 관측자 · ' + windName(viewAz) + '쪽 하늘 · 궤적 ' + Math.max(0, span).toFixed(1) + '시간']);
-      if (latDeg === 90) lines.push(['14px ', '#ffe38a', '북극에서는 어느 쪽을 보아도 남쪽이에요.']);
-      if (latDeg === -90) lines.push(['14px ', '#ffe38a', '남극에서는 어느 쪽을 보아도 북쪽이에요.']);
+      if (latDeg === 90) lines.push(['14px ', '#ffe38a', '북극에서는 어느 쪽을 봐도 남쪽이에요.']);
+      if (latDeg === -90) lines.push(['14px ', '#ffe38a', '남극에서는 어느 쪽을 봐도 북쪽이에요.']);
       lines.push(['14px ', 'rgba(255,255,255,.8)', NOTE]);
     } else {
       lines.push(['600 14px ', '#fff', '천구 — 관측자: ' + where]);
@@ -769,7 +781,8 @@ import { sound } from '../../lib/sound.js';
   var topGeom = null, topBgKey = '', topNames = [], topKey = '';
   function drawTop() {
     var o = fit($('top')), g = o.ctx, w = o.w, h = o.h;
-    var cx = w / 2, cy = h / 2, R = Math.min(w, h) / 2 - 4, re = R * 0.34;
+    // 작은 화면(태블릿)에서는 지구를 조금 크게 그려 관측자 둘레 방위 글자가 몰리지 않게
+    var cx = w / 2, cy = h / 2, R = Math.min(w, h) / 2 - 4, re = R * (R < 95 ? 0.42 : 0.34);
     topGeom = { cx: cx, cy: cy };
     var bkey = w + 'x' + h + 'x' + o.dpr;
     if (topBgKey !== bkey) {
@@ -826,7 +839,7 @@ import { sound } from '../../lib/sound.js';
     arrow(g, tx - 2 * Math.cos(tdir), ty + 2 * Math.sin(tdir), tx + 6 * Math.cos(tdir), ty - 6 * Math.sin(tdir), '#ffcf4d', 2.5);
     // 관측자 (남반구는 지구 반대편이라 흐리게)
     var south = latDeg < 0, orr = re * Math.cos(LAT), ox = cx + orr * Math.cos(ang), oy = cy - orr * Math.sin(ang);
-    var ns = Math.max(0.12, Math.abs(sphi)), L = re * 0.5, LO = L * 1.15;
+    var ns = Math.max(0.12, Math.abs(sphi)), L = Math.max(re * 0.5, 24), LO = L * 1.15;
     var nDir = south ? ang : ang + Math.PI;
     var dirs = [['북', nDir, ns], ['남', nDir + Math.PI, ns], ['동', ang + Math.PI / 2, 1], ['서', ang - Math.PI / 2, 1]];
     var va = south ? ang + viewAz * D2R : ang + Math.PI - viewAz * D2R;
@@ -845,7 +858,7 @@ import { sound } from '../../lib/sound.js';
       g.font = '700 14px ' + FF; g.textAlign = 'center'; g.textBaseline = 'middle';
       dirs.forEach(function (d) {
         var len = L * d[2] * (d[0] === '북' && !south ? 0.8 : 1), near = Math.abs(Math.atan2(Math.sin(d[1] - va), Math.cos(d[1] - va))) < 0.7;
-        var lr = Math.max(len + 11, near ? LO + 11 : 0, 15);
+        var lr = Math.max(len + 12, near ? LO + 12 : 0, 18);
         var lx = ox + lr * Math.cos(d[1]), ly = oy - lr * Math.sin(d[1]);
         haloText(g, d[0], lx, ly, '#fff');
         block.push([lx - 9, ly - 9, 18, 18]);
@@ -856,18 +869,27 @@ import { sound } from '../../lib/sound.js';
     // 별자리 이름 (반지름 95px 이상일 때): 관측자 화살표·글자, 지구, 바깥 원을 피해 자리 고르기
     if (R >= 95) {
       g.font = '600 13px ' + FF; g.textAlign = 'center';
+      var allPts = []; topNames.forEach(function (n) { allPts = allPts.concat(n.pts); });
       topNames.forEach(function (n) {
-        var e = n.rFar - n.r0, offs = [e + 12, e + 24, -e - 6, e + 36, -e - 18, 0];
-        for (var q = 0; q < offs.length; q++) {
-          var x = cx + n.ux * (n.r0 + offs[q]), y = cy + n.uy * (n.r0 + offs[q]);
-          var rect = [x - n.tw / 2 - 2, y - 9, n.tw + 4, 18];
-          // 글자가 바깥 원 안쪽, 지구(자전 화살표 포함) 바깥쪽에 있어야 함
-          var ok = [[x - n.tw / 2, y - 6], [x + n.tw / 2, y - 6], [x - n.tw / 2, y + 6], [x + n.tw / 2, y + 6]].every(function (p) {
-            var dd = Math.hypot(p[0] - cx, p[1] - cy); return dd < R - 2 && dd > re + 10;
-          });
-          if (!ok || overlap(block, rect)) continue;
-          haloText(g, n.name, x, y + 5, 'rgba(200,222,255,.95)');
-          break;
+        // 후보 자리: [바깥쪽(+)/안쪽(-) 거리, 옆으로(접선 방향) 거리] — 별자리 바깥 → 더 바깥 → 안쪽 → 별자리 위·아래 옆
+        var e = n.rFar - n.r0, offs = [[e + 12, 0], [e + 24, 0], [-e - 6, 0], [e + 36, 0], [-e - 18, 0], [0, 0], [e + 48, 0], [-e - 30, 0]];
+        [22, 32, 44, 56].forEach(function (t) { offs.push([0, t], [0, -t], [12, t], [12, -t]); });
+        // 1차: 별자리 별(꼭짓점)도 피함, 자리가 없으면 2차: 별은 덮어도 됨
+        for (var pass = 0; pass < 2; pass++) {
+          for (var q = 0; q < offs.length; q++) {
+            var rr0 = n.r0 + offs[q][0], tt = offs[q][1];
+            var x = cx + n.ux * rr0 - n.uy * tt, y = cy + n.uy * rr0 + n.ux * tt;
+            var rect = [x - n.tw / 2 - 2, y - 9, n.tw + 4, 18];
+            // 글자가 바깥 원 안쪽, 지구와 자전 화살표(지구 + 6px, 화살촉) 바깥쪽에 있어야 함
+            var ok = [[x - n.tw / 2, y - 6], [x + n.tw / 2, y - 6], [x - n.tw / 2, y + 6], [x + n.tw / 2, y + 6]].every(function (p) {
+              var dd = Math.hypot(p[0] - cx, p[1] - cy); return dd < R - 2 && dd > re + 17;
+            });
+            if (!ok || overlap(block, rect)) continue;
+            if (pass === 0 && allPts.some(function (p) { return p[0] > rect[0] && p[0] < rect[0] + rect[2] && p[1] > rect[1] && p[1] < rect[1] + rect[3]; })) continue;
+            haloText(g, n.name, x, y + 5, 'rgba(200,222,255,.95)');
+            block.push(rect);
+            return;
+          }
         }
       });
     }
@@ -916,7 +938,7 @@ import { sound } from '../../lib/sound.js';
     });
   }
   function updateUI() {
-    var day = hours % 24;
+    var day = clamp(hours - dayBase, 0, 24);
     setVal('time', day.toFixed(1));
     setText('timeOut', day.toFixed(1) + '시간');
     setText('hOut', (Math.round(hours * 10) / 10).toFixed(1) + '시간');
@@ -925,11 +947,15 @@ import { sound } from '../../lib/sound.js';
     setText('aOut', deg >= 360 ? fmt(deg) + ' (' + Math.floor(deg / 360) + '바퀴+' + fmt(deg % 360) + ')' : fmt(deg));
     setText('play', playing ? '❚❚ 멈춤' : '▶ 재생');
     setVal('zoom', String(Math.round(zoom * 100)));
-    setPressed('dirSeg', function (v) { return zoom > 0.6 && Math.abs(angDiff(viewAz, +v)) < 1; });
+    setPressed('dirSeg', function (v) { return dirTarget !== null ? +v === dirTarget : zoom > 0.6 && Math.abs(angDiff(viewAz, +v)) < 1; });
+    setPressed('speedSeg', function (v) { return +v === SPEED; });
     setPressed('latSeg', function (v) { return +v === latDeg; });
     setPressed('senseSeg', function (v) { return (v === 'ccw') === (sense > 0); });
     setText('obsName', '관측자: ' + LATNAME[String(latDeg)] + (latDeg < 0 ? ' (지구 반대편)' : ''));
     setText('senseMark', sense > 0 ? '↺' : '↻ (만약)');
+    var dn = $('dirNote'), pole = latDeg === 90 ? '· 북극에서는 어느 쪽을 봐도 남쪽이에요' : latDeg === -90 ? '· 남극에서는 어느 쪽을 봐도 북쪽이에요' : '';
+    setText('dirNote', pole || '· 동서남북 화살표는 ①을 마치면 보여요');
+    var hideNote = !pole && dirDone; if (dn.hidden !== hideNote) dn.hidden = hideNote;
     document.querySelectorAll('#chips span').forEach(function (c) {
       var on = !!viewed[c.getAttribute('data-d')]; if (c.classList.contains('on') !== on) c.classList.toggle('on', on);
     });
@@ -940,14 +966,6 @@ import { sound } from '../../lib/sound.js';
     clearTimeout(toastT); toastT = setTimeout(function () { el.classList.remove('show'); }, 2200);
   }
   function render() {
-    if (hours !== lastH && hours - trailFrom >= 2 && zoom > 0.8 && sense > 0) {   // 실제 자전 방향일 때만 관찰 기록
-      latsViewed[LATNAME[String(latDeg)]] = true;
-      var cd = cardinal(viewAz);
-      if (latDeg === 37.5 && Math.abs(angDiff(viewAz, { '북': 0, '동': 90, '남': 180, '서': 270 }[cd])) <= 30 && !viewed[cd]) {
-        viewed[cd] = true; sound.ding(); toast('2시간 지났어요 — ' + cd + '쪽 하늘 관찰 완료!');
-      }
-    }
-    lastH = hours;
     drawView(); drawTop(); updateUI();
     if (!playing || Math.round(hours * 2) !== Math.round((hours - 0.05) * 2)) pushState();
   }
@@ -970,9 +988,30 @@ import { sound } from '../../lib/sound.js';
     }
   }
   function setQuality(q) { quality = q; paintQuality(); topBgKey = ''; layerKey.bg = layerKey.fg = ''; trail.key = ''; render(); }
-  function setHours(v) {
+  // 막대가 다룰 날: 24시간 정각이면 그 앞날의 끝(24.0)으로 보여 줌
+  function baseOf(h) { var b = Math.floor(h / 24 + 1e-9) * 24; if (b > 0 && h - b < 1e-6) b -= 24; return b; }
+  // keepDay: 막대로 바꿀 때는 날(dayBase)을 그대로 둠
+  function setHours(v, keepDay) {
     hours = Math.max(0, v);
+    if (!keepDay) dayBase = baseOf(hours);
     if (hours < trailFrom) trailFrom = hours;
+  }
+  // 관찰 시간 쌓기: 재생·② 지구 돌리기로 시간이 앞으로 흐를 때만 (막대로 건너뛴 시간, 되돌린 시간은 세지 않음)
+  // 실제 자전 방향(시계 반대)에서 관측자 시선(시점 0.8 초과)일 때, 같은 방위(±30°)를 2시간 이상 지켜보면 완료
+  function accrue(dh) {
+    if (!(dh > 0) || dh > 1 || zoom <= 0.8 || sense <= 0) return;
+    var ln = LATNAME[String(latDeg)];
+    watchLat[ln] = (watchLat[ln] || 0) + dh;
+    if (watchLat[ln] >= 2) latsViewed[ln] = true;
+    if (latDeg !== 37.5) return;
+    var cd = cardinal(viewAz);
+    if (Math.abs(angDiff(viewAz, { '북': 0, '동': 90, '남': 180, '서': 270 }[cd])) > 30) return;
+    watchDir[cd] = (watchDir[cd] || 0) + dh;
+    if (watchDir[cd] >= 2 && !viewed[cd]) {
+      viewed[cd] = true; sound.ding();
+      if (playing) { playing = false; sound.off(); toast('2시간 지났어요 — ' + cd + '쪽 하늘 관찰 완료! (잠깐 멈췄어요)'); }
+      else toast('2시간 지났어요 — ' + cd + '쪽 하늘 관찰 완료!');
+    }
   }
 
   // 재생: [멈춤]을 누를 때까지 계속
@@ -982,6 +1021,7 @@ import { sound } from '../../lib/sound.js';
       var before = hours;
       setHours(hours + Math.min(0.1, (ts - last) / 1000) * SPEED);
       if (Math.floor(hours / 24) > Math.floor(before / 24)) { sound.bell(); toast('24시간 — 지구가 한 바퀴(360°) 돌았어요'); }
+      accrue(hours - before);
     }
     last = ts; perfSample(ts); render();
     requestAnimationFrame(tick);
@@ -992,11 +1032,13 @@ import { sound } from '../../lib/sound.js';
     if (playing) { sound.on(); requestAnimationFrame(tick); } else { sound.off(); render(); pushState(); }
   };
   $('clear').onclick = function () { if (locked()) return; sound.whoosh(); trailFrom = hours; render(); };
-  $('reset').onclick = function () { if (locked()) return; sound.reset(); playing = false; hours = 0; trailFrom = 0; render(); };
+  $('reset').onclick = function () { if (locked()) return; sound.reset(); playing = false; trailFrom = 0; setHours(0); render(); };
+  // 막대: 지금 날(dayBase) 안에서만 0~24시간을 바꿈. 끝(24)까지 끌어도, End·Home 키를 눌러도 날이 넘어가지 않고 되돌리면 그대로 돌아감
   $('time').oninput = function () {
-    if (locked()) { this.value = (hours % 24).toFixed(1); return; }
-    playing = false; setHours(Math.floor(hours / 24) * 24 + (+this.value)); sound.tick(+this.value / 24); requestRender();
+    if (locked()) { this.value = clamp(hours - dayBase, 0, 24).toFixed(1); return; }
+    playing = false; setHours(dayBase + clamp(+this.value, 0, 24), true); sound.tick(+this.value / 24); requestRender();
   };
+  $('time').onchange = function () { pushState(); };
   $('zoom').oninput = function () {
     if (locked()) { this.value = Math.round(zoom * 100); return; }
     stopCamAnim(); zoom = +this.value / 100; sound.tick(zoom); poke(); requestRender();
@@ -1005,11 +1047,11 @@ import { sound } from '../../lib/sound.js';
 
   // 카메라를 부드럽게 옮기기 (방위·시점)
   var camAnim = null;
-  function stopCamAnim() { if (camAnim) { cancelAnimationFrame(camAnim); camAnim = null; } }
+  function stopCamAnim() { dirTarget = null; if (camAnim) { cancelAnimationFrame(camAnim); camAnim = null; } }
   function animateCam(tAz, tZoom) {
     stopCamAnim();
     var fAz = viewAz, dd = tAz == null ? 0 : angDiff(tAz, viewAz), fZ = zoom, lu0 = lookUp, t0 = null;
-    var dur = 420 + Math.abs(dd) * 1.2 + (tZoom == null ? 0 : Math.abs(tZoom - zoom) * 600);
+    var dur = Math.min(1500, 450 + Math.abs(dd) * 1.4 + (tZoom == null ? 0 : Math.abs(tZoom - zoom) * 500));   // 최대 약 1.2~1.5초
     function step(ts) {
       if (t0 === null) t0 = ts;
       var k = Math.min(1, (ts - t0) / dur); k = k * k * (3 - 2 * k);
@@ -1017,7 +1059,7 @@ import { sound } from '../../lib/sound.js';
       if (tZoom != null) zoom = lerp(fZ, tZoom, k);
       poke();
       if (!playing) { perfSample(ts); render(); }
-      if (k < 1) camAnim = requestAnimationFrame(step); else { camAnim = null; updateUI(); pushState(); }
+      if (k < 1) camAnim = requestAnimationFrame(step); else { camAnim = null; dirTarget = null; updateUI(); pushState(); }
     }
     camAnim = requestAnimationFrame(step);
   }
@@ -1030,14 +1072,15 @@ import { sound } from '../../lib/sound.js';
     });
   }
   // 방향 버튼: 관측자 시선으로 들어가 그쪽 하늘을 바라봄
-  segBind('dirSeg', function (v) { sound.whoosh(); animateCam(+v, 1); });
+  segBind('dirSeg', function (v) { sound.whoosh(); animateCam(+v, 1); dirTarget = +v; updateUI(); });
+  segBind('speedSeg', function (v) { sound.click(); SPEED = +v; updateUI(); });
   $('zOut').onclick = function () { if (locked()) return; sound.whoosh(); animateCam(null, 0); };
   $('zIn').onclick = function () { if (locked()) return; sound.whoosh(); animateCam(null, 1); };
   segBind('latSeg', function (v) { sound.click(); setLat(+v); trailFrom = hours; lookUp = 0; render(); pushState(); });
   segBind('senseSeg', function (v) {
     var ns = v === 'ccw' ? 1 : -1;
     sound.click();
-    if (ns !== sense) { sense = ns; hours = 0; trailFrom = 0; }
+    if (ns !== sense) { sense = ns; trailFrom = 0; setHours(0); }
     render();
   });
 
@@ -1079,6 +1122,7 @@ import { sound } from '../../lib/sound.js';
     if (d > Math.PI) d -= 2 * Math.PI; if (d < -Math.PI) d += 2 * Math.PI;
     var before = hours;
     dragA = a; setHours(hours + sense * d / D2R / 15);
+    accrue(hours - before);
     if (Math.floor(hours) !== Math.floor(before)) sound.tick((hours % 24) / 24);   // 1시간(15°)마다 '틱'
     requestRender();
   });
@@ -1091,7 +1135,8 @@ import { sound } from '../../lib/sound.js';
       var t = sl.querySelector('.tile'); placed[+sl.getAttribute('data-pos')] = t ? t.getAttribute('data-d') : '';
     });
     var was = dirDone; dirDone = placed.every(Boolean);
-    $('placeHint').hidden = dirDone; $('placeDone').hidden = !dirDone; $('dirNote').hidden = dirDone;
+    $('placeHint').hidden = dirDone; $('placeDone').hidden = !dirDone; tray.style.display = dirDone ? 'none' : '';   // 다 채우면 빈 쟁반은 숨김(칸의 카드를 누르면 다시 나옴)
+    updateUI();
     if (dirDone && !was) sound.chime();
     pushState(); drawTop();
   }
@@ -1170,7 +1215,7 @@ import { sound } from '../../lib/sound.js';
   $('resetAll').onclick = function () {
     if (locked()) return;
     stopCamAnim(); playing = false;
-    hours = 0; trailFrom = 0; sense = 1; setLat(37.5);
+    trailFrom = 0; sense = 1; setLat(37.5); setHours(0);
     viewAz = 320; camEl = 22; zoom = 0; lookUp = 0;
     if (selTile) { selTile.classList.remove('sel'); selTile = null; }
     ['동', '서', '남', '북'].forEach(function (d) { tray.appendChild(document.querySelector('.tile[data-d="' + d + '"]')); });
