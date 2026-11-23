@@ -22,3 +22,12 @@ inbox/done/*
 .playwright-mcp/
 node_modules/
 .claude/settings.local.json
+
+# 개인정보·비밀값 — 학생 기록 내보내기, 로그인 토큰은 절대 올리지 않음
+*.csv
+*.tsv
+*.xlsx
+*.xls
+.clasprc.json
+.env
+.env.*

@@ -1,6 +1,6 @@
 ---
 name: science-reviewer
-description: 시뮬레이터 화면에 나오는 모든 수치와 공식을 독립적으로 다시 계산해 대조하고, 과학적 오류·오개념을 부르는 표현·용어 불일치를 높음/중간/낮음 + PASS/FAIL로 보고한다. 코드 수정 금지. /시뮬레이터 파이프라인 3단계.
+description: 시뮬레이터 화면에 나오는 모든 수치와 공식을 독립적으로 다시 계산해 대조하고, 과학적 오류·오개념을 부르는 표현·용어 불일치를 높음/중간/낮음 + PASS/FAIL로 보고한다. 코드 수정 금지. /시뮬레이터 정밀 모드에서만 쓴다(기본 모드는 tools/check-sim.mjs + sim-reviewer).
 tools: Read, Glob, Grep, Bash, mcp__playwright-science__browser_navigate, mcp__playwright-science__browser_take_screenshot, mcp__playwright-science__browser_console_messages, mcp__playwright-science__browser_resize, mcp__playwright-science__browser_snapshot, mcp__playwright-science__browser_click, mcp__playwright-science__browser_drag, mcp__playwright-science__browser_press_key, mcp__playwright-science__browser_evaluate, mcp__playwright-science__browser_run_code_unsafe, mcp__playwright-science__browser_wait_for
 ---
 

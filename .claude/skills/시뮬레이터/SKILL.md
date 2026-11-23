@@ -1,6 +1,6 @@
 ---
 name: 시뮬레이터
-description: 교과서 이미지(채팅 첨부 또는 inbox/ 폴더)를 받아 단원설계서 → 시뮬레이터 → 3중 검수(최대 3회 수정) → 활동지·교사용 안내·클래스룸 게시글 → units.json 등록·커밋·main 푸시까지 중간 확인 없이 끝까지 실행한다. 교과서 이미지만 첨부되고 다른 지시가 없을 때, 또는 /시뮬레이터 로 부를 때 쓴다. "/시뮬레이터 모의"는 이미지 없이 단계 목록만 출력하는 점검 실행.
+description: 교과서 이미지(채팅 첨부 또는 inbox/ 폴더)를 받아 단원설계서 → 시뮬레이터 → 자동 점검 + 검수 1명(최대 2회 수정) → 활동지·교사용 안내·클래스룸 게시글 → units.json 등록·커밋·main 푸시까지 중간 확인 없이 끝까지 실행한다. 교과서 이미지만 첨부되고 다른 지시가 없을 때, 또는 /시뮬레이터 로 부를 때 쓴다. "/시뮬레이터 모의"는 이미지 없이 단계 목록만 출력하는 점검 실행. "/시뮬레이터 정밀"은 예전 3중 검수(QA·과학·UX 3명)로 돈다.
 ---
 
 # /시뮬레이터 — 교과서 이미지 → 완성 시뮬레이터 전자동 파이프라인
@@ -12,7 +12,8 @@ description: 교과서 이미지(채팅 첨부 또는 inbox/ 폴더)를 받아 �
 ## 0. 모의 실행 (`/시뮬레이터 모의`, `--dry-run`)
 인자에 `모의` 또는 `--dry-run`이 있으면 **아무 파일도 만들거나 바꾸지 않고** 다음만 합니다.
 1. 설정 점검 결과를 표로 출력: 각 항목 ✅/❌
-   - `.claude/agents/`의 6개 파일(curriculum-analyst, sim-builder, qa-tester, science-reviewer, student-ux-reviewer, activity-writer)
+   - `.claude/agents/`의 7개 파일(curriculum-analyst, sim-builder, sim-reviewer, activity-writer, 정밀 모드용 qa-tester, science-reviewer, student-ux-reviewer)
+   - `node tools/check-sim.mjs sample-specific-heat --no-fps`가 실행되는지(playwright 패키지 없으면 ❌, 비고에 설치 명령)
    - `.claude/settings.json` 허용 목록에 Edit·Write·`npx serve`·`git add/commit/push`·`mcp__playwright*`
    - `.mcp.json`에 playwright, playwright-science, playwright-ux 서버(`node tools/playwright-mcp.mjs` — 윈도우·리눅스 공용)
    - ToolSearch로 세 서버의 `browser_navigate`가 실제로 잡히는지, 그리고 `mcp__playwright__browser_navigate`로 `about:blank`를 실제로 열 수 있는지
@@ -52,21 +53,25 @@ Agent(subagent_type: `curriculum-analyst`)에 이미지 경로들(또는 `.work/
 
 ### 2. 구현 — `sim-builder`
 Agent(`sim-builder`)에 `<ID>`와 설계서 경로를 넘깁니다. → `sims/<ID>/`.
+sim-builder는 스스로 `node tools/check-sim.mjs <ID>`(자동 점검)를 돌려 '높음'이 없을 때까지 고친 뒤 돌려줍니다.
 (가능하면 CLAUDE.md "실시간 미리보기 링크" 규칙대로 미리보기 Artifact를 띄우고 링크를 기록합니다. 안 되면 건너뜀.)
 
-### 3. 검수 — 3명 병렬
-한 메시지에서 Agent 세 개를 동시에 부릅니다: `qa-tester`, `science-reviewer`, `student-ux-reviewer`.
-각자에게 `<ID>`, 회차 `N`, 서버 주소 `http://localhost:5173/sims/<ID>/`만 넘깁니다(이전 회차 결과는 넘기지 않음).
-**매 회차 새 Agent로 부릅니다**(SendMessage로 이어 쓰지 않음) — 이전 판단에 끌려가지 않게.
-돌아온 보고서를 `.work/<ID>/회차<N>/{qa,science,ux}.md`로 저장하고 `진행.md`에 요약 한 줄씩:
-`회차 N | QA PASS/FAIL (높음 a, 중간 b, 낮음 c) | 과학 … | UX …`
+### 3. 검수 — 자동 점검 + 검수자 1명 (기본 모드)
+1. Bash로 `node tools/check-sim.mjs <ID>` 실행 → `.work/<ID>/자동점검/보고서.md`. 이 보고서는 읽고 요약만 합니다(오케스트레이터가 스크린샷을 직접 보지 않음).
+   - playwright 패키지가 없다는 오류면 `npm i --no-save playwright && npx playwright install chromium` 후 다시 실행.
+2. Agent(`sim-reviewer`)를 부릅니다: `<ID>`, 회차 `N`, 자동 점검 보고서 경로. (과학 검산 + 학생 눈 — 기계가 못 보는 것만)
+3. 보고서를 `.work/<ID>/회차<N>/검수.md`로 저장하고 `진행.md`에 한 줄: `회차 N | 자동 PASS/FAIL (높음 a, 중간 b) | 검수 PASS/FAIL (높음 c, 중간 d)`
 
-### 4. 수정 반복 — `sim-builder`
-세 보고서 중 하나라도 FAIL이거나 '높음'이 있으면:
-Agent(`sim-builder`, 새로 부름)에 `<ID>`와 이번 회차 보고서 3개 경로를 넘겨 고치게 한 뒤 3단계를 회차 N+1로 다시 합니다.
-- 수정은 **최대 3회**(검수는 최대 4회차: 1회차 + 수정 후 재검수 3번).
-- 모두 PASS이고 '높음'이 없으면 반복을 끝냅니다. 남은 중간·낮음 중 쉬운 것은 마지막 수정 때 함께 고치게 해도 됩니다.
-- 3회 수정 뒤에도 FAIL이면 멈추지 말고 다음 단계로 가되, 남은 문제를 최종 보고에 그대로 적고 `units.json`의 `status`를 `"검토 중"`으로 둡니다.
+**정밀 모드**(`/시뮬레이터 정밀`, 또는 3D·물리 엔진을 쓰는 큰 단원에서 선생님이 요청할 때만): 예전처럼 `qa-tester`·`science-reviewer`·`student-ux-reviewer` 셋을 한 메시지에서 병렬로 부르고 `.work/<ID>/회차<N>/{qa,science,ux}.md`로 저장합니다.
+
+### 4. 수정 — `sim-builder` (최대 2회)
+자동 점검이나 검수에 '높음'이 있거나 FAIL이면:
+1. Agent(`sim-builder`, 새로 부름)에 `<ID>`와 이번 회차 보고서 2개(자동점검·검수) 경로를 넘겨 높음 → 중간 순으로 고치게 합니다. 쉬운 낮음은 함께 고쳐도 됩니다.
+2. 다시 `node tools/check-sim.mjs <ID>` 실행(자동 점검은 매번 처음부터).
+3. 검수자는 고친 것만 확인합니다: Agent(`sim-reviewer`, 새로 부름)에 회차 N+1과 직전 검수 보고서 경로를 함께 넘깁니다(전체 재검수 아님).
+- 수정은 최대 2회. 모두 PASS이고 높음이 없으면 바로 다음 단계로.
+- 직전 회차에 높음이 없고 중간만 있었다면 재검수 없이 자동 점검만 다시 돌리고 끝냅니다.
+- 2회 수정 뒤에도 FAIL이면 멈추지 말고 다음 단계로 가되, 남은 문제를 최종 보고에 적고 `units.json`의 `status`를 `"검토 중"`으로 둡니다.
 
 ### 5. 수업 자료 — `activity-writer`
 Agent(`activity-writer`)에 `<ID>`를 넘깁니다. → `activities/<ID>/활동지.md`, `교사용안내.md`, `클래스룸게시글.md`.
@@ -87,7 +92,7 @@ Agent(`activity-writer`)에 `<ID>`를 넘깁니다. → `activities/<ID>/활동�
 
 ### 7. 최종 보고 (한국어, 이 순서)
 1. **완성 주소** — 시뮬레이터 `https://ksj-science.github.io/science-sim/sims/<ID>/`, 웹앱 `…/exec?unit=<ID>`, 포털, 미리보기 링크(있으면). Pages 반영 1~2분.
-2. **검수 회차별 요약** — 표: 회차 | QA | 과학 | 학생 UX | 고친 것 요약
+2. **검수 회차별 요약** — 표: 회차 | 자동 점검 | 검수(과학·UX) | 고친 것 요약
 3. **남은 문제** — 심각도와 함께(없으면 "없음")
 4. **내가 정한 것** — 개정연도 판단 근거, 단원 ID·순번, 고른 아이디어와 이유, 단순화, 문항 유형, 반복 중 내린 판단 등
 5. **구글 시트에 넣을 단원 값** — 붙여 넣기용 탭 구분 코드 블록 두 개

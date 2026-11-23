@@ -5,7 +5,7 @@
 
 ## 대화
 - 선생님(성준)과는 한국어로 대화합니다. 커밋 메시지도 한국어로 씁니다.
-- **교과서 이미지만 첨부되고 다른 지시가 없으면 `/시뮬레이터` 스킬을 실행한다.** (`.claude/skills/시뮬레이터/SKILL.md` — 설계 → 구현 → 3중 검수 → 활동지 → 등록·푸시까지 전자동. `inbox/` 폴더에 넣은 이미지도 같은 입력으로 씀)
+- **교과서 이미지만 첨부되고 다른 지시가 없으면 `/시뮬레이터` 스킬을 실행한다.** (`.claude/skills/시뮬레이터/SKILL.md` — 설계 → 구현 → 자동 점검·검수 → 활동지 → 등록·푸시까지 전자동. `inbox/` 폴더에 넣은 이미지도 같은 입력으로 씀)
 - 교과서 자료를 받으면 계획 확인을 기다리지 않고 바로 설계서·시뮬레이터·문항까지 만듭니다.
   애매한 점(단원 ID·차시 번호, 화면 구성, 문항 수, 채점 방식 등)은 합리적으로 정해 진행하고,
   완료 보고 때 "정한 것"으로 따로 알려 선생님이 고칠 수 있게 합니다.
@@ -79,10 +79,10 @@
 
 ## 완료 전 확인
 1. 만들기 전에 화면 구성과 학습 목표를 설계서에 짧게 정리
-2. 로컬 서버(`npx serve`)로 띄우고 Playwright로 열어 스크린샷을 찍고, 콘솔 오류가 없는지, 화면이 잘리지 않는지 확인
-   (1366×768과 태블릿 세로 화면 모두)
-3. 버튼·슬라이더를 실제로 조작해 보고, 조작 → `SimBridge` 상태가 바뀌는지 확인
-4. 어색하거나 단순해 보이는 부분을 찾아 고치는 과정을 최소 2번 반복
+2. `node tools/check-sim.mjs <ID>`(자동 점검)로 1366×768·1280×800·768×1024 배치·잘림·겹침, 콘솔 오류, 모든 조작 → 화면·`SimBridge` 변화, 소리·음소거, fps, 잠금을 한 번에 확인
+   (처음 한 번 `npm i --no-save playwright && npx playwright install chromium` 필요. 결과는 `.work/<ID>/자동점검/`)
+3. 자동 점검 스크린샷을 보고 어색하거나 단순해 보이는 부분을 한 번 다듬기
+4. 검수는 기계가 못 보는 것(과학 검산·학생 눈)만 `sim-reviewer` 1명이 봄 — 토큰을 아끼기 위해 스크린샷을 여러 장 찍지 않음
 5. `units.json` 등록 후 포털(`index.html`)에서 링크 확인
 6. 커밋 후 작업 브랜치와 `main`에 모두 푸시해 GitHub Pages에 바로 올림 (선생님이 바로 볼 수 있게 — `main` 푸시는 허락받음)
 7. 완료 보고에 무엇을 만들었고 어떻게 확인했는지 짧게 적고, 바로 열리는 주소를 줌: 시뮬레이터 `https://ksj-science.github.io/science-sim/sims/<ID>/`, 웹앱 `…/exec?unit=<ID>`
@@ -96,7 +96,8 @@
 - 문항·정답을 시트에 넣을 때는 탭 구분 텍스트를 클립보드로 붙여넣기(직접 타이핑하면 Tab이 먹지 않음).
 
 ## 전자동 파이프라인 (`/시뮬레이터`)
-- 서브에이전트(`.claude/agents/`): `curriculum-analyst`(설계서) → `sim-builder`(구현·수정) → `qa-tester`·`science-reviewer`·`student-ux-reviewer`(병렬 검수, 코드 수정 금지, 높음/중간/낮음 + PASS/FAIL) → `activity-writer`(수업 자료).
-- 검수에서 FAIL이나 '높음'이 있으면 `sim-builder`가 고치고 검수자를 새로 불러 다시 검수(수정 최대 3회).
-- 검수자 3명은 서로 다른 Playwright 서버를 씁니다(`.mcp.json`: `playwright`=QA·제작, `playwright-science`, `playwright-ux`). 서버는 `tools/playwright-mcp.mjs`가 띄워 윈도우(학교 PC)·리눅스(클라우드 세션) 모두에서 동작 — 병렬로 돌아도 브라우저가 섞이지 않게.
+- 서브에이전트(`.claude/agents/`): `curriculum-analyst`(설계서) → `sim-builder`(구현·수정, 자동 점검으로 스스로 확인) → 자동 점검 `tools/check-sim.mjs` + `sim-reviewer`(과학·학생 UX, Sonnet, 코드 수정 금지) → `activity-writer`(수업 자료, Sonnet).
+- 높음이 있으면 `sim-builder`가 고치고, 자동 점검은 다시 전부, 검수자는 고친 것만 확인(수정 최대 2회).
+- `/시뮬레이터 정밀`: 예전 3중 검수(`qa-tester`·`science-reviewer`·`student-ux-reviewer` 병렬, 각자 다른 Playwright 서버 — `.mcp.json`의 `playwright`·`playwright-science`·`playwright-ux`). 3D·물리 엔진을 쓰는 큰 단원에서 선생님이 요청할 때만.
+- 서버는 `tools/playwright-mcp.mjs`가 띄워 윈도우(학교 PC)·리눅스(클라우드 세션) 모두에서 동작.
 - `/시뮬레이터 모의`: 이미지 없이 설정 점검과 단계 목록만 출력.
