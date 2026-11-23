@@ -1,0 +1,591 @@
+// 22-2-7-2-03 일식과 월식 관측소 — 화면 연결·상태 관리
+import { sound } from '../../lib/sound.js';
+import { toast, paintRange } from '../../lib/utils.js';
+import { Space } from './scene3d.js';
+import { Sky } from './sky.js';
+import {
+  EVENTS, bookGeom, freeGeom, bookAngle, eclipseState, STATE_KO,
+  timeStr, timeDisplay, clockOf,
+} from './model.js';
+
+SimBridge.init('22-2-7-2-03');
+
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+
+// ── 효과음 ──
+const sfx = {
+  tick: v => sound.tick(v),
+  edge: () => { sound._tone({ freq: 294, type: 'sine', dur: 0.8, vol: 0.2 }); sound._tone({ freq: 588, type: 'sine', dur: 0.5, vol: 0.05 }); },
+  total: () => [262, 330, 392, 523].forEach((f, i) => sound._tone({ freq: f, type: 'sine', dur: 2.2, vol: 0.06, attack: 0.25, delay: i * 0.05 })),
+  whoosh: () => sound.whoosh(),
+  place: () => sound.soft(),
+  good: () => { sound._tone({ freq: 880, type: 'triangle', dur: 0.16, vol: 0.15 }); sound._tone({ freq: 1318, type: 'triangle', dur: 0.3, vol: 0.15, delay: 0.13 }); },
+  bad: () => sound._tone({ freq: 196, type: 'triangle', dur: 0.35, vol: 0.18 }),
+  click: () => sound.click(),
+  reset: () => sound.reset(),
+};
+
+// ── 상태 ──
+const FREE_START = { angle: 300, h: 0 };
+const st = {
+  mode: 'solar',
+  t: { solar: EVENTS.solar.tMin, lunar: EVENTS.lunar.tMin },
+  tf: { solar: EVENTS.solar.tMin, lunar: EVENTS.lunar.tMin },   // 재생 중 소수 분
+  angle: FREE_START.angle, h: FREE_START.h,
+  playing: false, speed: 1, freeSpeed: 6,
+  real: false,
+  quality: 'high',
+  lastBook: 'solar',
+  orderTarget: 'solar',
+  slots: { solar: [null, null, null], lunar: [null, null, null] },
+  anim: null,           // 자유 배치 달 이동 애니메이션
+  locked: false,
+};
+const rec = {
+  maxCover: { solar: 0, lunar: 0, free: 0 },
+  firstSide: { solar: '', lunar: '', free: '' },
+  bins: { solar: new Set(), lunar: new Set() },
+  viewed: { solar: false, lunar: false },
+  order: { solar: '', lunar: '' },
+  orderTried: 0,
+  realViewed: false,
+};
+let prevCover = null, prevView = null, prevG = null;
+let cur = null;   // 지금 기하
+
+// ── 3D와 하늘 ──
+const space = new Space($('#space3d'), {
+  onMoonDrag: deg => {
+    if (deg === null) { pushState(); return; }
+    if (st.locked || st.mode !== 'free') return;
+    stopAnim();
+    const d = Math.round(deg) % 360;
+    if (d !== st.angle) {
+      const dir = angDiff(d, st.angle) > 0 ? 1 : -1;
+      st.angle = d; sfx.tick(d / 360); update(dir);
+    }
+  },
+  onDragBlocked: () => toast('달을 직접 끌어 옮기려면 자유 배치를 고르세요'),
+});
+const sky = new Sky($('#sky'));
+const angDiff = (a, b) => ((a - b + 540) % 360) - 180;
+
+// ── 계산·화면 갱신 ──
+function compute() {
+  if (st.mode === 'free') {
+    return { g: freeGeom(st.angle, st.h), angle: st.angle, h: st.h };
+  }
+  const g = bookGeom(st.mode, st.t[st.mode]);
+  return { g, angle: bookAngle(st.mode, st.t[st.mode]), h: 0 };
+}
+
+function elapsed(mode) {
+  const ev = EVENTS[mode];
+  return Math.max(0, Math.min(ev.end - ev.start, st.t[mode] - ev.start));
+}
+
+function stateLabel(mode, g) {
+  const s = eclipseState(g.view, g.cover);
+  if (mode !== 'free' && s === 'none') {
+    const ev = EVENTS[mode];
+    return st.t[mode] < ev.start ? '식 전' : '식 끝';
+  }
+  return STATE_KO[s];
+}
+
+// dir: 시간·각도가 앞으로(+1) 갔는지 뒤로(−1) 갔는지 (0 = 알 수 없음)
+function update(dir = 0, quiet = false) {
+  const c = compute();
+  cur = c;
+  const g = c.g;
+  space.setMoon(c.angle, c.h);
+
+  const note = st.mode === 'free' ? '모형: 크기·거리는 실제와 달라요' : '모형: 실제 모양은 천문학습관에서 확인';
+  sky.draw(g, { note });
+
+  // 읽음값
+  $('#rCover').textContent = g.cover.toFixed(1) + ' %';
+  if (st.mode === 'free') {
+    $('#rSecondK').textContent = '달의 위치 각도';
+    $('#rSecond').textContent = `${Math.round(c.angle) % 360}°`;
+  } else {
+    $('#rSecondK').textContent = '지난 시간';
+    $('#rSecond').textContent = `${elapsed(st.mode)} 분`;
+  }
+  const s = eclipseState(g.view, g.cover);
+  const rs = $('#rState');
+  rs.textContent = stateLabel(st.mode, g);
+  rs.className = 'v' + (s.startsWith('total') ? ' total' : s !== 'none' ? ' on' : '');
+  $('#rBy').textContent = g.view === 'solar' ? '달' : '지구의 그림자';
+
+  // 기록
+  const m = st.mode;
+  rec.maxCover[m] = Math.max(rec.maxCover[m], g.cover);
+  if (m !== 'free') {
+    const ev = EVENTS[m], t = st.t[m];
+    if (t <= ev.start) rec.bins[m].add('before');
+    if (t >= ev.end) rec.bins[m].add('after');
+    if (t >= ev.start && t <= ev.end) rec.bins[m].add(Math.floor((t - ev.start) / 10));
+    const need = Math.floor((ev.end - ev.start) / 10);
+    let all = rec.bins[m].has('before') && rec.bins[m].has('after');
+    for (let i = 0; all && i <= need; i++) if (!rec.bins[m].has(i)) all = false;
+    if (all) rec.viewed[m] = true;
+  }
+
+  // 소리와 '먼저 가려진 쪽'
+  if (prevCover !== null && prevView === g.view && !quiet) {
+    if (prevCover <= 0.0001 && g.cover > 0.0001) {
+      sfx.edge();
+      if (dir > 0) {
+        // 가려지기 직전 가림체가 있던 쪽 = 먼저 가려진 쪽
+        const p = prevG || g;
+        const side = Math.abs(p.occX) < 0.15 * Math.abs(p.occY) ? '' : (p.occX > 0 ? 'west' : 'east');
+        rec.firstSide[m] = side;
+      }
+    } else if (prevCover > 0.0001 && g.cover <= 0.0001) sfx.edge();
+    if (prevCover < 99.95 && g.cover >= 99.95) sfx.total();
+  }
+  prevCover = g.cover; prevView = g.view; prevG = g;
+
+  if (m !== 'free') st.lastBook = m;
+  syncControls();
+  pushState();
+}
+
+function syncControls() {
+  if (st.mode !== 'free') {
+    const m = st.mode, ev = EVENTS[m], t = st.t[m];
+    const d = timeDisplay(m, t);
+    $('#tDate').textContent = d.date;
+    $('#tClock').textContent = d.clock;
+    $('#mlStart').textContent = `교과서 진행 시작 ${clockOf(ev.start)}`;
+    $('#mlEnd').textContent = `진행 끝 ${clockOf(ev.end)}`;
+    const sl = $('#tSlider');
+    if (+sl.min !== ev.tMin) { sl.min = ev.tMin; sl.max = ev.tMax; }
+    sl.value = t;
+    sl.setAttribute('aria-valuetext', `${d.date} ${d.clock}`);
+    paintRange(sl);
+    const pct = v => `calc(${(v - ev.tMin) / (ev.tMax - ev.tMin)} * (100% - 16px) + 8px)`;
+    $('#mkStart').style.left = pct(ev.start);
+    $('#mkEnd').style.left = pct(ev.end);
+    $('#mlStart').style.left = pct(ev.start);
+    const fe = (ev.end - ev.tMin) / (ev.tMax - ev.tMin);
+    $('#mlEnd').style.right = `calc(${1 - fe} * (100% - 16px) + 8px)`;
+  } else {
+    const a = Math.round(st.angle) % 360;
+    $('#aSlider').value = a;
+    $('#aOut').textContent = `${a}°`;
+    $('#aSlider').setAttribute('aria-valuetext', `${a}도`);
+    $('#hSlider').value = st.h;
+    $('#hOut').textContent = `${st.h > 0 ? '+' : ''}${st.h.toFixed(1)} (모형 단위)`;
+    $('#hSlider').setAttribute('aria-valuetext', `${st.h.toFixed(1)} 모형 단위`);
+  }
+  for (const b of $$('.play')) {
+    const on = st.playing;
+    b.classList.toggle('playing', on);
+    b.querySelector('span').textContent = on ? '멈춤' : (b.id === 'btnFreePlay' ? '공전' : '재생');
+    b.setAttribute('aria-label', on ? '일시정지' : '재생');
+  }
+}
+
+// ── 웹앱으로 상태 보내기 (몰아서) ──
+let pushTimer = null;
+function pushState() {
+  if (pushTimer) return;
+  pushTimer = setTimeout(() => {
+    pushTimer = null;
+    const g = cur.g, m = st.mode;
+    SimBridge.setState({
+      mode: m,
+      timeStr: timeStr(st.lastBook, st.t[st.lastBook]),
+      elapsedMin: elapsed(st.lastBook),
+      coverPct: Math.round(g.cover * 10) / 10,
+      maxCoverPct: Math.round(rec.maxCover[m] * 10) / 10,
+      eclipseState: eclipseState(g.view, g.cover),
+      firstCoveredSide: rec.firstSide[m],
+      firstCoveredSideSolar: rec.firstSide.solar,
+      firstCoveredSideLunar: rec.firstSide.lunar,
+      moonAngleDeg: Math.round(cur.angle) % 360,
+      moonHeight: Math.round(cur.h * 10) / 10,
+      orderSolar: rec.order.solar,
+      orderLunar: rec.order.lunar,
+      orderTried: rec.orderTried,
+      viewedSolar: rec.viewed.solar,
+      viewedLunar: rec.viewed.lunar,
+      realScaleViewed: rec.realViewed,
+    });
+  }, 120);
+}
+
+// ── 모드 ──
+function setMode(m, { silent = false } = {}) {
+  if (m === st.mode && !silent) return;
+  setPlaying(false);
+  stopAnim();
+  st.mode = m;
+  for (const b of $$('.tabs button')) b.setAttribute('aria-selected', String(b.dataset.mode === m));
+  $('#timePanel').hidden = m === 'free';
+  $('#freePanel').hidden = m !== 'free';
+  space.dragEnabled = m === 'free';
+  space.setFreeHints(m === 'free');
+  if (m !== 'free') setOrderTarget(m);
+  prevCover = null;
+  if (!silent) sfx.whoosh();
+  update(0, true);
+}
+
+// ── 시간 ──
+function setTime(t, dir) {
+  const ev = EVENTS[st.mode];
+  t = Math.max(ev.tMin, Math.min(ev.tMax, Math.round(t)));
+  if (t === st.t[st.mode]) return false;
+  const old = st.t[st.mode];
+  st.t[st.mode] = t; st.tf[st.mode] = t;
+  update(dir ?? Math.sign(t - old));
+  return true;
+}
+
+function setPlaying(on) {
+  if (on === st.playing) return;
+  st.playing = on;
+  if (on && st.mode !== 'free') {
+    const ev = EVENTS[st.mode];
+    if (st.t[st.mode] >= ev.tMax) { st.t[st.mode] = ev.tMin; st.tf[st.mode] = ev.tMin; prevCover = null; update(0, true); }
+  }
+  if (on) stopAnim();
+  syncControls();
+}
+
+$$('.tabs button').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
+$$('[data-step]').forEach(b => b.addEventListener('click', () => {
+  setPlaying(false);
+  if (setTime(st.t[st.mode] + +b.dataset.step)) sfx.tick(0.5 + Math.sign(+b.dataset.step) * 0.2);
+}));
+$('#tSlider').addEventListener('input', e => {
+  setPlaying(false);
+  const v = +e.target.value;
+  if (setTime(v)) sfx.tick((v - +e.target.min) / (+e.target.max - +e.target.min));
+});
+$('#btnPlay').addEventListener('click', () => { setPlaying(!st.playing); sfx.click(); });
+$$('#speedSeg button').forEach(b => b.addEventListener('click', () => {
+  st.speed = +b.dataset.speed;
+  $$('#speedSeg button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  sfx.click();
+}));
+
+// ── 자유 배치 ──
+function setAngle(a, dir) {
+  a = ((Math.round(a) % 360) + 360) % 360;
+  if (a === st.angle) return false;
+  const d = dir ?? Math.sign(angDiff(a, st.angle));
+  st.angle = a;
+  update(d);
+  return true;
+}
+function setHeight(h) {
+  h = Math.max(-3, Math.min(3, Math.round(h * 10) / 10));
+  if (h === st.h) return false;
+  st.h = h; update(0);
+  return true;
+}
+function stopAnim() { st.anim = null; }
+// 달을 목표 각도로 부드럽게 옮김
+function animateTo(angle, h = st.h) {
+  setPlaying(false);
+  const from = st.angle, d = angDiff(angle, from);
+  st.anim = { from, d, hFrom: st.h, hTo: h, t: 0, dur: Math.min(1.3, 0.35 + Math.abs(d) / 160) };
+}
+$('#aSlider').addEventListener('input', e => {
+  setPlaying(false); stopAnim();
+  if (setAngle(+e.target.value)) sfx.tick(+e.target.value / 360);
+});
+$('#hSlider').addEventListener('input', e => {
+  stopAnim();
+  if (setHeight(+e.target.value)) sfx.tick((+e.target.value + 3) / 6);
+});
+$$('[data-astep]').forEach(b => b.addEventListener('click', () => {
+  setPlaying(false); stopAnim();
+  if (setAngle(st.angle + +b.dataset.astep, Math.sign(+b.dataset.astep))) sfx.tick(st.angle / 360);
+}));
+$$('[data-hstep]').forEach(b => b.addEventListener('click', () => {
+  stopAnim();
+  if (setHeight(st.h + +b.dataset.hstep)) sfx.tick((st.h + 3) / 6);
+}));
+$$('[data-goto]').forEach(b => b.addEventListener('click', () => { animateTo(+b.dataset.goto); sfx.whoosh(); }));
+$('[data-hzero]').addEventListener('click', () => { stopAnim(); if (setHeight(0)) sfx.tick(0.5); });
+$('#btnFreePlay').addEventListener('click', () => { setPlaying(!st.playing); sfx.click(); });
+
+// 3D에 초점이 있을 때 화살표 키
+$('#space3d').addEventListener('keydown', e => {
+  if (st.locked || st.mode !== 'free') return;
+  const step = e.shiftKey ? 10 : 1;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+    stopAnim(); setPlaying(false);
+    if (setAngle(st.angle + (e.key === 'ArrowRight' ? step : -step))) sfx.tick(st.angle / 360);
+    e.preventDefault();
+  } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+    stopAnim();
+    if (setHeight(st.h + (e.key === 'ArrowUp' ? 0.1 : -0.1))) sfx.tick((st.h + 3) / 6);
+    e.preventDefault();
+  }
+});
+
+// ── 실제 크기 느낌 ──
+$('#btnReal').addEventListener('click', () => {
+  st.real = !st.real;
+  $('#btnReal').setAttribute('aria-pressed', String(st.real));
+  $('#bubble').hidden = !st.real;
+  space.setRealScale(st.real);
+  if (st.real) rec.realViewed = true;
+  sfx.whoosh();
+  pushState();
+});
+$('#btnCam').addEventListener('click', () => {
+  if (st.real) { st.real = false; $('#btnReal').setAttribute('aria-pressed', 'false'); $('#bubble').hidden = true; }
+  space.setRealScale(false);
+  sfx.click();
+});
+
+// ── 소리·품질·초기화 ──
+function syncMute() {
+  const b = $('#btnMute');
+  b.setAttribute('aria-pressed', String(sound.muted));
+  b.querySelector('span').textContent = sound.muted ? '소리 꺼짐' : '소리';
+  b.title = sound.muted ? '소리 켜기' : '소리 끄기';
+}
+$('#btnMute').addEventListener('click', () => { sound.toggleMute(); syncMute(); sfx.click(); });
+syncMute();
+
+function setQuality(q, auto = false) {
+  st.quality = q;
+  space.setQuality(q);
+  sky.setQuality(q);
+  if (cur) sky.draw(cur.g, sky.last?.opt);
+  $('#btnQuality span').textContent = q === 'high' ? '품질 높음' : '품질 낮음';
+  $('#btnQuality').setAttribute('aria-label', `그래픽 품질 ${q === 'high' ? '높음' : '낮음'}, 눌러서 바꾸기`);
+  if (auto) toast('화면이 느려서 그래픽 품질을 \'낮음\'으로 바꿨어요', 3200);
+}
+$('#btnQuality').addEventListener('click', () => { setQuality(st.quality === 'high' ? 'low' : 'high'); sfx.click(); });
+
+$('#btnReset').addEventListener('click', () => {
+  setPlaying(false); stopAnim();
+  st.t.solar = st.tf.solar = EVENTS.solar.tMin;
+  st.t.lunar = st.tf.lunar = EVENTS.lunar.tMin;
+  st.angle = FREE_START.angle; st.h = FREE_START.h;
+  st.slots.solar = [null, null, null]; st.slots.lunar = [null, null, null];
+  if (st.real) { st.real = false; $('#btnReal').setAttribute('aria-pressed', 'false'); $('#bubble').hidden = true; }
+  space.setRealScale(false);
+  space.resetCamera();
+  setOrderTarget(st.mode === 'lunar' ? 'lunar' : 'solar');
+  setMsg('카드를 끌어 칸에 놓거나, 카드를 눌러 빈칸에 차례로 넣어요.');
+  prevCover = null;
+  update(0, true);
+  sfx.reset();
+});
+
+// ── 순서 카드 ──
+const tray = $('#tray');
+const slotEls = $$('.slot');
+const cardEls = $$('.card');
+const cardOf = name => cardEls.find(c => c.dataset.body === name);
+
+function renderSlots() {
+  const arr = st.slots[st.orderTarget];
+  cardEls.forEach(c => tray.appendChild(c));
+  arr.forEach((name, i) => {
+    const s = slotEls[i];
+    s.querySelector('.ph').hidden = !!name;
+    if (name) s.appendChild(cardOf(name));
+  });
+  // 카드 순서를 태양·지구·달로 유지
+  for (const n of ['태양', '지구', '달']) if (!arr.includes(n)) tray.appendChild(cardOf(n));
+}
+function setOrderTarget(t) {
+  st.orderTarget = t;
+  $$('#orderSeg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.target === t)));
+  renderSlots();
+}
+function setMsg(text, cls = '') { const m = $('#orderMsg'); m.textContent = text; m.className = 'msg ' + cls; }
+
+function placeCard(name, i) {
+  const arr = st.slots[st.orderTarget];
+  const from = arr.indexOf(name);
+  if (i === null) { if (from >= 0) arr[from] = null; }
+  else {
+    const other = arr[i];
+    if (from >= 0) arr[from] = other; else if (other) { /* 칸에 있던 카드는 카드 칸으로 */ }
+    arr[i] = name;
+  }
+  renderSlots();
+  sfx.place();
+}
+$$('#orderSeg button').forEach(b => b.addEventListener('click', () => { setOrderTarget(b.dataset.target); sfx.click(); }));
+
+// 끌어 놓기 (마우스·터치 모두 Pointer Events)
+let drag = null;
+cardEls.forEach(card => {
+  card.addEventListener('pointerdown', e => {
+    if (st.locked || e.button > 0) return;
+    drag = { card, id: e.pointerId, x0: e.clientX, y0: e.clientY, moved: false, ghost: null };
+    card.setPointerCapture(e.pointerId);
+  });
+  card.addEventListener('pointermove', e => {
+    if (!drag || drag.card !== card || e.pointerId !== drag.id) return;
+    if (!drag.moved && Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 6) return;
+    if (!drag.moved) {
+      drag.moved = true;
+      const r = card.getBoundingClientRect();
+      drag.dx = drag.x0 - r.left; drag.dy = drag.y0 - r.top;
+      const g = card.cloneNode(true);
+      g.classList.add('ghost'); g.style.width = r.width + 'px';
+      document.body.appendChild(g); drag.ghost = g;
+      card.classList.add('placeholder');
+    }
+    drag.ghost.style.left = (e.clientX - drag.dx) + 'px';
+    drag.ghost.style.top = (e.clientY - drag.dy) + 'px';
+    const over = slotAt(e.clientX, e.clientY);
+    slotEls.forEach(s => s.classList.toggle('over', s === over));
+  });
+  const end = e => {
+    if (!drag || drag.card !== card || e.pointerId !== drag.id) return;
+    const d = drag; drag = null;
+    card.classList.remove('placeholder');
+    slotEls.forEach(s => s.classList.remove('over'));
+    if (d.ghost) d.ghost.remove();
+    if (!d.moved) return;   // 눌러서 놓기는 click에서 처리
+    card.dataset.justDragged = '1';
+    setTimeout(() => delete card.dataset.justDragged, 0);
+    if (e.type === 'pointercancel') return;
+    const over = slotAt(e.clientX, e.clientY);
+    if (over) placeCard(card.dataset.body, +over.dataset.i);
+    else if (tray.contains(document.elementFromPoint(e.clientX, e.clientY))) placeCard(card.dataset.body, null);
+  };
+  card.addEventListener('pointerup', end);
+  card.addEventListener('pointercancel', end);
+  // 누르기(또는 Enter): 카드 칸 → 빈칸 / 칸 안 → 카드 칸으로
+  card.addEventListener('click', () => {
+    if (st.locked || card.dataset.justDragged) return;
+    const arr = st.slots[st.orderTarget];
+    if (arr.includes(card.dataset.body)) placeCard(card.dataset.body, null);
+    else {
+      const i = arr.indexOf(null);
+      if (i >= 0) placeCard(card.dataset.body, i);
+    }
+    card.focus();
+  });
+});
+function slotAt(x, y) {
+  return slotEls.find(s => { const r = s.getBoundingClientRect(); return x >= r.left - 6 && x <= r.right + 6 && y >= r.top - 8 && y <= r.bottom + 8; }) || null;
+}
+$('#btnClear').addEventListener('click', () => {
+  st.slots[st.orderTarget] = [null, null, null];
+  renderSlots(); sfx.click();
+  setMsg('카드를 끌어 칸에 놓거나, 카드를 눌러 빈칸에 차례로 넣어요.');
+});
+$('#btnCheck').addEventListener('click', () => {
+  const t = st.orderTarget, arr = st.slots[t];
+  if (arr.includes(null)) { setMsg('세 칸을 모두 채운 뒤 확인을 눌러요.', 'bad'); sfx.bad(); return; }
+  const str = arr.join('-');
+  rec.order[t] = str;
+  rec.orderTried++;
+  const want = t === 'solar' ? '일식' : '월식';
+  let made = null;
+  if (arr[1] === '태양') made = null;
+  else if (arr[1] === '달') made = 'solar';
+  else made = 'lunar';
+  if (made === null) {
+    setMsg(`${str}: 달은 지구 둘레를 돌기 때문에 태양이 지구와 달 사이에 올 수 없어요. 다시 해 보세요.`, 'bad');
+    sfx.bad();
+  } else {
+    setMode('free', { silent: true });
+    animateTo(made === 'solar' ? 0 : 180, 0);
+    const what = made === 'solar' ? '일식' : '월식';
+    if (made === t) { setMsg(`${str}: 3D 배치를 보세요. 이 순서로 늘어서면 ${what}이 일어나요!`, 'good'); sfx.good(); }
+    else { setMsg(`${str}: 3D 배치를 보세요. 이 순서에서는 ${what}이 일어나요. ${want}이 되려면?`, 'bad'); sfx.bad(); }
+  }
+  pushState();
+});
+
+// ── 잠금 (웹앱 제출 후) ──
+const lockables = () => $$('button, input');
+function applyLock(on) {
+  if (on === st.locked) return;
+  st.locked = on;
+  if (on) {
+    setPlaying(false); stopAnim();
+    lockables().forEach(el => { if (el.disabled) el.dataset.wasDisabled = '1'; el.disabled = true; });
+    $('#space3d').tabIndex = -1;
+    space.setEnabled(false);
+  } else {
+    lockables().forEach(el => { if (!el.dataset.wasDisabled) el.disabled = false; delete el.dataset.wasDisabled; });
+    $('#space3d').tabIndex = 0;
+    space.setEnabled(true);
+  }
+}
+SimBridge.onLock = () => applyLock(true);
+new MutationObserver(() => applyLock(document.documentElement.classList.contains('sim-locked')))
+  .observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+window.addEventListener('message', e => {
+  const d = e.data;
+  if (d && d.source === 'science-shell' && d.type === 'unlock') {
+    SimBridge.locked = false;
+    document.documentElement.classList.remove('sim-locked');
+  }
+});
+
+// ── 반복 (바뀐 것이 있을 때만 그림, 느리면 품질 자동 낮춤) ──
+let last = performance.now(), tickAcc = 0;
+let perf = { time: 0, frames: 0, prevDrew: false, done: false };
+function loop(now) {
+  const dt = Math.min(0.1, (now - last) / 1000);
+  last = now;
+  if (st.playing && !st.locked) {
+    tickAcc += dt;
+    const beat = tickAcc >= 1;
+    if (beat) tickAcc -= 1;
+    if (st.mode === 'free') {
+      st.angleF = (st.angleF ?? st.angle) + st.freeSpeed * dt;
+      const a = Math.floor(st.angleF) % 360;
+      if (a !== st.angle) { st.angle = a; update(1); }
+      if (beat) sfx.tick(0.4);
+    } else {
+      const m = st.mode, ev = EVENTS[m];
+      st.tf[m] += st.speed * dt;
+      const t = Math.min(ev.tMax, Math.floor(st.tf[m]));
+      if (t !== st.t[m]) { st.t[m] = t; update(1); }
+      if (beat) sfx.tick(0.4);
+      if (t >= ev.tMax) setPlaying(false);
+    }
+  } else {
+    st.angleF = null; tickAcc = 0.9;
+  }
+  if (st.anim) {
+    const a = st.anim;
+    a.t = Math.min(1, a.t + dt / a.dur);
+    const k = a.t < 0.5 ? 4 * a.t ** 3 : 1 - Math.pow(-2 * a.t + 2, 3) / 2;
+    st.angle = ((a.from + a.d * k) % 360 + 360) % 360;
+    st.h = a.hFrom + (a.hTo - a.hFrom) * k;
+    if (a.t >= 1) { st.anim = null; st.angle = Math.round(st.angle) % 360; st.h = a.hTo; }
+    update(a.d > 0 ? 1 : -1);
+  }
+  const drew = space.frame(dt);
+  // 그린 직후 프레임 간격으로 빠르기 측정 (40번 모아 평균이 느리면 품질 낮춤)
+  if (perf.prevDrew && !perf.done && st.quality === 'high') {
+    perf.time += dt; perf.frames++;
+    if (perf.frames >= 40) {
+      if (perf.time / perf.frames > 1 / 26) { perf.done = true; setQuality('low', true); }
+      perf.time = 0; perf.frames = 0;
+    }
+  }
+  perf.prevDrew = drew;
+  requestAnimationFrame(loop);
+}
+
+// ── 시작 ──
+setMode('solar', { silent: true });
+renderSlots();
+requestAnimationFrame(loop);
+
+// 디버그·검수용 (정답 없음): 현재 상태 보기
+window.__sim = { st, rec, space, get geom() { return cur; } };
