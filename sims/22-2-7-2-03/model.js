@@ -63,7 +63,8 @@ export function overlapArea(r1, r2, d) {
 
 // 가린 비율(%) = 겹친 넓이 ÷ 대상 원 넓이 × 100
 export function coverPct(rOcc, rTarget, d) {
-  return overlapArea(rOcc, rTarget, d) / (Math.PI * rTarget * rTarget) * 100;
+  const v = overlapArea(rOcc, rTarget, d) / (Math.PI * rTarget * rTarget) * 100;
+  return Math.min(100, Math.max(0, v));          // 부동소수 오차로 −0.0 이 나오지 않게
 }
 
 // 교과서 모드: 시각 → 하늘 보기 기하

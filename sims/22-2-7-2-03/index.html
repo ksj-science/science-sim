@@ -47,21 +47,22 @@
   <section class="panel space" aria-label="우주에서 본 배치">
     <div id="space3d" class="space3d" tabindex="0" aria-label="우주에서 본 태양, 지구, 달의 배치. 끌어서 돌리고 휠이나 두 손가락으로 확대합니다. 자유 배치에서는 화살표 키로 달을 움직일 수 있습니다."></div>
     <div class="space-head"><b>우주에서 본 배치</b><span>끌어서 돌리기 · 휠/두 손가락 확대</span></div>
+    <p id="mission" class="mission" aria-live="polite"></p>
     <div class="space-foot">
       <button id="btnReal" aria-pressed="false">실제 크기 느낌</button>
       <button id="btnCam" title="처음 보던 방향으로">보는 방향 처음대로</button>
       <span class="note">크기·거리는 모형이에요</span>
     </div>
-    <div id="bubble" class="bubble" hidden>태양은 달보다 매우 크지만 아주 멀리 있어서, 지구에서 보면 달과 비슷한 크기로 보여요. 점선은 지구에서 본 시선이에요.</div>
+    <div id="bubble" class="bubble" hidden>태양은 달보다 매우 크지만 아주 멀리 있어서, 지구에서 보면 달과 비슷한 크기로 보여요. 점선은 지구에서 본 시선이에요. <small>(실제 태양은 이 그림보다 훨씬 더 크고 멀어요. 화면에 넣으려고 줄여 그렸어요.)</small></div>
   </section>
 
   <section class="panel sky" aria-label="하늘 보기(관측자 시점)">
-    <canvas id="sky" role="img" aria-label="남쪽 하늘에서 보이는 모습"></canvas>
+    <canvas id="sky" role="img" aria-label="남쪽을 향해 섰을 때 하늘에서 보이는 모습 (왼쪽이 동쪽, 오른쪽이 서쪽)"></canvas>
   </section>
 
   <section class="panel read" aria-live="polite">
     <div class="cell"><span class="k">가린 비율</span><span class="v" id="rCover">0.0 %</span></div>
-    <div class="cell"><span class="k" id="rSecondK">지난 시간</span><span class="v" id="rSecond">0 분</span></div>
+    <div class="cell"><span class="k" id="rSecondK">지난 시간</span><span class="v" id="rSecond">0분</span></div>
     <div class="cell"><span class="k">식 상태</span><span class="v" id="rState">식 전</span></div>
     <div class="cell"><span class="k">가리는 것</span><span class="v" id="rBy">달</span></div>
   </section>

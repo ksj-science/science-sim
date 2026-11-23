@@ -70,7 +70,7 @@ body { display: flex; flex-direction: column; height: 100dvh; font-size: 14px; }
 }
 .space-head b { font-size: 15px; }
 .space-head span { font-size: 13px; color: #b9c4e2; }
-.space-foot { position: absolute; left: 8px; bottom: 8px; right: 8px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; pointer-events: none; }
+.space-foot { position: absolute; left: 8px; bottom: 8px; right: 8px; z-index: 2; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; pointer-events: none; }
 .space-foot button { pointer-events: auto; background: rgba(20,28,56,.85); color: #eef2ff; border-color: #3a4a80; font-size: 14px; padding: 6px 12px; }
 .space-foot button[aria-pressed=true] { background: #f5c04a; color: #2a1d00; border-color: #f5c04a; }
 .space-foot .note { color: #b9c4e2; font-size: 13px; text-shadow: 0 1px 2px #000; margin-left: auto; }
@@ -161,10 +161,24 @@ body { display: flex; flex-direction: column; height: 100dvh; font-size: 14px; }
 .msg { margin: 0; font-size: 14px; color: var(--muted); min-height: 21px; line-height: 1.4; }
 .msg.good { color: var(--good); font-weight: 700; }
 .msg.bad { color: #b2400f; font-weight: 600; }
+.msg.wait { color: var(--accent); font-weight: 600; }
+
+/* 단계별 탐구 질문 */
+.mission {
+  position: absolute; left: 10px; top: 52px; margin: 0; max-width: calc(100% - 20px);
+  background: rgba(255, 214, 102, .14); border: 1px solid rgba(255, 214, 102, .45); color: #ffe7a6;
+  border-radius: 10px; padding: 5px 10px; font-size: 13.5px; line-height: 1.4; pointer-events: none;
+  text-shadow: 0 1px 2px #000;
+}
+.bubble small { display: block; margin-top: 4px; font-size: 13px; color: #6b5520; }
+.read.moving .v { color: var(--muted); }
+#rState.long { font-size: 15px; white-space: normal; line-height: 1.15; }
+.lbl3d { transition: opacity .18s; }
+.lbl3d.hide { opacity: 0; }
 
 /* 알림 */
 .toast {
-  position: fixed; left: 50%; bottom: 18px; transform: translate(-50%, 20px); opacity: 0; z-index: 99;
+  position: fixed; left: 50%; top: 64px; transform: translate(-50%, -12px); opacity: 0; z-index: 99;
   background: #1d2433; color: #fff; padding: 10px 16px; border-radius: 12px; font-size: 14px;
   transition: opacity .25s, transform .25s; pointer-events: none; max-width: 90vw;
 }
@@ -194,13 +208,18 @@ body { display: flex; flex-direction: column; height: 100dvh; font-size: 14px; }
   .tabs { order: 5; width: 100%; margin-left: 0; }
   .tabs button { flex: 1; }
   .layout {
-    grid-template-columns: minmax(0, 56fr) minmax(0, 44fr);
-    grid-template-rows: minmax(0, 0.9fr) minmax(0, 1fr) auto auto;
+    grid-template-columns: minmax(0, 62fr) minmax(0, 38fr);
+    grid-template-rows: minmax(0, 1.06fr) minmax(0, 0.94fr) auto auto;
     grid-template-areas: "space space" "sky read" "ctrl ctrl" "order order";
   }
-  .read { grid-template-columns: 1fr; grid-template-rows: repeat(4, 1fr); }
+  .read { grid-template-columns: 1fr; grid-template-rows: repeat(4, 1fr); gap: 5px; padding: 6px; }
+  .space-head span { display: none; }
+  .mission { top: 32px; font-size: 13px; padding: 4px 9px; }
   .cell { flex-direction: row; align-items: center; justify-content: space-between; gap: 6px; padding: 4px 10px; }
-  .cell .v { font-size: 19px; }
+  .cell .v { font-size: 18px; }
   .speedrow .k { display: none; }
   .tray { min-width: 0; }
 }
+
+/* '실제 크기 느낌' 말풍선이 떠 있으면 탐구 질문 띠는 잠시 숨김 (겹치지 않게) */
+.space:has(.bubble:not([hidden])) .mission { display: none; }

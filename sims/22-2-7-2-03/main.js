@@ -89,9 +89,37 @@ function stateLabel(mode, g) {
   const s = eclipseState(g.view, g.cover);
   if (mode !== 'free' && s === 'none') {
     const ev = EVENTS[mode];
-    return st.t[mode] < ev.start ? '식 전' : '식 끝';
+    return st.t[mode] <= ev.start ? '식 전' : '식 끝';
   }
+  // 교과서 날짜(일식)는 진행 시간이 지구 전체 기준일 수 있어서, 우리나라에서 개기 일식인지 단정하지 않음
+  if (mode === 'solar' && s === 'totalSolar') return '가장 많이 가려짐 (모형)';
   return STATE_KO[s];
+}
+
+// 하늘 보기 왼쪽 위 글자 (notesShort: 하늘 보기 칸이 낮을 때 쓰는 짧은 글)
+function skyText(g) {
+  const who = g.view === 'solar' ? '태양' : '달';
+  const o = {
+    title: `하늘 보기 · 남쪽을 향해 서서 본 ${who}`,
+    sub: `${who}을 가운데에 두고 확대해서 봄 (하루 동안의 일주 운동은 뺐어요)`,
+    notes: [], notesShort: [],
+  };
+  if (g.view === 'lunar') {
+    o.notes.push('달을 가운데에 고정해서, 달이 동쪽으로 가면 지구의 그림자가 동쪽(왼쪽)에서 다가오는 것처럼 보여요.');
+    o.notesShort.push('달을 가운데에 고정 → 그림자가 동쪽(왼쪽)에서 다가오는 것처럼 보여요.');
+  }
+  if (st.mode === 'solar') {
+    o.notes.push('모형이에요. 진행 시간은 지구 전체 기준일 수 있어요. 우리나라에서의 실제 모습은 천체 관측 프로그램(천문학습관)으로 확인해요.');
+    o.notesShort.push('모형 · 진행 시간은 지구 전체 기준일 수 있어요. 우리나라에서의 실제 모습은 천체 관측 프로그램(천문학습관)으로 확인');
+    o.maxNote = '모형에서 가장 많이 가려진 순간';
+  } else if (st.mode === 'lunar') {
+    o.notes.push('모형이에요. 실제 모습은 천체 관측 프로그램(천문학습관)으로 확인해요.');
+    o.notesShort.push('모형 · 실제 모습은 천체 관측 프로그램(천문학습관)으로 확인');
+  } else {
+    o.notes.push('모형: 크기·거리는 실제와 달라요');
+    o.notesShort.push('모형: 크기·거리는 실제와 달라요');
+  }
+  return o;
 }
 
 // dir: 시간·각도가 앞으로(+1) 갔는지 뒤로(−1) 갔는지 (0 = 알 수 없음)
@@ -101,23 +129,25 @@ function update(dir = 0, quiet = false) {
   const g = c.g;
   space.setMoon(c.angle, c.h);
 
-  const note = st.mode === 'free' ? '모형: 크기·거리는 실제와 달라요' : '모형: 실제 모양은 천문학습관에서 확인';
-  sky.draw(g, { note });
+  sky.draw(g, skyText(g));
 
   // 읽음값
-  $('#rCover').textContent = g.cover.toFixed(1) + ' %';
+  const moving = !!(st.anim && st.pendingOrder);   // 순서 카드 확인 뒤 달이 옮겨 가는 중에는 중간값을 숨김
+  $('.read').classList.toggle('moving', moving);
+  $('#rCover').textContent = moving ? '…' : g.cover.toFixed(1) + ' %';
   if (st.mode === 'free') {
     $('#rSecondK').textContent = '달의 위치 각도';
-    $('#rSecond').textContent = `${Math.round(c.angle) % 360}°`;
+    $('#rSecond').textContent = moving ? '…' : `${Math.round(c.angle) % 360}°`;
   } else {
     $('#rSecondK').textContent = '지난 시간';
-    $('#rSecond').textContent = `${elapsed(st.mode)} 분`;
+    $('#rSecond').textContent = `${elapsed(st.mode)}분`;
   }
   const s = eclipseState(g.view, g.cover);
   const rs = $('#rState');
-  rs.textContent = stateLabel(st.mode, g);
-  rs.className = 'v' + (s.startsWith('total') ? ' total' : s !== 'none' ? ' on' : '');
-  $('#rBy').textContent = g.view === 'solar' ? '달' : '지구의 그림자';
+  const label = stateLabel(st.mode, g);
+  rs.textContent = moving ? '…' : label;
+  rs.className = 'v' + (moving ? '' : s.startsWith('total') ? ' total' : s !== 'none' ? ' on' : '') + (label.length > 7 ? ' long' : '');
+  $('#rBy').textContent = moving ? '…' : s === 'none' ? '없음' : g.view === 'solar' ? '달' : '지구의 그림자';
 
   // 기록
   const m = st.mode;
@@ -219,6 +249,13 @@ function pushState() {
 }
 
 // ── 모드 ──
+// 단계별 탐구 질문 (정답은 넣지 않음)
+const MISSION = {
+  solar: '탐구 ① 08:15 무렵부터 1분씩 넘겨 보세요. 태양은 동쪽과 서쪽 중 어느 쪽부터 가려질까요?',
+  lunar: '탐구 ② 22:27 무렵부터 1분씩 넘겨 보세요. 달은 어느 쪽부터 가려질까요? 가리는 것은 무엇일까요?',
+  free: '탐구 ③ 달을 0°나 180°에 두고 높낮이를 바꿔 보세요. 달이 그 자리에 올 때마다 식이 일어날까요?',
+};
+const MSG0 = '카드를 끌어 칸에 놓거나, 카드를 눌러 빈칸에 차례로 넣어요.';
 function setMode(m, { silent = false } = {}) {
   if (m === st.mode && !silent) return;
   setPlaying(false);
@@ -229,7 +266,10 @@ function setMode(m, { silent = false } = {}) {
   $('#freePanel').hidden = m !== 'free';
   space.dragEnabled = m === 'free';
   space.setFreeHints(m === 'free');
-  if (m !== 'free') setOrderTarget(m);
+  if (m !== 'free') { setOrderTarget(m); setMsg(MSG0); }
+  $('#mission').textContent = MISSION[m];
+  if (st.real) setReal(false);
+  space.setTilt(m === 'free' && Math.abs(st.h) > 0.05);
   prevCover = null;
   if (!silent) sfx.whoosh();
   update(0, true);
@@ -287,9 +327,13 @@ function setHeight(h) {
   h = Math.max(-3, Math.min(3, Math.round(h * 10) / 10));
   if (h === st.h) return false;
   st.h = h; update(0);
+  space.setTilt(Math.abs(h) > 0.05);
   return true;
 }
-function stopAnim() { st.anim = null; }
+function stopAnim() {
+  st.anim = null;
+  if (st.pendingOrder) finishOrder();
+}
 // 달을 목표 각도로 부드럽게 옮김
 function animateTo(angle, h = st.h) {
   setPlaying(false);
@@ -332,18 +376,21 @@ $('#space3d').addEventListener('keydown', e => {
 });
 
 // ── 실제 크기 느낌 ──
+function setReal(on) {
+  st.real = on;
+  $('#btnReal').setAttribute('aria-pressed', String(on));
+  $('#bubble').hidden = !on;
+  space.setRealScale(on);
+  if (on) rec.realViewed = true;
+}
 $('#btnReal').addEventListener('click', () => {
-  st.real = !st.real;
-  $('#btnReal').setAttribute('aria-pressed', String(st.real));
-  $('#bubble').hidden = !st.real;
-  space.setRealScale(st.real);
-  if (st.real) rec.realViewed = true;
+  setReal(!st.real);
   sfx.whoosh();
   pushState();
 });
 $('#btnCam').addEventListener('click', () => {
-  if (st.real) { st.real = false; $('#btnReal').setAttribute('aria-pressed', 'false'); $('#bubble').hidden = true; }
-  space.setRealScale(false);
+  if (st.real) setReal(false); else space.setRealScale(false);
+  space.setTilt(st.mode === 'free' && Math.abs(st.h) > 0.05, true);
   sfx.click();
 });
 
@@ -374,11 +421,15 @@ $('#btnReset').addEventListener('click', () => {
   st.t.lunar = st.tf.lunar = EVENTS.lunar.tMin;
   st.angle = FREE_START.angle; st.h = FREE_START.h;
   st.slots.solar = [null, null, null]; st.slots.lunar = [null, null, null];
+  st.pendingOrder = null;
+  st.speed = 1;
+  $$('#speedSeg button').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.speed === '1')));
   if (st.real) { st.real = false; $('#btnReal').setAttribute('aria-pressed', 'false'); $('#bubble').hidden = true; }
   space.setRealScale(false);
+  space.setTilt(false);
   space.resetCamera();
   setOrderTarget(st.mode === 'lunar' ? 'lunar' : 'solar');
-  setMsg('카드를 끌어 칸에 놓거나, 카드를 눌러 빈칸에 차례로 넣어요.');
+  setMsg(MSG0);
   prevCover = null;
   update(0, true);
   sfx.reset();
@@ -420,7 +471,10 @@ function placeCard(name, i) {
   renderSlots();
   sfx.place();
 }
-$$('#orderSeg button').forEach(b => b.addEventListener('click', () => { setOrderTarget(b.dataset.target); sfx.click(); }));
+$$('#orderSeg button').forEach(b => b.addEventListener('click', () => {
+  if (b.dataset.target !== st.orderTarget) setMsg(MSG0);
+  setOrderTarget(b.dataset.target); sfx.click();
+}));
 
 // 끌어 놓기 (마우스·터치 모두 Pointer Events)
 let drag = null;
@@ -481,7 +535,7 @@ function slotAt(x, y) {
 $('#btnClear').addEventListener('click', () => {
   st.slots[st.orderTarget] = [null, null, null];
   renderSlots(); sfx.click();
-  setMsg('카드를 끌어 칸에 놓거나, 카드를 눌러 빈칸에 차례로 넣어요.');
+  setMsg(MSG0);
 });
 $('#btnCheck').addEventListener('click', () => {
   const t = st.orderTarget, arr = st.slots[t];
@@ -498,14 +552,27 @@ $('#btnCheck').addEventListener('click', () => {
     setMsg(`${str}: 달은 지구 둘레를 돌기 때문에 태양이 지구와 달 사이에 올 수 없어요. 다시 해 보세요.`, 'bad');
     sfx.bad();
   } else {
+    st.pendingOrder = null;
     setMode('free', { silent: true });
     animateTo(made === 'solar' ? 0 : 180, 0);
-    const what = made === 'solar' ? '일식' : '월식';
-    if (made === t) { setMsg(`${str}: 3D 배치를 보세요. 이 순서로 늘어서면 ${what}이 일어나요!`, 'good'); sfx.good(); }
-    else { setMsg(`${str}: 3D 배치를 보세요. 이 순서에서는 ${what}이 일어나요. ${want}이 되려면?`, 'bad'); sfx.bad(); }
+    st.pendingOrder = { made, t, str, want };
+    setMsg(`${str}: 자유 배치에서 이 순서대로 달을 옮겨 직접 확인해 볼게요…`, 'wait');
+    sfx.whoosh();
+    update(0, true);
   }
   pushState();
 });
+
+// 달이 다 옮겨 간 뒤 결과 알림
+function finishOrder() {
+  const p = st.pendingOrder;
+  st.pendingOrder = null;
+  if (!p) return;
+  const what = p.made === 'solar' ? '일식' : '월식';
+  if (p.made === p.t) { setMsg(`${p.str}: 이렇게 늘어서면 ${what}이 생겨요. 하늘 보기와 가린 비율을 확인해 보세요.`, 'good'); sfx.good(); }
+  else { setMsg(`${p.str}: 이렇게 늘어서면 ${what}이 생겨요. ${p.want}이 되려면 어떻게 놓아야 할까요?`, 'bad'); sfx.bad(); }
+  update(0, true);
+}
 
 // ── 잠금 (웹앱 제출 후) ──
 const lockables = () => $$('button, input');
@@ -536,7 +603,8 @@ window.addEventListener('message', e => {
 
 // ── 반복 (바뀐 것이 있을 때만 그림, 느리면 품질 자동 낮춤) ──
 let last = performance.now(), tickAcc = 0;
-let perf = { time: 0, frames: 0, prevDrew: false, done: false };
+// 처음 1.5초(셰이더 준비)는 빼고 잼. 평균 48fps보다 느리면 품질을 낮춤
+let perf = { time: 0, frames: 0, prevDrew: false, done: false, from: performance.now() + 1500 };
 function loop(now) {
   const dt = Math.min(0.1, (now - last) / 1000);
   last = now;
@@ -566,15 +634,17 @@ function loop(now) {
     const k = a.t < 0.5 ? 4 * a.t ** 3 : 1 - Math.pow(-2 * a.t + 2, 3) / 2;
     st.angle = ((a.from + a.d * k) % 360 + 360) % 360;
     st.h = a.hFrom + (a.hTo - a.hFrom) * k;
-    if (a.t >= 1) { st.anim = null; st.angle = Math.round(st.angle) % 360; st.h = a.hTo; }
+    const done = a.t >= 1;
+    if (done) { st.anim = null; st.angle = Math.round(st.angle) % 360; st.h = a.hTo; }
     update(a.d > 0 ? 1 : -1);
+    if (done && st.pendingOrder) finishOrder();
   }
   const drew = space.frame(dt);
   // 그린 직후 프레임 간격으로 빠르기 측정 (40번 모아 평균이 느리면 품질 낮춤)
-  if (perf.prevDrew && !perf.done && st.quality === 'high') {
+  if (perf.prevDrew && !perf.done && st.quality === 'high' && now > perf.from) {
     perf.time += dt; perf.frames++;
     if (perf.frames >= 40) {
-      if (perf.time / perf.frames > 1 / 26) { perf.done = true; setQuality('low', true); }
+      if (perf.time / perf.frames > 1 / 48) { perf.done = true; setQuality('low', true); }
       perf.time = 0; perf.frames = 0;
     }
   }

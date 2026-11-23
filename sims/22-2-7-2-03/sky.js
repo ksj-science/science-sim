@@ -63,25 +63,61 @@ export class Sky {
     const { ctx: c, w, h } = this;
     c.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
     c.clearRect(0, 0, w, h);
-    const cx = w / 2, cy = h * 0.5;
+    this.text = this._layoutText(c, w, h, g, opt);
+    this.textBottom = this.text.bottom;
+    // 글자 아래 ~ 아래 띠 위 사이에 천체를 둠 (아래 라벨 자리 26px)
+    const top = this.textBottom + 6, bottom = h - 46;
+    this.fitR = Math.max(16, (bottom - top - 30) / 2);
+    const cx = w / 2, cy = Math.min(h * 0.5, (top + bottom - 26) / 2 + 2);
     if (g.view === 'solar') this._solar(c, w, h, cx, cy, g, opt);
     else this._lunar(c, w, h, cx, cy, g, opt);
     this._frame(c, w, h, g, opt);
     this.dirty = false;
   }
 
+  // 왼쪽 위 글자(제목·설명·안내)를 줄바꿈해 자리를 미리 정함
+  _layoutText(c, w, h, g, opt) {
+    const F = wt => `${wt} 13px Pretendard, "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif`;
+    const maxW = w - 24;
+    const small = h < 330;
+    const out = [];
+    let y = 10;
+    const push = (text, font, lh, kind) => {
+      c.font = font;
+      for (const line of wrap(c, text, maxW)) { out.push({ text: line, font, y, kind }); y += lh; }
+    };
+    push(opt?.title || '하늘 보기', '700 14px Pretendard, "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif', 20, 'title');
+    if (opt?.sub && !small) push(opt.sub, F(500), 18, 'sub');
+    for (const n of (small ? opt?.notesShort : opt?.notes) || []) push(n, F(500), small ? 17 : 18, 'note');
+    return { lines: out, bottom: y };
+  }
+
+  // 별은 크기가 바뀔 때 한 번만 따로 그려 두고 붙여 씀 (저사양 크롬북 부담 줄이기)
+  _starLayer() {
+    const key = `${this.w}x${this.h}@${this.dpr}`;
+    if (this.starKey === key) return this.starCv;
+    const cv = this.starCv || document.createElement('canvas');
+    cv.width = Math.round(this.w * this.dpr); cv.height = Math.round(this.h * this.dpr);
+    const x = cv.getContext('2d');
+    x.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    x.fillStyle = '#fff';
+    for (const [sx, sy, r, a] of this.stars) {
+      x.globalAlpha = a;
+      x.beginPath(); x.arc(sx * this.w, sy * this.h, r, 0, Math.PI * 2); x.fill();
+    }
+    this.starCv = cv; this.starKey = key;
+    return cv;
+  }
+
   _starsDraw(c, w, h, alpha) {
     if (alpha <= 0) return;
-    for (const [x, y, r, a] of this.stars) {
-      c.globalAlpha = alpha * a;
-      c.fillStyle = '#fff';
-      c.beginPath(); c.arc(x * w, y * h, r, 0, Math.PI * 2); c.fill();
-    }
+    c.globalAlpha = Math.min(1, alpha);
+    c.drawImage(this._starLayer(), 0, 0, w, h);
     c.globalAlpha = 1;
   }
 
-  _solar(c, w, h, cx, cy, g) {
-    const R = Math.min(w * 0.14, h * 0.19);
+  _solar(c, w, h, cx, cy, g, opt) {
+    const R = Math.min(w * 0.14, h * 0.19, this.fitR);
     const k = g.cover / 100;
     const dark = Math.pow(k, 6);                     // 거의 다 가려질 때만 하늘이 어두워짐
     const mix = (a, b) => a.map((v, i) => Math.round(v + (b[i] - v) * dark));
@@ -127,7 +163,10 @@ export class Sky {
       c.restore();
     }
     this.geo = { R, cx, cy, mx, my, occR: R };
-    this._label(c, '태양', cx, cy + R + 22, g.cover > 98 ? '#fff' : '#3a2a00', g.cover > 98 ? 'rgba(0,0,0,.35)' : 'rgba(255,245,200,.85)');
+    const sunTxt = opt?.maxNote && g.cover >= 99.95 ? `태양 · ${opt.maxNote}` : '태양';
+    c.font = '600 14px Pretendard, "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif';
+    const sunHalf = c.measureText(sunTxt).width / 2 + 7;
+    this._label(c, sunTxt, cx, cy + R + 22, g.cover > 98 ? '#fff' : '#3a2a00', g.cover > 98 ? 'rgba(0,0,0,.45)' : 'rgba(255,245,200,.85)');
     if (onScreen) {
       // 달 라벨: 태양 반대쪽 바깥 → 위 → 아래 → 옆 순서로, 태양·동서 표시와 겹치지 않는 자리
       const dd = Math.hypot(mx - cx, my - cy);
@@ -136,9 +175,9 @@ export class Sky {
       cands.push([mx, my - R - 18], [mx, my + R + 18], [mx + R + 30, my], [mx - R - 30, my]);
       let lx = mx, ly = my - R - 18;
       for (const [x, y] of cands) {
-        if (x < 30 || x > w - 30 || y < 64 || y > h - 50) continue;
+        if (x < 30 || x > w - 30 || y < this.textBottom + 14 || y > h - 50) continue;
         if (dd > R * 0.3 && Math.hypot(x - cx, y - cy) < R + 14) continue;
-        if (Math.abs(y - h / 2) < 22 && (x < 125 || x > w - 135)) continue;
+        if (Math.abs(y - (cy + R + 22)) < 24 && Math.abs(x - cx) < sunHalf + 22) continue;   // 태양 라벨과 겹침
         lx = x; ly = y; break;
       }
       const dk = g.cover > 98;
@@ -148,7 +187,7 @@ export class Sky {
   }
 
   _lunar(c, w, h, cx, cy, g) {
-    const R = Math.min(w * 0.095, h * 0.115);
+    const R = Math.min(w * 0.095, h * 0.115, this.fitR);
     const bg = c.createLinearGradient(0, 0, 0, h);
     bg.addColorStop(0, '#050816'); bg.addColorStop(1, '#121a33');
     c.fillStyle = bg; c.fillRect(0, 0, w, h);
@@ -188,14 +227,14 @@ export class Sky {
     for (const a of cands) {
       for (const f of [0.62, 0.45, 0.8]) {
         const x = sx + Math.cos(a) * SR * f, y = sy + Math.sin(a) * SR * f;
-        if (x < 150 || x > w - 150 || y < 70 || y > h - 56) continue;
+        if (x < 70 || x > w - 70 || y < this.textBottom + 14 || y > h - 56) continue;
         if (Math.hypot(x - cx, y - cy) < R + 34) continue;
         if (Math.abs(y - cy) < 22 && Math.abs(x - cx) < R + 90) continue;
         lx = x; ly = y; break;
       }
       if (lx !== null) break;
     }
-    if (lx === null) { lx = cx; ly = Math.max(64, cy - R - 40); }
+    if (lx === null) { lx = cx; ly = Math.max(this.textBottom + 14, cy - R - 40); }
     const shadowVisible = sx + SR > 0 && sx - SR < w;
     if (shadowVisible) this._label(c, '지구의 그림자', lx, ly, '#ffd9cc', 'rgba(60,15,10,.7)');
     else this._offArrow(c, w, h, cx, cy, sx, sy, '지구의 그림자', '#ffd9cc');
@@ -204,8 +243,7 @@ export class Sky {
   _offArrow(c, w, h, cx, cy, tx, ty, text, color) {
     const ang = Math.atan2(ty - cy, tx - cx);
     let ex = Math.max(34, Math.min(w - 34, cx + Math.cos(ang) * w));
-    let ey = Math.max(70, Math.min(h - 60, cy + Math.sin(ang) * h));
-    if (Math.abs(ey - h / 2) < 46) ey = h / 2 + 46;          // 동·서 표시와 겹치지 않게 아래로
+    const ey = Math.max(this.textBottom + 16, Math.min(h - 60, cy + Math.sin(ang) * h));
     c.save(); c.translate(ex, ey); c.rotate(ang);
     c.fillStyle = color; c.strokeStyle = 'rgba(0,0,0,.35)'; c.lineWidth = 1;
     c.beginPath(); c.moveTo(16, 0); c.lineTo(-8, -11); c.lineTo(-8, 11); c.closePath(); c.fill(); c.stroke();
@@ -230,34 +268,47 @@ export class Sky {
   }
 
   // 방향 표시와 안내 (가장자리)
-  _frame(c, w, h, g, opt) {
+  _frame(c, w, h, g) {
     const light = g.view === 'solar' && g.cover < 98;
     const ink = light ? '#13284a' : '#e8eefc';
     const pill = light ? 'rgba(255,255,255,.72)' : 'rgba(255,255,255,.12)';
-    c.font = '700 15px Pretendard, "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif';
-    this._label(c, '동 (왼쪽)', 52, h / 2, ink, pill);
-    this._label(c, '서 (오른쪽)', w - 56, h / 2, ink, pill);
-    c.font = '600 13px Pretendard, "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif';
+    // 왼쪽 위 글자
     c.textAlign = 'left'; c.textBaseline = 'top';
-    c.fillStyle = ink;
-    const title = g.view === 'solar' ? '하늘 보기 · 남쪽 하늘의 태양' : '하늘 보기 · 남쪽 하늘의 달';
-    c.font = '700 14px Pretendard, "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif';
-    c.fillText(title, 12, 10);
-    c.font = '500 13px Pretendard, "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif';
-    const small = h < 330;
-    if (!small) c.fillText(g.view === 'solar' ? '태양을 가운데에 두고 확대해서 봄' : '달을 가운데에 두고 확대해서 봄', 12, 30);
-    // 달이 움직이는 방향 (서 → 동)
-    const ay = h - 22;
+    // 글자 뒤 반투명 바탕 (코로나·그림자 위에서도 읽히게)
+    let tw = 0;
+    for (const l of this.text.lines) { c.font = l.font; tw = Math.max(tw, c.measureText(l.text).width); }
+    c.fillStyle = light ? 'rgba(255,255,255,.38)' : 'rgba(4,7,20,.62)';
+    c.beginPath(); c.roundRect(5, 4, tw + 14, this.text.bottom - 2, 8); c.fill();
+    for (const l of this.text.lines) {
+      c.font = l.font;
+      c.fillStyle = l.kind === 'title' ? ink : (light ? 'rgba(19,40,74,.82)' : 'rgba(232,238,252,.8)');
+      c.fillText(l.text, 12, l.y);
+    }
+    // 아래 띠: 동(왼쪽) ← 달이 움직이는 방향 ← 서(오른쪽)
+    const ay = h - 20;
+    c.font = '700 15px Pretendard, "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif';
+    this._label(c, '동 (왼쪽)', 50, ay, ink, pill);
+    this._label(c, '서 (오른쪽)', w - 54, ay, ink, pill);
+    const half = Math.max(30, Math.min(70, w / 2 - 120));
     c.strokeStyle = ink; c.fillStyle = ink; c.lineWidth = 2;
-    const ax0 = w / 2 + 70, ax1 = w / 2 - 70;
+    const ax0 = w / 2 + half, ax1 = w / 2 - half;
     c.beginPath(); c.moveTo(ax0, ay); c.lineTo(ax1 + 8, ay); c.stroke();
     c.beginPath(); c.moveTo(ax1, ay); c.lineTo(ax1 + 10, ay - 6); c.lineTo(ax1 + 10, ay + 6); c.closePath(); c.fill();
+    c.font = '500 13px Pretendard, "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif';
     c.textAlign = 'center'; c.textBaseline = 'bottom';
     c.fillText('달이 움직이는 방향', w / 2, ay - 6);
-    if (opt?.note) {
-      c.textAlign = 'left'; c.textBaseline = 'top';
-      c.fillStyle = light ? 'rgba(19,40,74,.8)' : 'rgba(232,238,252,.75)';
-      c.fillText(opt.note, 12, small ? 30 : 50);
-    }
   }
+}
+
+// 글자를 maxW 안에 들어가게 줄바꿈 (띄어쓰기 단위)
+function wrap(c, text, maxW) {
+  const words = text.split(' ');
+  const lines = [];
+  let cur = '';
+  for (const wd of words) {
+    const t = cur ? cur + ' ' + wd : wd;
+    if (c.measureText(t).width > maxW && cur) { lines.push(cur); cur = wd; } else cur = t;
+  }
+  if (cur) lines.push(cur);
+  return lines;
 }

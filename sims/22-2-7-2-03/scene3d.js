@@ -130,9 +130,15 @@ export class Space {
     this.controls.maxDistance = 45;
     this.controls.maxPolarAngle = Math.PI * 0.92;
     this.controls.addEventListener('change', () => { this.dirty = true; });
-    this.controls.addEventListener('start', () => { this.userMoved = true; });
+    this.controls.addEventListener('start', () => { this.userMoved = true; this.camAnim = null; });
+    this._lblSize = new Map();
+    this.avoidSel = ['.bubble', '.mission'];
     this.userMoved = false;
-    this.homeDir = new THREE.Vector3(1.9, 8.6, 16.6).normalize();
+    this.dirTop = new THREE.Vector3(1.9, 8.6, 16.6).normalize();
+    this.dirSide = new THREE.Vector3(1.9, 2.4, 16.6).normalize();   // 옆에 가깝게: 달이 위아래로 비켜난 것이 잘 보임
+    this.homeDir = this.dirTop.clone();
+    this.tilt = false;
+    this.camAnim = null;
     this.homeTarget = new THREE.Vector3(-3.1, 0, 0);
     this.homePos = new THREE.Vector3(-1.2, 8.6, 16.6);
     this.resetCamera();
@@ -151,7 +157,7 @@ export class Space {
     }
     const high = this.quality === 'high';
     this.renderer = new THREE.WebGLRenderer({ antialias: high, powerPreference: high ? 'default' : 'low-power' });
-    this.renderer.setPixelRatio(high ? Math.min(window.devicePixelRatio || 1, 2) : 1);
+    this.renderer.setPixelRatio(high ? Math.min(window.devicePixelRatio || 1, 1.5) : 1);
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.domElement.className = 'gl';
     this.host.insertBefore(this.renderer.domElement, this.host.firstChild);
@@ -278,6 +284,20 @@ export class Space {
       s.add(tri);
     }
 
+    // 달의 높낮이 기준면 (태양·지구·달 궤도가 있는 면) — 높낮이를 바꿀 때만 보임
+    const pg = new THREE.RingGeometry(M.earthR + 0.15, M.orbitR + 0.7, 64, 1);
+    this.plane = new THREE.Mesh(pg, new THREE.MeshBasicMaterial({ color: 0x7f95c8, transparent: true, opacity: 0.13, side: THREE.DoubleSide, depthWrite: false }));
+    this.plane.rotation.x = -Math.PI / 2;
+    this.plane.visible = false;
+    s.add(this.plane);
+    const edge = [];
+    for (let i = 0; i <= 96; i++) { const a = i / 96 * Math.PI * 2; edge.push(new THREE.Vector3((M.orbitR + 0.7) * Math.cos(a), 0, (M.orbitR + 0.7) * Math.sin(a))); }
+    this.planeEdge = new THREE.Line(new THREE.BufferGeometry().setFromPoints(edge),
+      new THREE.LineDashedMaterial({ color: 0xaab9e6, dashSize: 0.22, gapSize: 0.16, transparent: true, opacity: 0.6 }));
+    this.planeEdge.computeLineDistances();
+    this.planeEdge.visible = false;
+    s.add(this.planeEdge);
+
     // 태양-지구 일직선 (점선)
     const lineG = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(M.sunX, 0, 0), new THREE.Vector3(9, 0, 0)]);
     this.axisLine = new THREE.Line(lineG, new THREE.LineDashedMaterial({ color: 0xffd889, dashSize: 0.25, gapSize: 0.2, transparent: true, opacity: 0.45 }));
@@ -372,6 +392,7 @@ export class Space {
     this.moon.rotation.y = a;   // 늘 같은 면이 지구를 향함
     this.u.uMoonPos.value.copy(this.moon.position);
     this.lblMoon.position.copy(this.moon.position).add(new THREE.Vector3(0, M.moonR + 0.32, 0));
+    this.dirty = true;
     const hp = this.hLine.geometry.attributes.position;
     hp.setXYZ(0, this.moon.position.x, y, this.moon.position.z);
     hp.setXYZ(1, this.moon.position.x, 0, this.moon.position.z);
@@ -379,6 +400,7 @@ export class Space {
     this.hLine.computeLineDistances();
     const showH = Math.abs(y) > 0.03;
     this.hLine.visible = showH; this.hDot.visible = showH;
+    this.plane.visible = showH && this.realT < 0.5; this.planeEdge.visible = this.plane.visible;
     this.hDot.position.set(this.moon.position.x, 0, this.moon.position.z);
     this._orientMoonCone();
     this.moonCone.visible = Math.cos(a) > -0.2 && this.realT < 0.5;
@@ -394,6 +416,7 @@ export class Space {
     this.moonCone.position.copy(this.moon.position);
     this.moonCone.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
     const mid = this.moon.position.clone().addScaledVector(dir, 1.35);
+    this._shadowMid = mid; this._shadowDir = dir;
     this.lblMoonShadow.position.copy(mid).add(new THREE.Vector3(0, -0.55, 0));
   }
 
@@ -417,8 +440,23 @@ export class Space {
     this.dirty = true;
   }
 
+  // 높낮이 탐구 때 카메라를 옆에 가깝게 (학생이 직접 돌린 뒤에는 건드리지 않음, force면 그래도 바꿈)
+  setTilt(on, force = false) {
+    const changed = on !== this.tilt;
+    this.tilt = on;
+    this.homeDir.copy(on ? this.dirSide : this.dirTop);
+    this._homeFromSize();
+    if ((changed && !this.userMoved && this.realT === 0 && !this.realAnim) || force) {
+      if (force) this.userMoved = false;
+      this.camAnim = { t: 0, dur: 0.9, from: this.camera.position.clone(), to: this.homePos.clone(),
+        tgtFrom: this.controls.target.clone(), tgtTo: this.homeTarget.clone() };
+      this.dirty = true;
+    }
+  }
+
   resetCamera() {
     this.userMoved = false;
+    this.camAnim = null;
     this.camera.position.copy(this.homePos);
     this.controls.target.copy(this.homeTarget);
     this.controls.update();
@@ -439,7 +477,7 @@ export class Space {
     this.host.addEventListener('pointerdown', e => {
       if (!this.enabled) return;
       if (!overMoon(e)) return;
-      if (!this.dragEnabled) { this.onDragBlocked?.(); return; }
+      if (!this.dragEnabled) { this.onDragBlocked?.(); e.stopImmediatePropagation(); return; }
       dragging = true; pid = e.pointerId;
       this.controls.enabled = false;
       this.host.setPointerCapture(e.pointerId);
@@ -484,15 +522,100 @@ export class Space {
     this.labelRenderer.setSize(w, h);
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
-    // 화면 비율에 맞춰 처음 보는 거리 정하기 (태양~지구 그림자가 한눈에 들어오게)
-    const tv = Math.tan(this.camera.fov * Math.PI / 360);
-    const dist = Math.max(4.3 / tv, 9.4 / (tv * this.camera.aspect));
-    this.homePos.copy(this.homeTarget).addScaledVector(this.homeDir, dist);
-    if (!this.userMoved && !this.realAnim && this.realT === 0) {
+    this._homeFromSize();
+    if (!this.userMoved && !this.realAnim && !this.camAnim && this.realT === 0) {
       this.camera.position.copy(this.homePos);
       this.controls.update();
     }
     this.dirty = true;
+  }
+
+  // 화면 비율에 맞춰 처음 보는 거리 정하기 (태양~지구 그림자가 한눈에 들어오게)
+  _homeFromSize() {
+    const tv = Math.tan(this.camera.fov * Math.PI / 360);
+    const dist = Math.max(3.7 / tv, 9.4 / (tv * this.camera.aspect));
+    this.homePos.copy(this.homeTarget).addScaledVector(this.homeDir, dist);
+  }
+
+  // 라벨 겹침 정리: 중요한 라벨부터 자리를 잡고, 겹치면 다른 자리 → 그래도 겹치면 숨김
+  _declutter() {
+    const W = this.host.clientWidth, H = this.host.clientHeight;
+    const v = new THREE.Vector3();
+    const toScr = p => { v.copy(p).project(this.camera); return { x: (v.x + 1) / 2 * W, y: (1 - v.y) / 2 * H, front: v.z < 1 }; };
+    // 천체의 화면 속 원(중심·반지름 px)
+    const disc = (obj, r) => {
+      const c = obj.getWorldPosition(new THREE.Vector3());
+      const a = toScr(c);
+      const up = new THREE.Vector3().setFromMatrixColumn(this.camera.matrixWorld, 1).multiplyScalar(r * obj.scale.x);
+      const b = toScr(c.add(up));
+      return { cx: a.x, cy: a.y, r: Math.max(4, Math.hypot(b.x - a.x, b.y - a.y)) };
+    };
+    const md = disc(this.moon, M.moonR), ed = disc(this.earth, M.earthR), sdk = disc(this.sun, 1);
+    const moonBox = { x: md.cx - md.r, y: md.cy - md.r, w: md.r * 2, h: md.r * 2 };
+    const hit = (a, b, pad = 2) => a.x < b.x + b.w + pad && b.x < a.x + a.w + pad && a.y < b.y + b.h + pad && b.y < a.y + a.h + pad;
+    // 천체 둘레 화면 위·아래·왼쪽·오른쪽 자리 (카메라를 어디로 돌려도 천체를 가리지 않게)
+    const around = (pos, d, size) => [
+      { pos, off: [0, -(d.r + 4 + size.h / 2)] }, { pos, off: [0, d.r + 4 + size.h / 2] },
+      { pos, off: [-(d.r + 6 + size.w / 2), 0] }, { pos, off: [d.r + 6 + size.w / 2, 0] },
+      { pos, off: [-(d.r + 4 + size.w / 2), d.r + 4 + size.h / 2] }, { pos, off: [d.r + 4 + size.w / 2, d.r + 4 + size.h / 2] },
+      { pos, off: [-(d.r + 4 + size.w / 2), -(d.r + 4 + size.h / 2)] }, { pos, off: [d.r + 4 + size.w / 2, -(d.r + 4 + size.h / 2)] },
+    ];
+    const sh = this._shadowMid || new THREE.Vector3(), sd = this._shadowDir || new THREE.Vector3(1, 0, 0);
+    const P = (x, y, z) => ({ pos: new THREE.Vector3(x, y, z), off: [0, 0] });
+    const items = [
+      { o: this.lblSun, must: true, around: [new THREE.Vector3(), sdk], below: true },   // 태양 라벨은 태양의 자식(제자리 = 중심)
+      { o: this.lblEarth, must: true, around: [new THREE.Vector3(), ed], below: true },
+      { o: this.lblMoon, must: true, around: [this.moon.position.clone(), md] },
+      { o: this.lblShadow, cands: [P(2.5, 1.12, 0), P(6.2, 0.95, 0), P(2.5, -1.12, 0), P(6.2, -0.95, 0)] },
+      { o: this.lblMoonShadow, cands: [P(sh.x, sh.y - 0.55, sh.z), P(sh.x + sd.x * 0.45, sh.y - 0.72, sh.z + sd.z * 0.45), P(sh.x, sh.y + 0.55, sh.z)] },
+      { o: this.lbl0 }, { o: this.lbl180 },
+    ];
+    // 3D 위에 떠 있는 말풍선·탐구 띠 자리도 피함
+    const avoid = [];
+    const hr = this.host.getBoundingClientRect();
+    for (const sel of this.avoidSel || []) {
+      const el = this.host.parentElement.querySelector(sel);
+      if (!el || el.hidden || !el.offsetWidth) continue;
+      const r = el.getBoundingClientRect();
+      avoid.push({ x: r.left - hr.left, y: r.top - hr.top, w: r.width, h: r.height });
+    }
+    const placed = [];
+    for (const it of items) {
+      const el = it.o.element;
+      if (!it.o.visible) { el.classList.remove('hide'); continue; }
+      let size = this._lblSize.get(el);
+      if (!size) {
+        size = { w: el.offsetWidth, h: el.offsetHeight };
+        if (size.w) this._lblSize.set(el, size);
+        else size = { w: el.textContent.length * 13 + 18, h: 22 };
+      }
+      let cands = it.cands;
+      if (it.around) {
+        cands = around(it.around[0], it.around[1], size);
+        if (it.below) cands.unshift(cands.splice(1, 1)[0]);   // 지구는 아래가 먼저
+      }
+      if (!cands) cands = [{ pos: null, off: [0, 0] }];
+      let chosen = null, first = null;
+      for (const c of cands) {
+        if (c.pos) it.o.position.copy(c.pos);
+        const s0 = toScr(it.o.getWorldPosition(new THREE.Vector3()));
+        const r = { x: s0.x + c.off[0] - size.w / 2, y: s0.y + c.off[1] - size.h / 2, w: size.w, h: size.h };
+        const freeOfAvoid = s0.front && !avoid.some(p => hit(r, p));
+        // 꼭 보여야 하는 라벨: 자리가 없으면 말풍선·띠만은 피한 첫 자리를 씀
+        if (!first || (!first.ok && freeOfAvoid)) first = { c, r, ok: freeOfAvoid };
+        if (!s0.front) continue;
+        const inside = r.x >= 2 && r.y >= 2 && r.x + r.w <= W - 2 && r.y + r.h <= H - 2;
+        const clash = !freeOfAvoid || placed.some(p => hit(r, p)) || (it.o !== this.lblMoon && hit(r, moonBox, 0));
+        if (inside && !clash) { chosen = { c, r }; break; }
+      }
+      if (!chosen && it.must) chosen = first;
+      if (chosen) {
+        if (chosen.c.pos) it.o.position.copy(chosen.c.pos);
+        it.o.center.set(0.5 - chosen.c.off[0] / size.w, 0.5 - chosen.c.off[1] / size.h);
+        placed.push(chosen.r);
+        el.classList.remove('hide');
+      } else el.classList.add('hide');
+    }
   }
 
   // 매 프레임 호출. 그렸으면 true
@@ -509,9 +632,20 @@ export class Space {
       if (a.t >= 1) this.realAnim = null;
       this.dirty = true;
     }
+    if (this.camAnim) {
+      const a = this.camAnim;
+      a.t = Math.min(1, a.t + dt / a.dur);
+      const k = easeInOut(a.t);
+      this.camera.position.lerpVectors(a.from, a.to, k);
+      this.controls.target.lerpVectors(a.tgtFrom, a.tgtTo, k);
+      if (a.t >= 1) this.camAnim = null;
+      this.dirty = true;
+    }
     if (this.controls.update(dt)) this.dirty = true;
     if (!this.dirty) return false;
     this.dirty = false;
+    this.camera.updateMatrixWorld();
+    this._declutter();
     this.renderer.render(this.scene, this.camera);
     this.labelRenderer.render(this.scene, this.camera);
     return true;
