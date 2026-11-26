@@ -44,8 +44,8 @@ body { display: flex; flex-direction: column; height: 100dvh; font-size: 14px; }
 }
 .panel { padding: 10px 12px; min-width: 0; min-height: 0; }
 .space { grid-area: space; position: relative; padding: 0; overflow: hidden; background: var(--night); border-color: #1c2645; }
-.sky { grid-area: sky; position: relative; padding: 0; overflow: hidden; }
-.read { grid-area: read; display: grid; grid-template-columns: 1fr 1.05fr 1.2fr 1.25fr; gap: 6px; padding: 8px; }
+.sky { grid-area: sky; position: relative; padding: 0; z-index: 2; }   /* ⓘ 설명이 칸 밖으로 펼쳐져도 잘리지 않게 (overflow 숨김 안 함) */
+.read { grid-area: read; display: grid; grid-template-columns: 0.9fr 0.95fr 1.2fr 1.25fr; gap: 6px; padding: 8px; }
 .ctrl { grid-area: ctrl; display: flex; flex-direction: column; gap: 6px; justify-content: center; }
 .order { grid-area: order; display: flex; flex-direction: column; gap: 6px; justify-content: center; }
 [hidden] { display: none !important; }
@@ -83,7 +83,7 @@ body { display: flex; flex-direction: column; height: 100dvh; font-size: 14px; }
 @keyframes pop { from { opacity: 0; transform: translateY(-6px) scale(.97); } }
 
 /* 하늘 보기 */
-.sky canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.sky canvas { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: inherit; }
 
 /* 읽음값 */
 .cell { background: #f3f5fa; border-radius: 10px; padding: 5px 10px; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
@@ -121,13 +121,14 @@ body { display: flex; flex-direction: column; height: 100dvh; font-size: 14px; }
 .seg button + button { border-left: 1px solid var(--line); }
 
 /* 자유 배치 패널 */
-.frow label { display: flex; justify-content: space-between; font-size: 14px; color: var(--muted); }
-.frow output { color: var(--ink); font-weight: 800; font-variant-numeric: tabular-nums; }
+.frow { display: grid; grid-template-columns: 140px minmax(0, 1fr); align-items: center; gap: 8px; }
+.frow label { display: flex; flex-direction: column; font-size: 13px; color: var(--muted); line-height: 1.25; }
+.frow output { color: var(--ink); font-weight: 800; font-size: 15px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .sl-line { display: flex; align-items: center; gap: 6px; }
 .sl-line button { min-width: 48px; padding: 4px 8px; font-size: 14px; }
 .sl-line input { flex: 1; }
-.fbtns { display: flex; gap: 6px; flex-wrap: wrap; }
-.fbtns button { padding: 6px 10px; font-size: 14px; }
+.fbtns { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; }
+.fbtns button { padding: 6px 6px; font-size: 14px; white-space: nowrap; }
 
 /* 순서 카드 */
 .order-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -172,13 +173,13 @@ body { display: flex; flex-direction: column; height: 100dvh; font-size: 14px; }
 }
 .bubble small { display: block; margin-top: 4px; font-size: 13px; color: #6b5520; }
 .read.moving .v { color: var(--muted); }
-#rState.long { font-size: 15px; white-space: normal; line-height: 1.15; }
+#rState.long { font-size: 15px; letter-spacing: -.3px; }
 .lbl3d { transition: opacity .18s; }
 .lbl3d.hide { opacity: 0; }
 
-/* 알림 */
+/* 알림 — '우주에서 본 배치' 위에 띄워 하늘 보기 제목을 가리지 않게 */
 .toast {
-  position: fixed; left: 50%; top: 64px; transform: translate(-50%, -12px); opacity: 0; z-index: 99;
+  position: fixed; left: 28%; top: 46%; transform: translate(-50%, -12px); opacity: 0; z-index: 99;
   background: #1d2433; color: #fff; padding: 10px 16px; border-radius: 12px; font-size: 14px;
   transition: opacity .25s, transform .25s; pointer-events: none; max-width: 90vw;
 }
@@ -209,7 +210,7 @@ body { display: flex; flex-direction: column; height: 100dvh; font-size: 14px; }
   .tabs button { flex: 1; }
   .layout {
     grid-template-columns: minmax(0, 62fr) minmax(0, 38fr);
-    grid-template-rows: minmax(0, 1.06fr) minmax(0, 0.94fr) auto auto;
+    grid-template-rows: minmax(0, 1.18fr) minmax(0, 0.82fr) auto auto;
     grid-template-areas: "space space" "sky read" "ctrl ctrl" "order order";
   }
   .read { grid-template-columns: 1fr; grid-template-rows: repeat(4, 1fr); gap: 5px; padding: 6px; }
@@ -223,3 +224,32 @@ body { display: flex; flex-direction: column; height: 100dvh; font-size: 14px; }
 
 /* '실제 크기 느낌' 말풍선이 떠 있으면 탐구 질문 띠는 잠시 숨김 (겹치지 않게) */
 .space:has(.bubble:not([hidden])) .mission { display: none; }
+
+/* 하늘 보기 ⓘ 설명 (접어 둠) */
+.info-btn {
+  position: absolute; right: 6px; top: 6px; z-index: 3; width: 40px; height: 40px; min-height: 40px; padding: 0;
+  border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,.82); color: #1d3a6e; border: 1.5px solid rgba(29,58,110,.35);
+  font: 800 17px Georgia, 'Times New Roman', serif; font-style: italic;
+}
+.info-btn[aria-expanded=true] { background: var(--accent); color: #fff; border-color: var(--accent); }
+.sky-info {
+  position: absolute; right: 8px; top: 52px; z-index: 20; max-width: min(380px, calc(100% - 16px));
+  background: #fffdf4; color: #2b2410; border: 1px solid #e7d79a; border-radius: 12px;
+  padding: 9px 12px 9px 12px; font-size: 13.5px; line-height: 1.45; box-shadow: 0 8px 22px rgba(0,0,0,.3);
+  animation: pop .25s ease-out;
+}
+.sky-info b { font-size: 14px; }
+.sky-info ul { margin: 4px 0 0; padding-left: 18px; }
+.sky-info li + li { margin-top: 3px; }
+
+/* 다음 탭 안내: 잠깐 반짝 */
+.tabs button.flash { animation: tabFlash .8s ease-in-out 3; }
+@keyframes tabFlash { 50% { background: #ffe6a3; box-shadow: 0 0 0 2px #f5b100; color: var(--ink); } }
+
+@media (orientation: portrait), (max-width: 900px) {
+  .space.free .space-head span { display: block; }
+  .space.free .mission { top: 52px; }
+  .toast { left: 50%; top: 22%; }
+  .frow { grid-template-columns: 150px minmax(0, 1fr); }
+}

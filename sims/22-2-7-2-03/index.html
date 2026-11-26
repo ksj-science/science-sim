@@ -57,13 +57,15 @@
   </section>
 
   <section class="panel sky" aria-label="하늘 보기(관측자 시점)">
-    <canvas id="sky" role="img" aria-label="남쪽을 향해 섰을 때 하늘에서 보이는 모습 (왼쪽이 동쪽, 오른쪽이 서쪽)"></canvas>
+    <canvas id="sky" role="img" aria-label="하늘에서 보이는 모습. 남쪽 하늘을 볼 때처럼 왼쪽이 동쪽, 오른쪽이 서쪽"></canvas>
+    <button id="skyInfoBtn" class="info-btn" aria-expanded="false" aria-controls="skyInfo" aria-label="하늘 보기 설명 더 보기" title="하늘 보기 설명 더 보기"><span aria-hidden="true">i</span></button>
+    <div id="skyInfo" class="sky-info" hidden><b>하늘 보기 설명</b><ul></ul></div>
   </section>
 
   <section class="panel read" aria-live="polite">
     <div class="cell"><span class="k">가린 비율</span><span class="v" id="rCover">0.0 %</span></div>
     <div class="cell"><span class="k" id="rSecondK">지난 시간</span><span class="v" id="rSecond">0분</span></div>
-    <div class="cell"><span class="k">식 상태</span><span class="v" id="rState">식 전</span></div>
+    <div class="cell"><span class="k" id="rStateK">식 상태</span><span class="v" id="rState">식 전</span></div>
     <div class="cell"><span class="k">가리는 것</span><span class="v" id="rBy">달</span></div>
   </section>
 
@@ -95,7 +97,7 @@
 
   <section class="panel ctrl" id="freePanel" aria-label="달의 위치 조절" hidden>
     <div class="frow">
-      <label for="aSlider">달의 위치 각도 <output id="aOut">300°</output></label>
+      <label for="aSlider"><span>달의 위치 각도</span> <output id="aOut">300°</output></label>
       <div class="sl-line">
         <button data-astep="-1" aria-label="각도 1도 줄이기">−1°</button>
         <input type="range" id="aSlider" min="0" max="359" step="1" value="300">
@@ -103,15 +105,15 @@
       </div>
     </div>
     <div class="frow">
-      <label for="hSlider">달의 높낮이 <output id="hOut">0.0 (모형 단위)</output></label>
+      <label for="hSlider"><span>달의 높낮이</span> <output id="hOut">0.0 (모형 단위)</output></label>
       <div class="sl-line">
-        <button data-hstep="-0.1" aria-label="높낮이 0.1 낮추기">아래</button>
-        <input type="range" id="hSlider" min="-3" max="3" step="0.1" value="0">
-        <button data-hstep="0.1" aria-label="높낮이 0.1 높이기">위</button>
+        <button data-hstep="-0.5" aria-label="높낮이 0.5 낮추기">아래</button>
+        <input type="range" id="hSlider" min="-5" max="5" step="0.1" value="0">
+        <button data-hstep="0.5" aria-label="높낮이 0.5 높이기">위</button>
       </div>
     </div>
     <div class="fbtns">
-      <button id="btnFreePlay" class="primary play" aria-label="공전 재생"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path class="ic-play" d="M7 4.5v15l12-7.5z" fill="currentColor"/><path class="ic-pause" d="M6.5 4.5h4v15h-4zM13.5 4.5h4v15h-4z" fill="currentColor"/></svg><span>공전</span></button>
+      <button id="btnFreePlay" class="primary play" aria-label="공전"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path class="ic-play" d="M7 4.5v15l12-7.5z" fill="currentColor"/><path class="ic-pause" d="M6.5 4.5h4v15h-4zM13.5 4.5h4v15h-4z" fill="currentColor"/></svg><span>공전</span></button>
       <button data-goto="0">0° (태양 쪽)</button>
       <button data-goto="180">180° (반대쪽)</button>
       <button data-hzero="1">높낮이 0</button>

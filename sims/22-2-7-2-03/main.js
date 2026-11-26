@@ -28,6 +28,8 @@ const sfx = {
 
 // ── 상태 ──
 const FREE_START = { angle: 300, h: 0 };
+const H_MAX = 5;                          // 달의 높낮이 범위 −5 ~ +5 (모형 단위)
+const hTick = h => (h + H_MAX) / (2 * H_MAX);
 const st = {
   mode: 'solar',
   t: { solar: EVENTS.solar.tMin, lunar: EVENTS.lunar.tMin },
@@ -92,35 +94,53 @@ function stateLabel(mode, g) {
     return st.t[mode] <= ev.start ? '식 전' : '식 끝';
   }
   // 교과서 날짜(일식)는 진행 시간이 지구 전체 기준일 수 있어서, 우리나라에서 개기 일식인지 단정하지 않음
-  if (mode === 'solar' && s === 'totalSolar') return '가장 많이 가려짐 (모형)';
+  if (mode === 'solar' && s === 'totalSolar') return '가장 많이 가려짐';
   return STATE_KO[s];
 }
 
-// 하늘 보기 왼쪽 위 글자 (notesShort: 하늘 보기 칸이 낮을 때 쓰는 짧은 글)
+// 하늘 보기 왼쪽 위 글자 (1~2줄) + ⓘ 안에 접어 둔 자세한 안내
 function skyText(g) {
   const who = g.view === 'solar' ? '태양' : '달';
   const o = {
-    title: `하늘 보기 · 남쪽을 향해 서서 본 ${who}`,
-    sub: `${who}을 가운데에 두고 확대해서 봄 (하루 동안의 일주 운동은 뺐어요)`,
-    notes: [], notesShort: [],
+    title: '하늘 보기 · 남쪽 하늘처럼 왼쪽=동, 오른쪽=서',
+    sub: `${who}을 가운데에 두고 크게 본 모습이에요. 크기·거리는 모형이에요.`,
+    subShort: `${who}을 가운데에 두고 크게 본 모형이에요.`,
+    info: [
+      '남쪽 하늘을 바라볼 때처럼 왼쪽을 동쪽, 오른쪽을 서쪽으로 놓고 그렸어요.',
+      `하루 동안의 일주 운동은 빼고, ${who}을 화면 가운데에 고정했어요.`,
+    ],
   };
-  if (g.view === 'lunar') {
-    o.notes.push('달을 가운데에 고정해서, 달이 동쪽으로 가면 지구의 그림자가 동쪽(왼쪽)에서 다가오는 것처럼 보여요.');
-    o.notesShort.push('달을 가운데에 고정 → 그림자가 동쪽(왼쪽)에서 다가오는 것처럼 보여요.');
-  }
+  if (g.view === 'lunar') o.info.push('달을 가운데에 고정했기 때문에, 달이 동쪽으로 가면 지구의 그림자가 동쪽(왼쪽)에서 다가오는 것처럼 보여요.');
   if (st.mode === 'solar') {
-    o.notes.push('모형이에요. 진행 시간은 지구 전체 기준일 수 있어요. 우리나라에서의 실제 모습은 천체 관측 프로그램(천문학습관)으로 확인해요.');
-    o.notesShort.push('모형 · 진행 시간은 지구 전체 기준일 수 있어요. 우리나라에서의 실제 모습은 천체 관측 프로그램(천문학습관)으로 확인');
+    o.info.push('진행 시작·끝 시각만 교과서 값이고, 그 사이 가려지는 정도는 모형이에요.');
+    o.info.push('교과서의 진행 시간은 지구 전체 기준일 수 있어요. 우리나라에서의 실제 모습은 천체 관측 프로그램(천문학습관)으로 확인해요.');
     o.maxNote = '모형에서 가장 많이 가려진 순간';
   } else if (st.mode === 'lunar') {
-    o.notes.push('모형이에요. 실제 모습은 천체 관측 프로그램(천문학습관)으로 확인해요.');
-    o.notesShort.push('모형 · 실제 모습은 천체 관측 프로그램(천문학습관)으로 확인');
+    o.info.push('진행 시작·끝 시각만 교과서 값이고, 그 사이 가려지는 정도는 모형이에요.');
+    o.info.push('실제 모습은 천체 관측 프로그램(천문학습관)으로 확인해요.');
   } else {
-    o.notes.push('모형: 크기·거리는 실제와 달라요');
-    o.notesShort.push('모형: 크기·거리는 실제와 달라요');
+    o.info.push('자유 배치는 크기·거리를 줄인 모형이라 실제 하늘과 달라요.');
   }
   return o;
 }
+let infoKey = '';
+function syncSkyInfo(o) {
+  const key = o.info.join('|');
+  if (key === infoKey) return;
+  infoKey = key;
+  const ul = $('#skyInfo ul');
+  ul.replaceChildren(...o.info.map(t => { const li = document.createElement('li'); li.textContent = t; return li; }));
+}
+function setSkyInfo(open) {
+  $('#skyInfo').hidden = !open;
+  $('#skyInfoBtn').setAttribute('aria-expanded', String(open));
+}
+$('#skyInfoBtn').addEventListener('click', e => { e.stopPropagation(); setSkyInfo($('#skyInfo').hidden); sfx.click(); });
+$('#skyInfo').addEventListener('click', () => setSkyInfo(false));
+document.addEventListener('pointerdown', e => {
+  if (!$('#skyInfo').hidden && !e.target.closest('#skyInfo, #skyInfoBtn')) setSkyInfo(false);
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') setSkyInfo(false); });
 
 // dir: 시간·각도가 앞으로(+1) 갔는지 뒤로(−1) 갔는지 (0 = 알 수 없음)
 function update(dir = 0, quiet = false) {
@@ -129,7 +149,9 @@ function update(dir = 0, quiet = false) {
   const g = c.g;
   space.setMoon(c.angle, c.h);
 
-  sky.draw(g, skyText(g));
+  const txt = skyText(g);
+  sky.draw(g, txt);
+  syncSkyInfo(txt);
 
   // 읽음값
   const moving = !!(st.anim && st.pendingOrder);   // 순서 카드 확인 뒤 달이 옮겨 가는 중에는 중간값을 숨김
@@ -147,6 +169,8 @@ function update(dir = 0, quiet = false) {
   const label = stateLabel(st.mode, g);
   rs.textContent = moving ? '…' : label;
   rs.className = 'v' + (moving ? '' : s.startsWith('total') ? ' total' : s !== 'none' ? ' on' : '') + (label.length > 7 ? ' long' : '');
+  // 일식 탭의 최대 가림은 모형 값이라는 표시는 칸 제목에 붙임 (값 글자가 두 줄로 넘어가 칸 높이가 흔들리지 않게)
+  $('#rStateK').textContent = !moving && st.mode === 'solar' && s === 'totalSolar' ? '식 상태 (모형)' : '식 상태';
   $('#rBy').textContent = moving ? '…' : s === 'none' ? '없음' : g.view === 'solar' ? '달' : '지구의 그림자';
 
   // 기록
@@ -179,6 +203,7 @@ function update(dir = 0, quiet = false) {
   prevCover = g.cover; prevView = g.view; prevG = g;
 
   if (m !== 'free') st.lastBook = m;
+  syncMission();
   syncControls();
   pushState();
 }
@@ -215,7 +240,7 @@ function syncControls() {
     const on = st.playing;
     b.classList.toggle('playing', on);
     b.querySelector('span').textContent = on ? '멈춤' : (b.id === 'btnFreePlay' ? '공전' : '재생');
-    b.setAttribute('aria-label', on ? '일시정지' : '재생');
+    b.setAttribute('aria-label', b.querySelector('span').textContent);
   }
 }
 
@@ -255,6 +280,27 @@ const MISSION = {
   lunar: '탐구 ② 22:27 무렵부터 1분씩 넘겨 보세요. 달은 어느 쪽부터 가려질까요? 가리는 것은 무엇일까요?',
   free: '탐구 ③ 달을 0°나 180°에 두고 높낮이를 바꿔 보세요. 달이 그 자리에 올 때마다 식이 일어날까요?',
 };
+// 식이 끝난 뒤 다음 단계 안내 (정답 없음)
+const MISSION_DONE = {
+  solar: { text: '탐구 ① 끝! 태양이 어느 쪽부터 가려졌는지 정리했나요? 다음은 위의 [월식] 탭이에요.', next: 'lunar' },
+  lunar: { text: '탐구 ② 끝! 달이 어느 쪽부터, 무엇에 가려졌는지 정리했나요? 다음은 위의 [자유 배치] 탭이에요.', next: 'free' },
+};
+const doneShown = { solar: false, lunar: false };
+function syncMission() {
+  const m = st.mode;
+  let text = MISSION[m];
+  if (m !== 'free' && st.t[m] >= EVENTS[m].end) {
+    text = MISSION_DONE[m].text;
+    if (!doneShown[m]) { doneShown[m] = true; flashTab(MISSION_DONE[m].next); }
+  }
+  const el = $('#mission');
+  if (el.textContent !== text) el.textContent = text;
+}
+function flashTab(mode) {
+  const b = $(`.tabs button[data-mode="${mode}"]`);
+  b.classList.remove('flash'); void b.offsetWidth; b.classList.add('flash');
+  setTimeout(() => b.classList.remove('flash'), 2600);
+}
 const MSG0 = '카드를 끌어 칸에 놓거나, 카드를 눌러 빈칸에 차례로 넣어요.';
 function setMode(m, { silent = false } = {}) {
   if (m === st.mode && !silent) return;
@@ -267,7 +313,9 @@ function setMode(m, { silent = false } = {}) {
   space.dragEnabled = m === 'free';
   space.setFreeHints(m === 'free');
   if (m !== 'free') { setOrderTarget(m); setMsg(MSG0); }
-  $('#mission').textContent = MISSION[m];
+  $('.space').classList.toggle('free', m === 'free');
+  $('.space-head span').textContent = m === 'free' ? '달을 끌어 옮기기 · 빈 곳을 끌어 돌리기' : '끌어서 돌리기 · 휠/두 손가락 확대';
+  setSkyInfo(false);
   if (st.real) setReal(false);
   space.setTilt(m === 'free' && Math.abs(st.h) > 0.05);
   prevCover = null;
@@ -324,7 +372,7 @@ function setAngle(a, dir) {
   return true;
 }
 function setHeight(h) {
-  h = Math.max(-3, Math.min(3, Math.round(h * 10) / 10));
+  h = Math.max(-H_MAX, Math.min(H_MAX, Math.round(h * 10) / 10));
   if (h === st.h) return false;
   st.h = h; update(0);
   space.setTilt(Math.abs(h) > 0.05);
@@ -346,7 +394,7 @@ $('#aSlider').addEventListener('input', e => {
 });
 $('#hSlider').addEventListener('input', e => {
   stopAnim();
-  if (setHeight(+e.target.value)) sfx.tick((+e.target.value + 3) / 6);
+  if (setHeight(+e.target.value)) sfx.tick(hTick(+e.target.value));
 });
 $$('[data-astep]').forEach(b => b.addEventListener('click', () => {
   setPlaying(false); stopAnim();
@@ -354,7 +402,7 @@ $$('[data-astep]').forEach(b => b.addEventListener('click', () => {
 }));
 $$('[data-hstep]').forEach(b => b.addEventListener('click', () => {
   stopAnim();
-  if (setHeight(st.h + +b.dataset.hstep)) sfx.tick((st.h + 3) / 6);
+  if (setHeight(st.h + +b.dataset.hstep)) sfx.tick(hTick(st.h));
 }));
 $$('[data-goto]').forEach(b => b.addEventListener('click', () => { animateTo(+b.dataset.goto); sfx.whoosh(); }));
 $('[data-hzero]').addEventListener('click', () => { stopAnim(); if (setHeight(0)) sfx.tick(0.5); });
@@ -370,7 +418,8 @@ $('#space3d').addEventListener('keydown', e => {
     e.preventDefault();
   } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
     stopAnim();
-    if (setHeight(st.h + (e.key === 'ArrowUp' ? 0.1 : -0.1))) sfx.tick((st.h + 3) / 6);
+    const hs = e.shiftKey ? 0.5 : 0.1;
+    if (setHeight(st.h + (e.key === 'ArrowUp' ? hs : -hs))) sfx.tick(hTick(st.h));
     e.preventDefault();
   }
 });
@@ -413,7 +462,12 @@ function setQuality(q, auto = false) {
   $('#btnQuality').setAttribute('aria-label', `그래픽 품질 ${q === 'high' ? '높음' : '낮음'}, 눌러서 바꾸기`);
   if (auto) toast('화면이 느려서 그래픽 품질을 \'낮음\'으로 바꿨어요', 3200);
 }
-$('#btnQuality').addEventListener('click', () => { setQuality(st.quality === 'high' ? 'low' : 'high'); sfx.click(); });
+$('#btnQuality').addEventListener('click', () => {
+  const q = st.quality === 'high' ? 'low' : 'high';
+  setQuality(q); sfx.click();
+  // 학생이 '높음'으로 되돌리면 다시 재 봄 — 그래도 느리면 바꾸지 않고 알려만 줌 (학생 선택 존중)
+  if (q === 'high') perf = { time: 0, frames: 0, prevDrew: false, done: false, from: performance.now() + 1500, again: true };
+});
 
 $('#btnReset').addEventListener('click', () => {
   setPlaying(false); stopAnim();
@@ -554,6 +608,7 @@ $('#btnCheck').addEventListener('click', () => {
   } else {
     st.pendingOrder = null;
     setMode('free', { silent: true });
+    flashTab('free');
     animateTo(made === 'solar' ? 0 : 180, 0);
     st.pendingOrder = { made, t, str, want };
     setMsg(`${str}: 자유 배치에서 이 순서대로 달을 옮겨 직접 확인해 볼게요…`, 'wait');
@@ -644,7 +699,11 @@ function loop(now) {
   if (perf.prevDrew && !perf.done && st.quality === 'high' && now > perf.from) {
     perf.time += dt; perf.frames++;
     if (perf.frames >= 40) {
-      if (perf.time / perf.frames > 1 / 48) { perf.done = true; setQuality('low', true); }
+      if (perf.time / perf.frames > 1 / 48) {
+        perf.done = true;
+        if (perf.again) toast('\'높음\' 품질에서 화면이 느려요. 움직임이 끊기면 \'품질 높음\' 단추를 눌러 \'낮음\'으로 바꿔 보세요.', 4200);
+        else setQuality('low', true);
+      }
       perf.time = 0; perf.frames = 0;
     }
   }
@@ -658,4 +717,4 @@ renderSlots();
 requestAnimationFrame(loop);
 
 // 디버그·검수용 (정답 없음): 현재 상태 보기
-window.__sim = { st, rec, space, get geom() { return cur; } };
+window.__sim = { st, rec, space, sky, get geom() { return cur; }, get perf() { return perf; } };

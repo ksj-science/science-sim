@@ -78,8 +78,8 @@ export class Sky {
   // 왼쪽 위 글자(제목·설명·안내)를 줄바꿈해 자리를 미리 정함
   _layoutText(c, w, h, g, opt) {
     const F = wt => `${wt} 13px Pretendard, "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif`;
-    const maxW = w - 24;
-    const small = h < 330;
+    const maxW = w - 24 - 46;          // 오른쪽 위 ⓘ 단추 자리 비움
+    const small = h < 250;
     const out = [];
     let y = 10;
     const push = (text, font, lh, kind) => {
@@ -87,8 +87,8 @@ export class Sky {
       for (const line of wrap(c, text, maxW)) { out.push({ text: line, font, y, kind }); y += lh; }
     };
     push(opt?.title || '하늘 보기', '700 14px Pretendard, "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif', 20, 'title');
-    if (opt?.sub && !small) push(opt.sub, F(500), 18, 'sub');
-    for (const n of (small ? opt?.notesShort : opt?.notes) || []) push(n, F(500), small ? 17 : 18, 'note');
+    const sub = small ? opt?.subShort : opt?.sub;
+    if (sub) push(sub, F(500), 18, 'sub');
     return { lines: out, bottom: y };
   }
 
