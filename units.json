@@ -21,7 +21,10 @@
     "status": "검토 중",
     "source": "code",
     "dashboard": true,
-    "gas": "기존"
+    "gas": null,
+    "web": [
+      "15-3-1-2-01"
+    ]
   },
   {
     "id": "22-2-3-1-01",
@@ -33,7 +36,10 @@
     "status": "검토 중",
     "source": "code",
     "dashboard": true,
-    "gas": "기존"
+    "gas": null,
+    "web": [
+      "22-2-3-1-01"
+    ]
   },
   {
     "id": "22-2-7-2-01",
@@ -45,7 +51,10 @@
     "status": "검토 중",
     "source": "code",
     "dashboard": true,
-    "gas": "기존"
+    "gas": null,
+    "web": [
+      "22-2-7-2-01"
+    ]
   },
   {
     "id": "22-1-2-2-01",
@@ -56,7 +65,10 @@
     "path": "sims/22-1-2-2-01/",
     "source": "code",
     "dashboard": true,
-    "gas": "기존"
+    "gas": null,
+    "web": [
+      "22-1-2-2-01"
+    ]
   },
   {
     "id": "15-3-7-1-01",
@@ -68,7 +80,10 @@
     "status": "검토 중",
     "source": "code",
     "dashboard": true,
-    "gas": "기존"
+    "gas": null,
+    "web": [
+      "15-3-7-1-01"
+    ]
   },
   {
     "id": "22-2-7-2-02",
@@ -80,7 +95,10 @@
     "status": "검토 중",
     "source": "code",
     "dashboard": true,
-    "gas": "기존"
+    "gas": null,
+    "web": [
+      "22-2-7-2-02"
+    ]
   },
   {
     "id": "chat-speciation",
@@ -93,7 +111,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "01차시",
-    "summary": "토끼의 종류가 다양해지는 과정 시뮬레이터"
+    "summary": "토끼의 종류가 다양해지는 과정 시뮬레이터",
+    "web": [
+      "speciation"
+    ]
   },
   {
     "id": "chat-temp-particle",
@@ -106,7 +127,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "01차시",
-    "summary": "온도와 입자 운동 시뮬레이터"
+    "summary": "온도와 입자 운동 시뮬레이터",
+    "web": [
+      "temp_particle"
+    ]
   },
   {
     "id": "chat-thermal-eq",
@@ -119,7 +143,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "02차시",
-    "summary": "열평형 시뮬레이터"
+    "summary": "열평형 시뮬레이터",
+    "web": [
+      "thermal_eq"
+    ]
   },
   {
     "id": "chat-specific-heat",
@@ -132,7 +159,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "01차시",
-    "summary": "비열"
+    "summary": "비열",
+    "web": [
+      "specific_heat"
+    ]
   },
   {
     "id": "chat-boyle",
@@ -145,7 +175,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "02차시",
-    "summary": "보일 법칙 시뮬레이터 — 기체의 압력과 부피 관계"
+    "summary": "보일 법칙 시뮬레이터 — 기체의 압력과 부피 관계",
+    "web": [
+      "boyle"
+    ]
   },
   {
     "id": "chat-charles",
@@ -158,7 +191,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "01차시",
-    "summary": "기체의 온도와 부피 시뮬레이터 (샤를 법칙)"
+    "summary": "기체의 온도와 부피 시뮬레이터 (샤를 법칙)",
+    "web": [
+      "charles"
+    ]
   },
   {
     "id": "chat-diurnal",
@@ -171,7 +207,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "01차시",
-    "summary": "천구와 별의 일주 운동 시뮬레이터"
+    "summary": "천구와 별의 일주 운동 시뮬레이터",
+    "web": [
+      "diurnal"
+    ]
   },
   {
     "id": "chat-annual-sun",
@@ -184,7 +223,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "02차시",
-    "summary": "태양의 연주 운동 시뮬레이터"
+    "summary": "태양의 연주 운동 시뮬레이터",
+    "web": [
+      "annual_sun"
+    ]
   },
   {
     "id": "chat-moon-phase",
@@ -197,7 +239,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "03차시",
-    "summary": "달의 위상 변화 시뮬레이터"
+    "summary": "달의 위상 변화 시뮬레이터",
+    "web": [
+      "moon_phase"
+    ]
   },
   {
     "id": "chat-eclipse",
@@ -210,7 +255,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "04차시",
-    "summary": "일식과 월식 시뮬레이터"
+    "summary": "일식과 월식 시뮬레이터",
+    "web": [
+      "eclipse"
+    ]
   },
   {
     "id": "chat-telescope",
@@ -223,7 +271,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "05차시",
-    "summary": "천체 망원경 관측·촬영 시뮬레이터"
+    "summary": "천체 망원경 관측·촬영 시뮬레이터",
+    "web": [
+      "telescope"
+    ]
   },
   {
     "id": "chat-matter-prop",
@@ -236,7 +287,13 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "02차시, 03차시, 04차시, 종합차시",
-    "summary": "물질의 특성 실험실"
+    "summary": "물질의 특성 실험실",
+    "web": [
+      "density",
+      "melt_boil",
+      "solubility",
+      "matter_prop"
+    ]
   },
   {
     "id": "chat-distill",
@@ -249,7 +306,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "02차시",
-    "summary": "증류 실험실 — 물과 에탄올 혼합물 분리하기"
+    "summary": "증류 실험실 — 물과 에탄올 혼합물 분리하기",
+    "web": [
+      "distill"
+    ]
   },
   {
     "id": "chat-recryst",
@@ -262,7 +322,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "03차시",
-    "summary": "재결정 실험실 — 순수한 질산 칼륨 분리하기"
+    "summary": "재결정 실험실 — 순수한 질산 칼륨 분리하기",
+    "web": [
+      "recryst"
+    ]
   },
   {
     "id": "chat-mix-sep",
@@ -275,7 +338,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "04차시",
-    "summary": "혼합물 분리 실험실 — 다양한 방법으로 분리하기"
+    "summary": "혼합물 분리 실험실 — 다양한 방법으로 분리하기",
+    "web": [
+      "mix_sep"
+    ]
   },
   {
     "id": "chat-earth-layers",
@@ -288,7 +354,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "02차시",
-    "summary": "지구 내부 탐사 — 지권의 층상 구조"
+    "summary": "지구 내부 탐사 — 지권의 층상 구조",
+    "web": [
+      "earth_layers"
+    ]
   },
   {
     "id": "chat-minerals",
@@ -301,7 +370,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "01차시",
-    "summary": "광물 실험대 — 광물의 특성 관찰하기"
+    "summary": "광물 실험대 — 광물의 특성 관찰하기",
+    "web": [
+      "minerals"
+    ]
   },
   {
     "id": "chat-rocks",
@@ -314,7 +386,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "03차시",
-    "summary": "암석 관찰실 — 암석을 관찰하여 분류하기"
+    "summary": "암석 관찰실 — 암석을 관찰하여 분류하기",
+    "web": [
+      "rocks"
+    ]
   },
   {
     "id": "chat-soil",
@@ -327,7 +402,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "04차시",
-    "summary": "토양 생성 시간 여행 — 풍화와 토양의 생성"
+    "summary": "토양 생성 시간 여행 — 풍화와 토양의 생성",
+    "web": [
+      "soil"
+    ]
   },
   {
     "id": "chat-continental-drift",
@@ -340,7 +418,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "01차시",
-    "summary": "대륙 퍼즐 — 대륙 이동설"
+    "summary": "대륙 퍼즐 — 대륙 이동설",
+    "web": [
+      "continental_drift"
+    ]
   },
   {
     "id": "chat-volcano-quake",
@@ -353,7 +434,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "02차시",
-    "summary": "화산·지진 빅데이터 지도"
+    "summary": "화산·지진 빅데이터 지도",
+    "web": [
+      "volcano_quake"
+    ]
   },
   {
     "id": "chat-reflect-refract",
@@ -366,7 +450,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "01차시",
-    "summary": "레이저 각도기 실험대 — 빛의 반사와 굴절"
+    "summary": "레이저 각도기 실험대 — 빛의 반사와 굴절",
+    "web": [
+      "reflect_refract"
+    ]
   },
   {
     "id": "chat-seeing-light",
@@ -379,7 +466,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "02차시",
-    "summary": "빛의 경로 그리기 — 물체를 보는 과정"
+    "summary": "빛의 경로 그리기 — 물체를 보는 과정",
+    "web": [
+      "seeing_light"
+    ]
   },
   {
     "id": "chat-plane-mirror",
@@ -392,7 +482,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "03차시",
-    "summary": "반투명 거울 실험 — 평면거울이 만드는 상"
+    "summary": "반투명 거울 실험 — 평면거울이 만드는 상",
+    "web": [
+      "plane_mirror"
+    ]
   },
   {
     "id": "chat-mirror-lens",
@@ -405,7 +498,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "04차시",
-    "summary": "거울과 렌즈 관찰대 — 다양한 거울과 렌즈"
+    "summary": "거울과 렌즈 관찰대 — 다양한 거울과 렌즈",
+    "web": [
+      "mirror_lens"
+    ]
   },
   {
     "id": "chat-color-display",
@@ -418,7 +514,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "05차시",
-    "summary": "빛의 삼원색 실험실 — 물체의 색과 영상 장치"
+    "summary": "빛의 삼원색 실험실 — 물체의 색과 영상 장치",
+    "web": [
+      "color_display"
+    ]
   },
   {
     "id": "chat-wave-basic",
@@ -431,7 +530,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "01차시",
-    "summary": "용수철 파동 만들기 — 파동의 발생과 전달"
+    "summary": "용수철 파동 만들기 — 파동의 발생과 전달",
+    "web": [
+      "wave_basic"
+    ]
   },
   {
     "id": "chat-sound",
@@ -444,7 +546,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "02차시",
-    "summary": "소리 분석 프로그램 — 소리의 특성"
+    "summary": "소리 분석 프로그램 — 소리의 특성",
+    "web": [
+      "sound"
+    ]
   },
   {
     "id": "chat-atom",
@@ -457,7 +562,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "02차시",
-    "summary": "원자 모형 만들기 — 원자"
+    "summary": "원자 모형 만들기 — 원자",
+    "web": [
+      "atom"
+    ]
   },
   {
     "id": "chat-periodic-table",
@@ -470,7 +578,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "03차시",
-    "summary": "주기율표 탐구 — 같은 족 원소의 유사성"
+    "summary": "주기율표 탐구 — 같은 족 원소의 유사성",
+    "web": [
+      "periodic_table"
+    ]
   },
   {
     "id": "chat-molecule",
@@ -483,7 +594,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "01차시",
-    "summary": "분자 모형 만들기 — 분자"
+    "summary": "분자 모형 만들기 — 분자",
+    "web": [
+      "molecule"
+    ]
   },
   {
     "id": "chat-ion",
@@ -496,7 +610,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "02차시",
-    "summary": "이온의 이동 관찰하기 — 이온"
+    "summary": "이온의 이동 관찰하기 — 이온",
+    "web": [
+      "ion"
+    ]
   },
   {
     "id": "chat-photo-product",
@@ -509,7 +626,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "01차시",
-    "summary": "광합성으로 만들어지는 물질 확인하기"
+    "summary": "광합성으로 만들어지는 물질 확인하기",
+    "web": [
+      "photo_product"
+    ]
   },
   {
     "id": "chat-photo-need",
@@ -522,7 +642,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "02차시",
-    "summary": "광합성에 필요한 물질 확인하기"
+    "summary": "광합성에 필요한 물질 확인하기",
+    "web": [
+      "photo_need"
+    ]
   },
   {
     "id": "chat-photo-factor",
@@ -535,7 +658,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "03차시",
-    "summary": "환경요인과 광합성량 — 잎 조각 띄우기 실험"
+    "summary": "환경요인과 광합성량 — 잎 조각 띄우기 실험",
+    "web": [
+      "photo_factor"
+    ]
   },
   {
     "id": "chat-plant-resp",
@@ -548,7 +674,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "01차시",
-    "summary": "호흡과 광합성의 관계 분석하기"
+    "summary": "호흡과 광합성의 관계 분석하기",
+    "web": [
+      "plant_resp"
+    ]
   },
   {
     "id": "chat-nutrient-store",
@@ -561,7 +690,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "02차시",
-    "summary": "광합성으로 만들어진 양분의 저장과 이용"
+    "summary": "광합성으로 만들어진 양분의 저장과 이용",
+    "web": [
+      "nutrient_store"
+    ]
   },
   {
     "id": "chat-nutrients",
@@ -574,7 +706,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "01차시",
-    "summary": "영양소 검출하기"
+    "summary": "영양소 검출하기",
+    "web": [
+      "nutrients"
+    ]
   },
   {
     "id": "chat-digestion",
@@ -587,7 +722,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "02차시",
-    "summary": "침의 소화 작용과 소화 과정"
+    "summary": "침의 소화 작용과 소화 과정",
+    "web": [
+      "digestion"
+    ]
   },
   {
     "id": "chat-circulation",
@@ -600,7 +738,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "03차시",
-    "summary": "혈액 순환 경로 따라가기 — 순환계"
+    "summary": "혈액 순환 경로 따라가기 — 순환계",
+    "web": [
+      "circulation"
+    ]
   },
   {
     "id": "chat-respiration",
@@ -613,7 +754,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "01차시",
-    "summary": "호흡운동의 원리 알아보기 — 호흡계"
+    "summary": "호흡운동의 원리 알아보기 — 호흡계",
+    "web": [
+      "respiration"
+    ]
   },
   {
     "id": "chat-excretion",
@@ -626,7 +770,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "02차시",
-    "summary": "오줌은 어떻게 만들어질까 — 배설계"
+    "summary": "오줌은 어떻게 만들어질까 — 배설계",
+    "web": [
+      "excretion"
+    ]
   },
   {
     "id": "chat-cell-resp",
@@ -639,7 +786,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "03차시",
-    "summary": "세포호흡과 에너지 — 몸속 배달 게임"
+    "summary": "세포호흡과 에너지 — 몸속 배달 게임",
+    "web": [
+      "cell_resp"
+    ]
   },
   {
     "id": "chat-static-elec",
@@ -652,7 +802,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "01차시",
-    "summary": "마찰 전기 실험실"
+    "summary": "마찰 전기 실험실",
+    "web": [
+      "static_elec"
+    ]
   },
   {
     "id": "chat-induction",
@@ -665,7 +818,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "02차시",
-    "summary": "정전기 유도 실험실"
+    "summary": "정전기 유도 실험실",
+    "web": [
+      "induction"
+    ]
   },
   {
     "id": "chat-charge-flow",
@@ -678,7 +834,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "01차시",
-    "summary": "전기 회로 만들기 — 전하의 이동"
+    "summary": "전기 회로 만들기 — 전하의 이동",
+    "web": [
+      "charge_flow"
+    ]
   },
   {
     "id": "chat-ohm",
@@ -691,7 +850,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "02차시",
-    "summary": "저항, 전류, 전압 사이의 관계 탐구 — 옴의 법칙"
+    "summary": "저항, 전류, 전압 사이의 관계 탐구 — 옴의 법칙",
+    "web": [
+      "ohm"
+    ]
   },
   {
     "id": "chat-resistor-conn",
@@ -704,7 +866,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "03차시",
-    "summary": "전구의 직렬연결과 병렬연결 비교하기"
+    "summary": "전구의 직렬연결과 병렬연결 비교하기",
+    "web": [
+      "resistor_conn"
+    ]
   },
   {
     "id": "chat-elec-energy",
@@ -717,7 +882,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "04차시",
-    "summary": "전기 기구의 에너지 전환과 소비 전력"
+    "summary": "전기 기구의 에너지 전환과 소비 전력",
+    "web": [
+      "elec_energy"
+    ]
   },
   {
     "id": "chat-magnetic-field",
@@ -730,7 +898,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "01차시",
-    "summary": "전류가 흐르는 코일 주위의 자기장"
+    "summary": "전류가 흐르는 코일 주위의 자기장",
+    "web": [
+      "magnetic_field"
+    ]
   },
   {
     "id": "chat-coil-force",
@@ -743,7 +914,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "02차시",
-    "summary": "자기장 속에서 코일이 받는 힘"
+    "summary": "자기장 속에서 코일이 받는 힘",
+    "web": [
+      "coil_force"
+    ]
   },
   {
     "id": "chat-star-distance",
@@ -756,7 +930,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "01차시",
-    "summary": "시차와 별까지의 거리"
+    "summary": "시차와 별까지의 거리",
+    "web": [
+      "star_distance"
+    ]
   },
   {
     "id": "chat-star-brightness",
@@ -769,7 +946,10 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "02차시",
-    "summary": "거리에 따른 빛의 밝기"
+    "summary": "거리에 따른 빛의 밝기",
+    "web": [
+      "star_brightness"
+    ]
   },
   {
     "id": "chat-expansion",
@@ -782,6 +962,9 @@
     "dashboard": true,
     "gas": "2026-11-26",
     "lesson": "02차시",
-    "summary": "풍선 팽창으로 우주 팽창 설명하기"
+    "summary": "풍선 팽창으로 우주 팽창 설명하기",
+    "web": [
+      "expansion"
+    ]
   }
 ]

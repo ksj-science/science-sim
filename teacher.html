@@ -50,7 +50,8 @@
 <body>
 <div class="wrap">
   <h1>교사용 대시보드</h1>
-  <p class="lead">채팅으로 만든 시뮬레이터와 클로드 코드로 만든 시뮬레이터를 한곳에 모았습니다. 학생에게는 <b>웹앱 링크</b>를 주면 문항·채점·기록까지 됩니다.</p>
+  <p class="lead">채팅으로 만든 시뮬레이터와 클로드 코드로 만든 시뮬레이터를 한곳에 모았습니다. 학생에게는 <b>학생용 링크</b>를 주면 확인문제·자동 채점·기록까지 되고,
+    결과는 <a href="#" id="dashLink" target="_blank" rel="noopener"><b>수업 결과 대시보드</b></a>(학교 계정)에서 봅니다.</p>
   <div class="stats" id="stats"></div>
   <div id="pending"></div>
   <div class="bar"><span class="lbl">만든 방법</span>
@@ -65,7 +66,7 @@
     <button class="chip" data-k="grade" data-v="3">3학년</button>
     <span class="lbl" style="margin-left:10px">웹앱</span>
     <button class="chip on" data-k="gas" data-v="">전체</button>
-    <button class="chip" data-k="gas" data-v="no">미배포만</button>
+    <button class="chip" data-k="gas" data-v="no">미등록만</button>
     <input type="search" id="q" placeholder="제목·단원 검색">
   </div>
   <div class="legend">
@@ -77,11 +78,13 @@
 </div>
 <div class="toast" id="toast"></div>
 <script>
-var WEBAPP = 'https://script.google.com/a/macros/hanam.ms.kr/s/AKfycbzNCp2pNjEVYoyiP6BIRW1OlwCzK7UzEk6t4SjiN3qEW84WEQqXF_Ybe1WEnS8z_jzR/exec';
+// 수업용 웹앱(학생 링크·문항·자동 채점·결과 대시보드) — 학교 계정 Apps Script, 시트 '비열 시뮬레이터 활동지 (하남중)'
+var WEBAPP = 'https://script.google.com/a/macros/hanam.ms.kr/s/AKfycbypy64khK7NrllDVllT6Sj2157o-qYtdqnNhdVYaBNTj2wwm0Hq9oqDa_5MxvEQJX7I/exec';
 var REPO = 'https://github.com/ksj-science/science-sim/tree/main/';
 var ROMAN = 'ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩ';
 var all = [], f = { src: '', grade: '', gas: '', q: '' };
 
+document.getElementById('dashLink').href = WEBAPP + '?page=dashboard';
 fetch('units.json', { cache: 'no-cache' }).then(function (r) { return r.json(); }).then(function (units) {
   all = units.filter(function (u) { return u.grade; });   // 예시(0학년) 제외
   stats(); pending(); render();
@@ -98,7 +101,7 @@ function stats() {
   document.getElementById('stats').innerHTML =
     st(vis.length, '전체 시뮬레이터') + st(n(function (u) { return src(u) === 'code'; }), '🛠 클로드 코드') +
     st(n(function (u) { return src(u) === 'chat'; }), '💬 채팅') +
-    st(waitDash, '대시보드 반영 대기') + st(waitGas, '웹앱 미배포');
+    st(waitDash, '대시보드 반영 대기') + st(waitGas, '웹앱 미등록');
   function st(v, t) { return '<div class="stat"><b>' + v + '</b><span>' + t + '</span></div>'; }
 }
 
@@ -136,7 +139,7 @@ function render() {
 
 function card(u) {
   var s = src(u), mid = String(u.chapter).split(' · ')[1] || '';
-  var web = WEBAPP + '?unit=' + encodeURIComponent(u.id);
+  var webs = (u.web && u.web.length ? u.web : [u.id]);
   return '<div class="card ' + s + (shown(u) ? '' : ' wait') + '">' +
     '<div class="meta"><span class="src ' + s + '">' + (s === 'chat' ? '💬 채팅' : '🛠 클로드 코드') + '</span>' +
       (s === 'code' ? '<span class="uid">' + esc(u.id) + '</span>' : '') +
@@ -144,10 +147,12 @@ function card(u) {
     '<h3>' + esc(u.title) + '</h3>' +
     '<div class="meta">' +
       (shown(u) ? '<span class="st ok">대시보드 반영</span>' : '<span class="st mid">반영 대기</span>') +
-      (gasDone(u) ? '<span class="st ok">웹앱 배포됨' + (/^\d{4}-/.test(u.gas) ? ' ' + esc(u.gas.slice(5)) : '') + '</span>' : '<span class="st no">웹앱 미배포</span>') +
+      (gasDone(u) ? '<span class="st ok">웹앱 문항 등록' + (/^\d{4}-/.test(u.gas) ? ' ' + esc(u.gas.slice(5)) : '') + '</span>' : '<span class="st no">웹앱 미등록</span>') +
       (u.status ? '<span class="st mid">' + esc(u.status) + '</span>' : '') + '</div>' +
     '<div class="acts"><a class="go" href="' + esc(u.path) + '" target="_blank" rel="noopener">열기</a>' +
-      '<button data-copy="' + esc(web) + '">학생용 웹앱 링크 복사</button>' +
+      webs.map(function (w) { return '<button data-copy="' + esc(WEBAPP + '?unit=' + encodeURIComponent(w)) + '">학생용 링크' + (webs.length > 1 ? ' · ' + esc(w) : '') + '</button>'; }).join('') +
+      '<a href="' + esc(WEBAPP + '?unit=' + encodeURIComponent(webs[0]) + '&demo=1') + '" target="_blank" rel="noopener">시연</a>' +
+      '<a href="' + esc(WEBAPP + '?page=dashboard&unit=' + encodeURIComponent(webs[0])) + '" target="_blank" rel="noopener">결과</a>' +
       (s === 'code' ? '<a href="' + REPO + 'activities/' + encodeURIComponent(u.id) + '" target="_blank" rel="noopener">활동지</a>' : '') +
     '</div></div>';
 }

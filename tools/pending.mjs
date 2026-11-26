@@ -11,9 +11,8 @@
  *
  * 판정
  *   대시보드 대기: sims/<ID>/ 폴더는 있는데 units.json에 없음(→ 먼저 등록 필요) 또는 units.json의 dashboard가 false
- *   웹앱 대기:    units.json의 gas가 비어 있음(null) — 이 단원 문항·정답을 시트에 넣지 않았거나 웹앱이 열 수 없음
- *                 shell/ 최신 커밋 ≠ deploy.json의 shell → 웹앱 코드 재배포 필요
- *   정답 초안:    .work/<ID>/정답.tsv 유무(이 PC에만 있음, 저장소에 없음) — 없으면 문항 없이 시뮬레이터만 열림
+ *   웹앱 대기:    units.json의 gas가 비어 있음(null) — 수업용 웹앱 [단원설정]·[문항]에 아직 안 들어감
+ *   문항 초안:    .work/<ID>/seed.gs 유무(이 PC에만 있음, 저장소에 없음) — 없으면 먼저 문항을 만들어야 함
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -29,7 +28,7 @@ const today = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10); // �
 
 let shellHead = '';
 try { shellHead = execSync('git log -1 --format=%H -- shell/', { cwd: root }).toString().trim(); } catch { /* git 없음 */ }
-const shellPending = !!shellHead && shellHead !== deploy.shell;
+const shellPending = false; // 예전 껍데기 웹앱(shell/)은 더 쓰지 않음
 
 const real = units.filter(u => u.grade); // 예시 제외
 const ids = new Set(units.map(u => u.id));
@@ -38,7 +37,7 @@ const unregistered = fs.readdirSync(path.join(root, 'sims'), { withFileTypes: tr
   .map(d => d.name);
 const dash = real.filter(u => u.dashboard === false);
 const gas = real.filter(u => !u.gas);
-const hasKey = id => fs.existsSync(path.join(root, '.work', id, '정답.tsv'));
+const hasKey = id => fs.existsSync(path.join(root, '.work', id, 'seed.gs'));
 
 const i = args.indexOf('--mark');
 if (i >= 0) {
@@ -73,10 +72,10 @@ const src = s => (s === 'chat' ? '채팅' : '코드');
 console.log('# 반영·배포 대기');
 console.log(`- 등록 안 된 시뮬레이터 폴더: ${unregistered.length ? unregistered.join(', ') : '없음'}`);
 console.log(`- 대시보드 반영 대기 ${dash.length}개${dash.length ? ': ' + dash.map(u => `${u.id}(${src(u.source)})`).join(', ') : ''}`);
-console.log(`- 웹앱(구글 스크립트) 배포 대기 ${gas.length}개${shellPending ? ' + 웹앱 코드(shell/) 재배포 필요' : ''}`);
+console.log(`- 수업용 웹앱 등록 대기 ${gas.length}개`);
 if (gas.length) {
   const withKey = gas.filter(u => hasKey(u.id)).map(u => u.id);
   const chat = gas.filter(u => u.source === 'chat').length;
-  console.log(`  · 문항·정답 초안 있음(시트에 넣을 것): ${withKey.length ? withKey.join(', ') : '없음'}`);
-  console.log(`  · 채팅 시뮬레이터 ${chat}개 / 클로드 코드 ${gas.length - chat}개 (초안 없는 단원은 문항 없이 시뮬레이터만 열림)`);
+  console.log(`  · 문항 초안(.work/<ID>/seed.gs) 있음: ${withKey.length ? withKey.join(', ') : '없음'}`);
+  console.log(`  · 채팅 ${chat}개 / 클로드 코드 ${gas.length - chat}개`);
 }
