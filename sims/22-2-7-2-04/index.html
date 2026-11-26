@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>일식과 월식 관측소 · 22-2-7-2-04</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='12' fill='%23ffc940'/%3E%3Ccircle cx='20' cy='14' r='11' fill='%231b2340'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="../../lib/sim.css">
+<link rel="stylesheet" href="../../lib/vendor/jua-5.3.0/jua.css">
+<link rel="stylesheet" href="style.css">
+<script src="../../lib/sim-bridge.js"></script>
+<script type="importmap">
+{ "imports": {
+  "three": "../../lib/vendor/three-0.170.0/build/three.module.js",
+  "three/addons/": "../../lib/vendor/three-0.170.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<header class="top">
+  <a class="back" href="../../index.html" aria-label="시뮬레이터 목록으로 돌아가기">
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>목록
+  </a>
+  <div class="titles">
+    <h1>일식과 월식 관측소</h1>
+    <span class="unit">22-2-7-2-04 · Ⅶ. 태양계 · 2. 지구와 달</span>
+  </div>
+  <nav class="tabs" role="tablist" aria-label="관찰할 현상">
+    <button role="tab" data-mode="solar" aria-selected="true"><b>일식</b> 2035. 9. 2.</button>
+    <button role="tab" data-mode="lunar" aria-selected="false"><b>월식</b> 2032. 4. 25.</button>
+    <button role="tab" data-mode="free" aria-selected="false"><b>자유 배치</b></button>
+  </nav>
+  <div class="tools">
+    <button id="btnMute" class="tool" aria-pressed="false" title="소리 켜기/끄기">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path class="wave" d="M16 8.5a5 5 0 010 7M18.5 6a8.5 8.5 0 010 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="x" d="M16.5 9.5l5 5M21.5 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <span>소리</span>
+    </button>
+    <button id="btnQuality" class="tool" title="그래픽 품질 바꾸기"><span>품질 높음</span></button>
+    <button id="btnReset" class="tool" title="처음 상태로">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M5 12a7 7 0 107-7H8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M9 1.5L5.5 5 9 8.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>초기화</span>
+    </button>
+  </div>
+</header>
+
+<main class="layout">
+  <section class="panel space" aria-label="우주에서 본 배치">
+    <div id="space3d" class="space3d" tabindex="0" aria-label="우주에서 본 태양, 지구, 달의 배치. 끌어서 돌리고 휠이나 두 손가락으로 확대합니다. 자유 배치에서는 화살표 키로 달을 움직일 수 있습니다."></div>
+    <div class="space-head"><b>우주에서 본 배치</b><span>끌어서 돌리기 · 휠/두 손가락 확대</span></div>
+    <p id="mission" class="mission" aria-live="polite"></p>
+    <div class="space-foot">
+      <button id="btnReal" aria-pressed="false">실제 크기 느낌</button>
+      <button id="btnCam" title="처음 보던 방향으로">보는 방향 처음대로</button>
+      <span class="note">크기·거리는 모형이에요</span>
+    </div>
+    <div id="bubble" class="bubble" hidden>태양은 달보다 매우 크지만 아주 멀리 있어서, 지구에서 보면 달과 비슷한 크기로 보여요. 점선은 지구에서 본 시선이에요. <small>(실제 태양은 이 그림보다 훨씬 더 크고 멀어요. 화면에 넣으려고 줄여 그렸어요.)</small></div>
+  </section>
+
+  <section class="panel sky" aria-label="하늘 보기(관측자 시점)">
+    <canvas id="sky" role="img" aria-label="하늘에서 보이는 모습. 남쪽 하늘을 볼 때처럼 왼쪽이 동쪽, 오른쪽이 서쪽"></canvas>
+    <button id="skyInfoBtn" class="info-btn" aria-expanded="false" aria-controls="skyInfo" aria-label="하늘 보기 설명 더 보기" title="하늘 보기 설명 더 보기"><span aria-hidden="true">i</span></button>
+    <div id="skyInfo" class="sky-info" hidden><b>하늘 보기 설명</b><ul></ul></div>
+  </section>
+
+  <section class="panel read" aria-live="polite">
+    <div class="cell"><span class="k">가린 비율</span><span class="v" id="rCover">0.0 %</span></div>
+    <div class="cell"><span class="k" id="rSecondK">지난 시간</span><span class="v" id="rSecond">0분</span></div>
+    <div class="cell"><span class="k" id="rStateK">식 상태</span><span class="v" id="rState">식 전</span></div>
+    <div class="cell"><span class="k">가리는 것</span><span class="v" id="rBy">달</span></div>
+  </section>
+
+  <section class="panel ctrl" id="timePanel" aria-label="시간 조절">
+    <div class="clockline">
+      <div class="clock"><span id="tDate">2035. 09. 02.</span><b id="tClock">08:00</b></div>
+      <div class="speedrow">
+        <span class="k">재생 빠르기</span>
+        <div class="seg" id="speedSeg" role="group" aria-label="재생 빠르기">
+          <button data-speed="1" aria-pressed="true">1분/초</button>
+          <button data-speed="5" aria-pressed="false">5분/초</button>
+          <button data-speed="15" aria-pressed="false">15분/초</button>
+        </div>
+      </div>
+    </div>
+    <div class="tbtns">
+      <button data-step="-10">−10분</button>
+      <button data-step="-1">−1분</button>
+      <button id="btnPlay" class="primary play" aria-label="재생"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path class="ic-play" d="M7 4.5v15l12-7.5z" fill="currentColor"/><path class="ic-pause" d="M6.5 4.5h4v15h-4zM13.5 4.5h4v15h-4z" fill="currentColor"/></svg><span>재생</span></button>
+      <button data-step="1">+1분</button>
+      <button data-step="10">+10분</button>
+    </div>
+    <div class="slider-wrap">
+      <input type="range" id="tSlider" min="480" max="830" step="1" value="480" aria-label="시각">
+      <div class="marks" aria-hidden="true"><i id="mkStart"></i><i id="mkEnd"></i></div>
+      <div class="mark-labels"><span id="mlStart">교과서 진행 시작 08:15</span><span id="mlEnd">진행 끝 13:35</span></div>
+    </div>
+  </section>
+
+  <section class="panel ctrl" id="freePanel" aria-label="달의 위치 조절" hidden>
+    <div class="frow">
+      <label for="aSlider"><span>달의 위치 각도</span> <output id="aOut">300°</output></label>
+      <div class="sl-line">
+        <button data-astep="-1" aria-label="각도 1도 줄이기">−1°</button>
+        <input type="range" id="aSlider" min="0" max="359" step="1" value="300">
+        <button data-astep="1" aria-label="각도 1도 늘리기">+1°</button>
+      </div>
+    </div>
+    <div class="frow">
+      <label for="hSlider"><span>달의 높낮이</span> <output id="hOut">0.0 (모형 단위)</output></label>
+      <div class="sl-line">
+        <button data-hstep="-0.5" aria-label="높낮이 0.5 낮추기">아래</button>
+        <input type="range" id="hSlider" min="-5" max="5" step="0.1" value="0">
+        <button data-hstep="0.5" aria-label="높낮이 0.5 높이기">위</button>
+      </div>
+    </div>
+    <div class="fbtns">
+      <button id="btnFreePlay" class="primary play" aria-label="공전"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path class="ic-play" d="M7 4.5v15l12-7.5z" fill="currentColor"/><path class="ic-pause" d="M6.5 4.5h4v15h-4zM13.5 4.5h4v15h-4z" fill="currentColor"/></svg><span>공전</span></button>
+      <button data-goto="0">0° (태양 쪽)</button>
+      <button data-goto="180">180° (반대쪽)</button>
+      <button data-hzero="1">높낮이 0</button>
+    </div>
+  </section>
+
+  <section class="panel order" aria-label="순서 카드">
+    <div class="order-head">
+      <b>순서 카드</b>
+      <div class="seg" id="orderSeg">
+        <button data-target="solar" aria-pressed="true">일식 때</button>
+        <button data-target="lunar" aria-pressed="false">월식 때</button>
+      </div>
+      <span class="hint">태양·지구·달이 일직선에 놓이는 순서는?</span>
+    </div>
+    <div class="order-row">
+      <div class="tray" id="tray" aria-label="카드 놓는 곳">
+        <button class="card" data-body="태양"><i class="dot sun"></i>태양</button>
+        <button class="card" data-body="지구"><i class="dot earth"></i>지구</button>
+        <button class="card" data-body="달"><i class="dot moon"></i>달</button>
+      </div>
+      <div class="slots" id="slots">
+        <div class="slot" data-i="0" tabindex="-1"><span class="ph">1</span></div>
+        <span class="link" aria-hidden="true"></span>
+        <div class="slot" data-i="1" tabindex="-1"><span class="ph">2</span></div>
+        <span class="link" aria-hidden="true"></span>
+        <div class="slot" data-i="2" tabindex="-1"><span class="ph">3</span></div>
+      </div>
+      <div class="obtns">
+        <button id="btnClear">비우기</button>
+        <button id="btnCheck" class="primary">확인</button>
+      </div>
+    </div>
+    <p class="msg" id="orderMsg">카드를 끌어 칸에 놓거나, 카드를 눌러 빈칸에 차례로 넣어요.</p>
+  </section>
+</main>
+
+<script type="module" src="main.js"></script>
+</body>
+</html>
