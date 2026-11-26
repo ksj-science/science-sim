@@ -21,7 +21,7 @@
     "status": "검토 중",
     "source": "code",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "web": [
       "15-3-1-2-01"
     ]
@@ -36,7 +36,7 @@
     "status": "검토 중",
     "source": "code",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "web": [
       "22-2-3-1-01"
     ]
@@ -51,7 +51,7 @@
     "status": "검토 중",
     "source": "code",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "web": [
       "22-2-7-2-01"
     ]
@@ -65,7 +65,7 @@
     "path": "sims/22-1-2-2-01/",
     "source": "code",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "web": [
       "22-1-2-2-01"
     ]
@@ -80,7 +80,7 @@
     "status": "검토 중",
     "source": "code",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "web": [
       "15-3-7-1-01"
     ]
@@ -95,7 +95,7 @@
     "status": "검토 중",
     "source": "code",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "web": [
       "22-2-7-2-02"
     ]
