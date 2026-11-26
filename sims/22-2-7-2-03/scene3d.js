@@ -133,7 +133,7 @@ export class Space {
     this.controls.maxDistance = 45;
     this.controls.maxPolarAngle = Math.PI * 0.92;
     this.controls.addEventListener('change', () => { this.dirty = true; });
-    this.controls.addEventListener('start', () => { this.userMoved = true; this.camAnim = null; });
+    this.controls.addEventListener('start', () => { this.userMoved = true; this.camAnim = null; this._followHome = false; });
     this._lblSize = new Map();
     this.avoidSel = ['.bubble', '.mission', '#btnReal', '#btnCam'];
     this.avoid = [];
@@ -686,7 +686,11 @@ export class Space {
       this.controls.target.lerpVectors(a.tgtFrom, a.tgtTo, k);
       this._layoutSun();
       this.setMoon(this.moonAngle, this.moonH);
-      if (a.t >= 1) this.realAnim = null;
+      if (a.t >= 1) {
+        this.realAnim = null;
+        // 끌 때: 그사이 바뀐 탐구 띠 높이에 맞춰 처음 시점으로 돌아가고, 띠가 다시 자리 잡는 동안 따라감
+        if (a.to === 0 && !this.userMoved) { this._homeFromSize(); this.camera.position.copy(this.homePos); this.controls.target.copy(this.homeTarget); this._followHome = true; }
+      }
       this.dirty = true;
     }
     if (this.camAnim) {
@@ -703,12 +707,12 @@ export class Space {
     if (Math.abs(this.insetTop - this.insetTarget) > 0.3) {
       const k = Math.min(1, dt * 8);
       this.insetTop += (this.insetTarget - this.insetTop) * k;
-      if (Math.abs(this.insetTop - this.insetTarget) <= 0.3) this.insetTop = this.insetTarget;
+      if (Math.abs(this.insetTop - this.insetTarget) <= 0.3) { this.insetTop = this.insetTarget; this._followHome = false; }
       this._applyInset();
       // 학생이 직접 돌리거나 확대하지 않았으면 처음 보는 거리도 함께 맞춤
       const before = this.homePos.clone();
       this._homeFromSize();
-      if (!this.userMoved && !this.realAnim && !this.camAnim && this.realT === 0 && this.camera.position.distanceTo(before) < 0.05) {
+      if (!this.userMoved && !this.realAnim && !this.camAnim && this.realT === 0 && (this._followHome || this.camera.position.distanceTo(before) < 0.05)) {
         this.camera.position.copy(this.homePos);
       }
       this.dirty = true;

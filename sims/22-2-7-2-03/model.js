@@ -46,7 +46,7 @@ export const timeStr = (mode, min) => {
 };
 export const timeDisplay = (mode, min) => {
   const t = timeParts(mode, min);
-  return { date: `${t.y}. ${pad(t.mo)}. ${pad(t.d)}.`, clock: `${pad(t.h)}:${pad(t.mi)}` };
+  return { date: `${t.y}. ${t.mo}. ${t.d}.`, clock: `${pad(t.h)}:${pad(t.mi)}` };
 };
 export const clockOf = min => `${pad(Math.floor((min % 1440) / 60))}:${pad(min % 60)}`;
 
