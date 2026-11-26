@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>거울과 렌즈 상 관찰대 | 과학 시뮬레이터</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>" />
+  <link rel="stylesheet" href="../../lib/sim.css" />
+  <link rel="stylesheet" href="../../lib/vendor/jua-5.3.0/jua.css" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div id="app">
+    <header id="top">
+      <a class="back" href="../../index.html" title="목록으로">← 목록</a>
+      <div class="ttl">
+        <h1>거울과 렌즈 상 관찰대</h1>
+        <span class="unit">22-2-3-1-02 · Ⅲ. 빛과 파동 · 1. 빛</span>
+      </div>
+      <div class="tabs" role="group" aria-label="활동 고르기">
+        <button id="tabObserve" class="tab" aria-pressed="true">🔍 관찰하기</button>
+        <button id="tabMystery" class="tab" aria-pressed="false">❓ 수수께끼</button>
+      </div>
+      <div class="acts">
+        <button id="btnPlay" class="btn" title="움직임 멈추기/다시 움직이기">⏸ <span class="lbl">일시정지</span></button>
+        <button id="btnQuality" class="btn" title="그래픽 품질 바꾸기">✨ <span class="lbl">품질: 높음</span></button>
+        <button id="btnMute" class="btn icon" title="소리 켜기/끄기" aria-label="소리 켜기/끄기">🔊</button>
+        <button id="btnReset" class="btn" title="거리·종류·나란한 빛을 처음으로">↺ <span class="lbl">초기화</span></button>
+      </div>
+    </header>
+
+    <aside id="side" class="panel">
+      <div id="cards">
+        <h2 class="side-h">종류 고르기</h2>
+        <button class="card mirror" data-type="convexMirror" aria-pressed="true"><canvas class="ico" width="72" height="44"></canvas><span>볼록 거울</span></button>
+        <button class="card mirror" data-type="concaveMirror" aria-pressed="false"><canvas class="ico" width="72" height="44"></canvas><span>오목 거울</span></button>
+        <button class="card lens" data-type="convexLens" aria-pressed="false"><canvas class="ico" width="72" height="44"></canvas><span>볼록 렌즈</span></button>
+        <button class="card lens" data-type="concaveLens" aria-pressed="false"><canvas class="ico" width="72" height="44"></canvas><span>오목 렌즈</span></button>
+        <button id="btnBeam" class="beam" aria-pressed="false" title="나란한 빛 세 줄 보내기"><span aria-hidden="true">🔦</span> <span class="lbl">나란한 빛 보내기</span></button>
+      </div>
+      <div id="mysteryPanel" hidden>
+        <div class="qcard" id="qcard"><b>?</b><span id="qcardName">무엇일까요?</span></div>
+        <p class="mq-tip">물체를 옮기며 상을 보고 골라 보세요.</p>
+        <div class="guess" id="guessBox">
+          <button class="gbtn" data-guess="convexMirror" aria-pressed="false">볼록 거울</button>
+          <button class="gbtn" data-guess="concaveMirror" aria-pressed="false">오목 거울</button>
+          <button class="gbtn" data-guess="convexLens" aria-pressed="false">볼록 렌즈</button>
+          <button class="gbtn" data-guess="concaveLens" aria-pressed="false">오목 렌즈</button>
+        </div>
+        <button id="btnGuess" class="btn primary">정했어요</button>
+        <button id="btnNewQ" class="btn">🔀 새 문제</button>
+      </div>
+    </aside>
+
+    <main id="center">
+      <div class="view" id="obsWrap"><canvas id="obs" aria-label="관찰자 시점: 거울이나 렌즈에 보이는 상"></canvas></div>
+      <div class="view" id="rayWrap"><canvas id="ray" aria-label="옆에서 본 빛의 길: 노란 화살표(물체)를 끌어 옮겨요"></canvas></div>
+      <div id="distRow" class="panel">
+        <label for="dist" class="dl">거리</label>
+        <button id="btnMinus" class="btn sm" title="1 cm 가까이" aria-label="1 cm 가까이">−1</button>
+        <input type="range" id="dist" min="2" max="50" step="1" value="5" aria-label="물체와 거울(렌즈) 사이 거리 (cm)" />
+        <button id="btnPlus" class="btn sm" title="1 cm 멀리" aria-label="1 cm 멀리">+1</button>
+        <output id="distOut" for="dist">5 cm</output>
+        <div class="quick">
+          <button class="btn qk near" data-go="5">가까이</button>
+          <button class="btn qk far" data-go="15">멀리</button>
+          <button class="btn qk vfar" data-go="30">매우 멀리</button>
+        </div>
+      </div>
+    </main>
+
+    <section id="right">
+      <div id="readout" class="panel">
+        <div class="ro"><span id="roDistLbl">물체와 거울 사이 거리</span><b id="roDist">5 cm</b></div>
+        <div class="ro"><span>지금 구간</span><b id="roZone">가까이</b></div>
+        <div class="ro"><span>상의 크기</span><b id="roMag">물체의 0.67배</b><small id="roSize">물체보다 작다</small></div>
+        <div class="ro"><span>상의 모양</span><b id="roOrient">바로 섬</b></div>
+        <p class="model">※ 모형: 빛이 모이는 점(볼록 거울·오목 렌즈는 퍼져 나오는 것처럼 보이는 점)까지 10 cm로 같게 둔 모형이에요.</p>
+      </div>
+      <div id="tablePanel" class="panel">
+        <div class="tp-head"><h2>정리하기 표</h2><span class="tp-tip">칸을 눌러 바꿔요</span></div>
+        <div class="tbl-wrap"><table id="sumTable"></table></div>
+        <p id="pairLegend" class="pair-legend" hidden><i class="pa"></i><i class="pb"></i>같은 색 띠 = 거리에 따라 상이 같은 꼴로 바뀌는 짝</p>
+        <div class="tp-acts">
+          <button id="btnCheck" class="btn primary">✔ 표 확인</button>
+          <button id="btnClear" class="btn">🧽 표 비우기</button>
+        </div>
+        <p id="tableMsg" class="tmsg" aria-live="polite">관찰한 칸부터 열려요.</p>
+      </div>
+    </section>
+  </div>
+
+  <script src="../../lib/sim-bridge.js"></script>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
