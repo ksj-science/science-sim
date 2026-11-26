@@ -976,7 +976,7 @@
     "path": "sims/22-2-7-2-03/",
     "status": "검토 중",
     "source": "code",
-    "dashboard": false,
+    "dashboard": true,
     "gas": null,
     "web": [
       "22-2-7-2-03"
@@ -991,7 +991,7 @@
     "path": "sims/22-2-7-2-04/",
     "status": "검토 중",
     "source": "code",
-    "dashboard": false,
+    "dashboard": true,
     "gas": null,
     "web": [
       "22-2-7-2-04"
