@@ -91,7 +91,7 @@
     "path": "chat-sims/sim_speciation.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "01차시",
     "summary": "토끼의 종류가 다양해지는 과정 시뮬레이터"
   },
@@ -104,7 +104,7 @@
     "path": "chat-sims/sim_temp_particle.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "01차시",
     "summary": "온도와 입자 운동 시뮬레이터"
   },
@@ -117,7 +117,7 @@
     "path": "chat-sims/sim_thermal_eq.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "02차시",
     "summary": "열평형 시뮬레이터"
   },
@@ -130,7 +130,7 @@
     "path": "chat-sims/sim_specific_heat.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "01차시",
     "summary": "비열"
   },
@@ -143,7 +143,7 @@
     "path": "chat-sims/sim_boyle.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "02차시",
     "summary": "보일 법칙 시뮬레이터 — 기체의 압력과 부피 관계"
   },
@@ -156,7 +156,7 @@
     "path": "chat-sims/sim_charles.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "01차시",
     "summary": "기체의 온도와 부피 시뮬레이터 (샤를 법칙)"
   },
@@ -169,7 +169,7 @@
     "path": "chat-sims/sim_diurnal.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "01차시",
     "summary": "천구와 별의 일주 운동 시뮬레이터"
   },
@@ -182,7 +182,7 @@
     "path": "chat-sims/sim_annual_sun.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "02차시",
     "summary": "태양의 연주 운동 시뮬레이터"
   },
@@ -195,7 +195,7 @@
     "path": "chat-sims/sim_moon_phase.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "03차시",
     "summary": "달의 위상 변화 시뮬레이터"
   },
@@ -208,7 +208,7 @@
     "path": "chat-sims/sim_eclipse.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "04차시",
     "summary": "일식과 월식 시뮬레이터"
   },
@@ -221,7 +221,7 @@
     "path": "chat-sims/sim_telescope.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "05차시",
     "summary": "천체 망원경 관측·촬영 시뮬레이터"
   },
@@ -234,7 +234,7 @@
     "path": "chat-sims/sim_matter_prop.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "02차시, 03차시, 04차시, 종합차시",
     "summary": "물질의 특성 실험실"
   },
@@ -247,7 +247,7 @@
     "path": "chat-sims/sim_distill.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "02차시",
     "summary": "증류 실험실 — 물과 에탄올 혼합물 분리하기"
   },
@@ -260,7 +260,7 @@
     "path": "chat-sims/sim_recryst.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "03차시",
     "summary": "재결정 실험실 — 순수한 질산 칼륨 분리하기"
   },
@@ -273,7 +273,7 @@
     "path": "chat-sims/sim_mix_sep.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "04차시",
     "summary": "혼합물 분리 실험실 — 다양한 방법으로 분리하기"
   },
@@ -286,7 +286,7 @@
     "path": "chat-sims/sim_earth_layers.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "02차시",
     "summary": "지구 내부 탐사 — 지권의 층상 구조"
   },
@@ -299,7 +299,7 @@
     "path": "chat-sims/sim_minerals.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "01차시",
     "summary": "광물 실험대 — 광물의 특성 관찰하기"
   },
@@ -312,7 +312,7 @@
     "path": "chat-sims/sim_rocks.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "03차시",
     "summary": "암석 관찰실 — 암석을 관찰하여 분류하기"
   },
@@ -325,7 +325,7 @@
     "path": "chat-sims/sim_soil.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "04차시",
     "summary": "토양 생성 시간 여행 — 풍화와 토양의 생성"
   },
@@ -338,7 +338,7 @@
     "path": "chat-sims/sim_continental_drift.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "01차시",
     "summary": "대륙 퍼즐 — 대륙 이동설"
   },
@@ -351,7 +351,7 @@
     "path": "chat-sims/sim_volcano_quake.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "02차시",
     "summary": "화산·지진 빅데이터 지도"
   },
@@ -364,7 +364,7 @@
     "path": "chat-sims/sim_reflect_refract.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "01차시",
     "summary": "레이저 각도기 실험대 — 빛의 반사와 굴절"
   },
@@ -377,7 +377,7 @@
     "path": "chat-sims/sim_seeing_light.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "02차시",
     "summary": "빛의 경로 그리기 — 물체를 보는 과정"
   },
@@ -390,7 +390,7 @@
     "path": "chat-sims/sim_plane_mirror.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "03차시",
     "summary": "반투명 거울 실험 — 평면거울이 만드는 상"
   },
@@ -403,7 +403,7 @@
     "path": "chat-sims/sim_mirror_lens.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "04차시",
     "summary": "거울과 렌즈 관찰대 — 다양한 거울과 렌즈"
   },
@@ -416,7 +416,7 @@
     "path": "chat-sims/sim_color_display.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "05차시",
     "summary": "빛의 삼원색 실험실 — 물체의 색과 영상 장치"
   },
@@ -429,7 +429,7 @@
     "path": "chat-sims/sim_wave_basic.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "01차시",
     "summary": "용수철 파동 만들기 — 파동의 발생과 전달"
   },
@@ -442,7 +442,7 @@
     "path": "chat-sims/sim_sound.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "02차시",
     "summary": "소리 분석 프로그램 — 소리의 특성"
   },
@@ -455,7 +455,7 @@
     "path": "chat-sims/sim_atom.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "02차시",
     "summary": "원자 모형 만들기 — 원자"
   },
@@ -468,7 +468,7 @@
     "path": "chat-sims/sim_periodic_table.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "03차시",
     "summary": "주기율표 탐구 — 같은 족 원소의 유사성"
   },
@@ -481,7 +481,7 @@
     "path": "chat-sims/sim_molecule.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "01차시",
     "summary": "분자 모형 만들기 — 분자"
   },
@@ -494,7 +494,7 @@
     "path": "chat-sims/sim_ion.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "02차시",
     "summary": "이온의 이동 관찰하기 — 이온"
   },
@@ -507,7 +507,7 @@
     "path": "chat-sims/sim_photo_product.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "01차시",
     "summary": "광합성으로 만들어지는 물질 확인하기"
   },
@@ -520,7 +520,7 @@
     "path": "chat-sims/sim_photo_need.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "02차시",
     "summary": "광합성에 필요한 물질 확인하기"
   },
@@ -533,7 +533,7 @@
     "path": "chat-sims/sim_photo_factor.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "03차시",
     "summary": "환경요인과 광합성량 — 잎 조각 띄우기 실험"
   },
@@ -546,7 +546,7 @@
     "path": "chat-sims/sim_plant_resp.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "01차시",
     "summary": "호흡과 광합성의 관계 분석하기"
   },
@@ -559,7 +559,7 @@
     "path": "chat-sims/sim_nutrient_store.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "02차시",
     "summary": "광합성으로 만들어진 양분의 저장과 이용"
   },
@@ -572,7 +572,7 @@
     "path": "chat-sims/sim_nutrients.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "01차시",
     "summary": "영양소 검출하기"
   },
@@ -585,7 +585,7 @@
     "path": "chat-sims/sim_digestion.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "02차시",
     "summary": "침의 소화 작용과 소화 과정"
   },
@@ -598,7 +598,7 @@
     "path": "chat-sims/sim_circulation.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "03차시",
     "summary": "혈액 순환 경로 따라가기 — 순환계"
   },
@@ -611,7 +611,7 @@
     "path": "chat-sims/sim_respiration.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "01차시",
     "summary": "호흡운동의 원리 알아보기 — 호흡계"
   },
@@ -624,7 +624,7 @@
     "path": "chat-sims/sim_excretion.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "02차시",
     "summary": "오줌은 어떻게 만들어질까 — 배설계"
   },
@@ -637,7 +637,7 @@
     "path": "chat-sims/sim_cell_resp.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "03차시",
     "summary": "세포호흡과 에너지 — 몸속 배달 게임"
   },
@@ -650,7 +650,7 @@
     "path": "chat-sims/sim_static_elec.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "01차시",
     "summary": "마찰 전기 실험실"
   },
@@ -663,7 +663,7 @@
     "path": "chat-sims/sim_induction.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "02차시",
     "summary": "정전기 유도 실험실"
   },
@@ -676,7 +676,7 @@
     "path": "chat-sims/sim_charge_flow.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "01차시",
     "summary": "전기 회로 만들기 — 전하의 이동"
   },
@@ -689,7 +689,7 @@
     "path": "chat-sims/sim_ohm.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "02차시",
     "summary": "저항, 전류, 전압 사이의 관계 탐구 — 옴의 법칙"
   },
@@ -702,7 +702,7 @@
     "path": "chat-sims/sim_resistor_conn.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "03차시",
     "summary": "전구의 직렬연결과 병렬연결 비교하기"
   },
@@ -715,7 +715,7 @@
     "path": "chat-sims/sim_elec_energy.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "04차시",
     "summary": "전기 기구의 에너지 전환과 소비 전력"
   },
@@ -728,7 +728,7 @@
     "path": "chat-sims/sim_magnetic_field.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "01차시",
     "summary": "전류가 흐르는 코일 주위의 자기장"
   },
@@ -741,7 +741,7 @@
     "path": "chat-sims/sim_coil_force.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "02차시",
     "summary": "자기장 속에서 코일이 받는 힘"
   },
@@ -754,7 +754,7 @@
     "path": "chat-sims/sim_star_distance.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "01차시",
     "summary": "시차와 별까지의 거리"
   },
@@ -767,7 +767,7 @@
     "path": "chat-sims/sim_star_brightness.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "02차시",
     "summary": "거리에 따른 빛의 밝기"
   },
@@ -780,7 +780,7 @@
     "path": "chat-sims/sim_expansion.html",
     "source": "chat",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "lesson": "02차시",
     "summary": "풍선 팽창으로 우주 팽창 설명하기"
   }
