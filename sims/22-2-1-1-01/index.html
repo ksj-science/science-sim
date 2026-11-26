@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>용해도 실험실 | 과학 시뮬레이터</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="../../lib/vendor/jua-5.3.0/jua.css" />
+  <link rel="stylesheet" href="../../lib/sim.css" />
+  <link rel="stylesheet" href="./style.css" />
+  <script src="../../lib/vendor/chartjs-4.4.6/chart.umd.js"></script>
+  <script src="../../lib/sim-bridge.js"></script>
+</head>
+<body>
+<header class="sim-header" id="top">
+  <a class="back" href="../../index.html" title="목록으로" aria-label="목록으로">←</a>
+  <div class="titles">
+    <h1>용해도 실험실</h1>
+    <span class="unit">22-2-1-1-01 · Ⅰ. 물질의 특성 · 1. 물질의 특성</span>
+  </div>
+  <nav class="tabs" role="tablist" aria-label="활동 고르기">
+    <button role="tab" id="tabSolid" aria-selected="true">① 녹는 양 비교하기</button>
+    <button role="tab" id="tabGas" aria-selected="false">② 기체의 용해도</button>
+  </nav>
+  <div class="top-actions">
+    <button id="btnPlay" class="icon" title="일시정지" aria-label="일시정지">⏸</button>
+    <button id="btnQuality" class="keep" title="그래픽 품질 (낮음: 저사양 크롬북용)">✨ <span class="lbl">품질: 높음</span></button>
+    <button id="btnMute" class="icon keep" title="소리 켜기/끄기" aria-label="소리 켜기/끄기">🔊</button>
+    <button id="btnReset" title="지금 탭의 장면을 처음으로 (기록은 남아요)">↺ <span class="lbl">초기화</span></button>
+  </div>
+</header>
+
+<!-- ───────── 탭 ① 녹는 양 비교하기 ───────── -->
+<main id="paneSolid" class="pane solid">
+  <section class="left">
+    <ol class="steps" id="steps" aria-label="실험 순서">
+      <li data-s="1">① 가열을 켜고 모두 녹을 때까지</li>
+      <li data-s="2">② 가열을 끄고 식혀요</li>
+      <li data-s="3">③ 고체가 생기기 시작하면 [기록]</li>
+      <li data-s="4" id="step4">④ 황산 구리(Ⅱ)로 반복</li>
+    </ol>
+    <div class="scene panel">
+      <canvas id="scene" aria-label="물중탕 실험 장면: 가열판, 비커, 시험관 3개, 디지털 온도계"></canvas>
+      <div class="msg" id="sceneMsg" role="status" aria-live="polite"></div>
+    </div>
+    <div class="ctrl-row">
+      <div class="seg" id="modeSeg" role="group" aria-label="모드">
+        <button data-mode="textbook" aria-pressed="true">탐구 (교과서)</button>
+        <button data-mode="free" aria-pressed="false">내 실험</button>
+      </div>
+      <div class="seg" id="soluteSeg" role="group" aria-label="용질"></div>
+      <button id="btnInfo" class="icon" title="황산 구리(Ⅱ) 계산 기준" aria-label="황산 구리(Ⅱ) 계산 기준">ⓘ</button>
+    </div>
+    <div class="ctrl-row">
+      <button id="btnHeat" class="heat">🔥 가열 켜기</button>
+      <button id="btnStir" aria-pressed="false">🥢 유리 막대로 젓기</button>
+      <button id="btnIce">🧊 얼음물로 옮기기</button>
+      <div class="seg" id="speedSeg" role="group" aria-label="빠르기">
+        <button data-sp="10" aria-pressed="false">×10</button>
+        <button data-sp="30" aria-pressed="true">×30</button>
+        <button data-sp="60" aria-pressed="false">×60</button>
+      </div>
+      <label class="check"><input type="checkbox" id="chkPause" checked> 고체가 생기면 멈춤</label>
+    </div>
+  </section>
+
+  <section class="right">
+    <div class="panel table-panel">
+      <div id="tbView">
+        <div class="ph"><h2>결과 표 <span class="sub">물 10 mL</span></h2></div>
+        <table class="data rec">
+          <thead>
+            <tr><th rowspan="2">용질의 질량</th><th colspan="2" class="ctr">고체가 생기기 시작한 온도(℃)</th></tr>
+            <tr><th class="ctr">질산 칼륨</th><th class="ctr">황산 구리(Ⅱ)</th></tr>
+          </thead>
+          <tbody id="tbBody"></tbody>
+        </table>
+      </div>
+      <div id="freeView" hidden>
+        <div class="ph"><h2>내 실험 <span class="sub">시험관마다 용질의 질량과 물의 양(mL)을 정해요</span></h2></div>
+        <div class="tube-set" id="tubeSet"></div>
+        <div class="free-list">
+          <table class="data"><thead><tr><th>용질</th><th>질량</th><th>물</th><th>고체가 생긴 온도</th></tr></thead>
+            <tbody id="freeBody"></tbody></table>
+        </div>
+      </div>
+      <div class="rec-foot">
+        <span class="hint" id="recHint">고체가 생긴 시험관만 [기록]할 수 있어요.</span>
+        <button id="btnClear" class="small">기록 지우기</button>
+      </div>
+    </div>
+    <div class="panel graph-panel">
+      <div class="ph">
+        <h2 id="gTitle">결과 그래프</h2>
+        <button id="btnScale" aria-pressed="false" class="small">물 100 g 기준으로 보기</button>
+      </div>
+      <div class="chips" id="curveChips" hidden></div>
+      <div class="legend" id="legend"></div>
+      <div class="chart-box">
+        <canvas id="chart" tabindex="0" aria-label="결과 그래프. 누르거나 끌어서, 또는 왼쪽·오른쪽 화살표 키로 값을 읽어요"></canvas>
+        <div class="readout" id="readout" hidden></div>
+      </div>
+      <div class="src" id="srcNote" hidden>자료: CRC Handbook of Chemistry and Physics</div>
+    </div>
+  </section>
+</main>
+
+<!-- ───────── 탭 ② 기체의 용해도 ───────── -->
+<main id="paneGas" class="pane gas" hidden>
+  <section class="panel gpanel">
+    <div class="ph"><h2>온도에 따른 기체의 용해도</h2><span class="sub">탄산음료 시험관을 뜨거운 물과 얼음물에</span></div>
+    <div class="gcanvas"><canvas id="gTemp" aria-label="뜨거운 물과 얼음물에 넣은 탄산음료 시험관"></canvas></div>
+    <div class="ctrl-row">
+      <button id="btnInsert" class="primary">🥤 탄산음료 시험관 넣기</button>
+      <button id="btnRedo">↺ 다시 하기</button>
+    </div>
+  </section>
+  <section class="panel gpanel">
+    <div class="ph"><h2>압력에 따른 기체의 용해도</h2><span class="sub">감압 용기 속 탄산음료</span></div>
+    <div class="gcanvas"><canvas id="gPress" aria-label="감압 용기 속 탄산음료와 압력계"></canvas></div>
+    <div class="ctrl-row">
+      <button id="btnPump" class="primary" title="누르고 있으면 계속 빼요">⤓ 공기 빼기</button>
+      <button id="btnAir">💨 공기 넣기 (밸브 열기)</button>
+      <button id="btnNewSoda">🥤 새 탄산음료</button>
+    </div>
+  </section>
+  <section class="panel fish">
+    <div class="ph"><h2>여름철 물고기</h2><span class="sub">물의 온도를 바꿔 보세요</span></div>
+    <div class="fish-body">
+      <div class="gcanvas"><canvas id="gFish" aria-label="어항 속 물고기"></canvas></div>
+      <div class="control fish-ctl">
+        <label for="fishT">수온 <output id="fishOut">15 ℃</output></label>
+        <input type="range" id="fishT" min="10" max="30" step="1" value="15" aria-label="수온">
+      </div>
+    </div>
+  </section>
+  <section class="panel obs">
+    <div class="ph"><h2>관찰 기록</h2></div>
+    <table class="data">
+      <tbody>
+        <tr><td>뜨거운 물(약 50 ℃) 쪽 기포</td><td id="obsHot">-</td></tr>
+        <tr><td>얼음물(0 ℃) 쪽 기포</td><td id="obsCold">-</td></tr>
+        <tr><td>감압 용기 압력 / 기포</td><td id="obsPress">-</td></tr>
+        <tr><td>가장 낮게 내린 압력</td><td id="obsMin">-</td></tr>
+      </tbody>
+    </table>
+    <p class="hint">막대는 그 조건에서 물에 녹을 수 있는 기체의 양을 나타내요(숫자 없음).</p>
+  </section>
+</main>
+
+<script type="module" src="./main.js"></script>
+</body>
+</html>
