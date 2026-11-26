@@ -1006,7 +1006,7 @@
     "path": "sims/22-2-3-2-01/",
     "status": "검토 중",
     "source": "code",
-    "dashboard": false,
+    "dashboard": true,
     "gas": null
   }
 ]
