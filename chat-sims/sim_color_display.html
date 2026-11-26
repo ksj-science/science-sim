@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<!-- 단원ID: color_display · Ⅲ. 빛과 파동 > 1. 빛 > 05 물체의 색과 영상 장치(104~106쪽) · 활동 1개: 빛의 삼원색으로 화면과 물체의 색 탐구하기 -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>빛의 삼원색 실험실 — 물체의 색과 영상 장치</title>
+<style>
+:root{--bg:#f4f3f8;--card:#fff;--ink:#22212b;--muted:#636275;--line:#dedced;--accent:#7a4fd6;--accent-d:#5a35aa;--accent-l:#efe8fd}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+header{background:linear-gradient(120deg,#e8455a,#3fae5a 50%,#3a6fd8);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:20px;margin:0;font-weight:900}
+header .sub{font-size:13px;opacity:.95}
+header .sp{flex:1}
+header button{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+main{padding:10px 12px 24px;max-width:1300px;margin:0 auto}
+.intro{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:10px;padding:8px 14px;margin-bottom:10px;font-size:14px;line-height:1.55}
+.intro b{color:var(--accent-d)}
+.grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(300px,1fr);gap:10px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}
+.card h3{margin:0 4px 8px;font-size:15px;color:var(--accent-d)}
+canvas{width:100%;display:block;border-radius:8px;touch-action:none}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0}
+.btn{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;padding:7px 11px;cursor:pointer;min-height:36px}
+.btn:hover{border-color:var(--accent);color:var(--accent-d)}
+.btn.on{background:var(--accent-l);border-color:var(--accent);color:var(--accent-d)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.lbl{font-size:13px;color:var(--muted)}
+input[type=range]{flex:1;min-width:110px}
+.ro{background:#1f1d2b;color:#eee;border-radius:9px;padding:8px 12px;font-size:14px;line-height:1.7}
+.ro b{font-size:17px}
+.dot{display:inline-block;width:12px;height:12px;border-radius:50%;vertical-align:-1px;margin-right:3px;border:1px solid #888}
+.note{font-size:12.5px;color:var(--muted);line-height:1.55;margin:6px 4px 0}
+.chip{display:inline-block;width:56px;height:26px;border-radius:6px;border:1px solid #999;vertical-align:middle}
+</style>
+</head>
+<body>
+<header>
+  <h1>빛의 삼원색 실험실</h1><span class="sub">화면의 색점 관찰 · 빛의 합성 · 조명에 따른 물체의 색</span>
+  <span class="sp"></span><button id="resetBtn" type="button">↺ 초기화</button>
+</header>
+<main>
+  <div class="intro">① 화면 그림 위의 <b>디지털 확대경</b>을 끌어 여러 색 부분의 <b>색점</b>을 관찰한다. ② 오른쪽에서 빨간색·초록색·파란색 <b>빛의 밝기</b>를 조절해 색을 만들어 본다(<b>확대경 색 가져오기</b>로 그대로 옮길 수 있다). ③ 만든 빛을 <b>조명으로 비추면</b> 장미가 어떤 색으로 보이는지 확인한다.</div>
+  <div class="grid">
+    <div>
+      <div class="card">
+        <h3>① 화면 그림과 디지털 확대경</h3>
+        <canvas id="pic" width="600" height="380" aria-label="화면 그림과 확대경"></canvas>
+        <div class="ro" id="magRO" style="margin-top:8px"></div>
+        <div class="row"><button class="btn pri" id="takeBtn" type="button">확대경 색 가져오기 →</button><span class="lbl">확대경 가운데 화소의 색점 밝기를 ②로 옮긴다.</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h3>② 빛의 삼원색 합성하기</h3>
+        <div class="row"><span class="dot" style="background:#ff3030"></span><span class="lbl" style="min-width:52px">빨간색</span><input id="sR" type="range" min="0" max="100" step="5" value="100" style="accent-color:#e33"><b id="vR" style="min-width:44px">100%</b></div>
+        <div class="row"><span class="dot" style="background:#30d030"></span><span class="lbl" style="min-width:52px">초록색</span><input id="sG" type="range" min="0" max="100" step="5" value="0" style="accent-color:#2b2"><b id="vG" style="min-width:44px">0%</b></div>
+        <div class="row"><span class="dot" style="background:#3050ff"></span><span class="lbl" style="min-width:52px">파란색</span><input id="sB" type="range" min="0" max="100" step="5" value="0" style="accent-color:#35f"><b id="vB" style="min-width:44px">0%</b></div>
+        <div class="row"><span class="lbl">빠른 선택</span>
+          <button class="btn" data-p="100,0,0" type="button">빨강</button><button class="btn" data-p="0,100,0" type="button">초록</button><button class="btn" data-p="0,0,100" type="button">파랑</button>
+          <button class="btn" data-p="100,100,100" type="button">모두</button><button class="btn" data-p="0,0,0" type="button">끄기</button></div>
+        <canvas id="mix" width="420" height="190" aria-label="세 조명이 겹쳐 만든 색"></canvas>
+        <div class="row" style="margin-top:6px"><span class="lbl">합성된 빛</span><span class="chip" id="chip"></span><b id="mixName" style="font-size:18px"></b></div>
+      </div>
+      <div class="card">
+        <h3>③ 이 빛을 조명으로 장미에 비추면</h3>
+        <canvas id="rose" width="420" height="210" aria-label="조명을 받은 장미"></canvas>
+        <div class="ro" id="roseRO" style="margin-top:8px"></div>
+        <p class="note"><b>모델의 한계</b> · 화면의 화소는 빨간색·초록색·파란색 색점 세 개가 세로로 나란한 모양으로 단순화하였다(실제 화면은 색점 모양과 배열이 다양하다). 장미꽃은 빨간색 빛만, 잎은 초록색 빛만 반사하고 나머지 빛은 흡수한다고 보았다(실제로는 조금씩 다른 빛도 반사한다). 색 이름은 눈으로 보이는 대략적인 이름이다.</p>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+/* ================================================================
+   빛의 합성(가산 혼합): 화면 색 = 빨강·초록·파랑 색점 밝기의 합
+     빨강+초록 = 노란색, 빨강+파랑 = 자홍색, 초록+파랑 = 청록색, 셋 모두 = 흰색, 모두 꺼짐 = 검은색
+   물체의 색: 보이는 빛 = 비춘 빛 × 물체의 반사율(색마다)
+     장미꽃 반사율 (빨, 초, 파) = (0.95, 0.05, 0.05),  잎 = (0.05, 0.75, 0.05),  흰 종이 = (0.95, 0.95, 0.95)
+     예) 빨간색 조명: 꽃 → 빨간색, 잎 → 검은색 / 노란색 조명: 꽃 → 빨간색, 잎 → 초록색 / 파란색 조명: 꽃·잎 → 검은색
+   ================================================================ */
+const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
+function fit(cv, w, h) { const r = Math.min(2, window.devicePixelRatio || 1); cv.width = w * r; cv.height = h * r; const x = cv.getContext('2d'); x.setTransform(r, 0, 0, r, 0, 0); return x; }
+const PW = 600, PH = 380, pc = fit($('#pic'), PW, PH), mc = fit($('#mix'), 420, 190), rc = fit($('#rose'), 420, 210);
+const REF = { petal: [0.95, 0.05, 0.05], leaf: [0.05, 0.75, 0.05], paper: [0.95, 0.95, 0.95], stem: [0.05, 0.55, 0.05] };
+
+/* ---------- 화면 그림(원본, 1배 크기 오프스크린) ---------- */
+const off = document.createElement('canvas'); off.width = PW; off.height = PH; const oc = off.getContext('2d');
+(function drawPicture() {
+  const g = oc;
+  g.fillStyle = 'rgb(0,0,255)'; g.fillRect(0, 0, PW, 230);                       // 파란 하늘
+  g.fillStyle = 'rgb(255,255,255)'; [[110, 70, 34], [146, 60, 40], [182, 72, 30], [400, 110, 26], [430, 100, 32], [462, 112, 24]].forEach(([x, y, r]) => { g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); });  // 흰 구름
+  g.fillStyle = 'rgb(255,255,0)'; g.beginPath(); g.arc(520, 60, 38, 0, 7); g.fill();   // 노란 해
+  g.fillStyle = 'rgb(0,255,0)'; g.fillRect(0, 230, PW, 150);                          // 초록 풀밭
+  g.fillStyle = 'rgb(0,255,255)'; g.beginPath(); g.ellipse(430, 320, 150, 40, 0, 0, 7); g.fill();   // 청록색 연못
+  g.fillStyle = 'rgb(255,255,255)'; g.fillRect(90, 170, 150, 110);                    // 흰 벽 집
+  g.fillStyle = 'rgb(255,0,0)'; g.beginPath(); g.moveTo(70, 172); g.lineTo(165, 105); g.lineTo(260, 172); g.closePath(); g.fill();   // 빨간 지붕
+  g.fillStyle = 'rgb(0,0,0)'; g.fillRect(150, 215, 34, 65);                           // 검은 문
+  g.fillStyle = 'rgb(255,0,255)'; [[300, 300], [330, 330], [270, 340], [215, 320]].forEach(([x, y]) => { for (let k = 0; k < 5; k++) { const a = k / 5 * Math.PI * 2; g.beginPath(); g.arc(x + Math.cos(a) * 10, y + Math.sin(a) * 10, 8, 0, 7); g.fill(); } });  // 자홍색 꽃
+  g.fillStyle = 'rgb(255,255,0)'; [[300, 300], [330, 330], [270, 340], [215, 320]].forEach(([x, y]) => { g.beginPath(); g.arc(x, y, 6, 0, 7); g.fill(); });
+})();
+const PX = off.getContext('2d').getImageData(0, 0, PW, PH).data;
+function pixel(x, y) { x = Math.max(0, Math.min(PW - 1, Math.round(x))); y = Math.max(0, Math.min(PH - 1, Math.round(y))); const i = (y * PW + x) * 4; return [PX[i], PX[i + 1], PX[i + 2]]; }
+
+let S;
+function newState() { return { mag: { x: 520, y: 60 }, rgb: [100, 0, 0] }; }
+const MR = 78, CELL = 18, ZOOM = 6;    // 확대경 반지름, 확대된 화소 한 칸(px), 그림 화소 1칸 = 화면 6 px 영역
+function drawPic() {
+  const g = pc; g.clearRect(0, 0, PW, PH); g.drawImage(off, 0, 0, PW, PH);
+  const { x, y } = S.mag;
+  g.save(); g.beginPath(); g.arc(x, y, MR, 0, 7); g.clip(); g.fillStyle = '#000'; g.fillRect(x - MR, y - MR, 2 * MR, 2 * MR);
+  // 확대된 화소: 각 칸은 빨·초·파 세로 색점 3개
+  const n = Math.ceil(MR / CELL) + 1;
+  for (let j = -n; j <= n; j++) for (let i = -n; i <= n; i++) {
+    const cx = x + i * CELL, cy = y + j * CELL, col = pixel(x + i * ZOOM / 3, y + j * ZOOM / 3);
+    for (let k = 0; k < 3; k++) { const v = col[k] / 255; const base = [[255, 40, 40], [40, 230, 40], [50, 80, 255]][k];
+      g.fillStyle = `rgb(${Math.round(base[0] * v + 18 * (1 - v))},${Math.round(base[1] * v + 18 * (1 - v))},${Math.round(base[2] * v + 18 * (1 - v))})`;
+      g.fillRect(cx - CELL / 2 + 1 + k * CELL / 3, cy - CELL / 2 + 2, CELL / 3 - 2, CELL - 4); }
+  }
+  g.restore();
+  g.strokeStyle = '#333'; g.lineWidth = 6; g.beginPath(); g.arc(x, y, MR, 0, 7); g.stroke();
+  g.strokeStyle = '#ddd'; g.lineWidth = 2; g.beginPath(); g.arc(x, y, MR - 4, 0, 7); g.stroke();
+  g.strokeStyle = 'rgba(255,255,255,.9)'; g.lineWidth = 1.5; g.strokeRect(x - CELL / 2, y - CELL / 2, CELL, CELL);
+  const col = pixel(x, y), on = col.map(v => Math.round(v / 255 * 100));
+  const nm = ['빨간색', '초록색', '파란색'].filter((_, k) => on[k] > 0);
+  $('#magRO').innerHTML = `확대경 가운데 화소의 색점 밝기 — <span class="dot" style="background:#f33"></span>빨강 <b>${on[0]}%</b> · <span class="dot" style="background:#3c3"></span>초록 <b>${on[1]}%</b> · <span class="dot" style="background:#36f"></span>파랑 <b>${on[2]}%</b><br>빛을 내는 색점: <b>${nm.length ? nm.join(', ') : '없음'}</b> → 맨눈으로 보이는 색: <b>${colorName(col)}</b>`;
+}
+/* 색 이름: 채도가 낮으면 흰색/회색/검은색, 아니면 색상각으로 */
+function colorName([r, g, b]) {
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), v = mx / 255, s = mx ? (mx - mn) / mx : 0;
+  if (v < 0.12) return '검은색';
+  if (s < 0.15) return v > 0.85 ? '흰색' : '회색';
+  let h; const d = mx - mn;
+  if (mx === r) h = ((g - b) / d + 6) % 6; else if (mx === g) h = (b - r) / d + 2; else h = (r - g) / d + 4; h *= 60;
+  const name = h < 15 ? '빨간색' : h < 45 ? '주황색' : h < 70 ? '노란색' : h < 160 ? '초록색' : h < 200 ? '청록색' : h < 255 ? '파란색' : h < 290 ? '보라색' : h < 340 ? '자홍색' : '빨간색';
+  return (v < 0.55 ? '어두운 ' : '') + name;
+}
+const light = () => S.rgb.map(v => v / 100);
+function shade(ref) { const L = light(); return ref.map((r, k) => Math.round(255 * Math.min(1, L[k] * r))); }
+const css = a => `rgb(${a[0]},${a[1]},${a[2]})`;
+function drawMix() {
+  const g = mc; g.clearRect(0, 0, 420, 190); g.fillStyle = '#0d0d12'; g.fillRect(0, 0, 420, 190);
+  g.save(); g.globalCompositeOperation = 'lighter';
+  const L = light(), P = [[180, 78], [240, 78], [210, 128]];
+  [[255, 0, 0], [0, 255, 0], [0, 0, 255]].forEach((base, k) => { g.fillStyle = `rgb(${Math.round(base[0] * L[k])},${Math.round(base[1] * L[k])},${Math.round(base[2] * L[k])})`; g.beginPath(); g.arc(P[k][0], P[k][1], 60, 0, 7); g.fill(); });
+  g.restore();
+  g.fillStyle = '#bbb'; g.font = '12px sans-serif'; g.fillText('빨간색 조명', 20, 30); g.fillText('초록색 조명', 330, 30); g.fillText('파란색 조명', 280, 180);
+  const mix = L.map(v => Math.round(v * 255));
+  $('#chip').style.background = css(mix); $('#mixName').textContent = colorName(mix);
+}
+function drawRose() {
+  const g = rc; g.clearRect(0, 0, 420, 210);
+  g.fillStyle = css(shade(REF.paper)); g.fillRect(0, 0, 420, 210);
+  const leaf = css(shade(REF.leaf)), petal = css(shade(REF.petal)), stem = css(shade(REF.stem));
+  const edge = 'rgba(255,255,255,.18)';
+  g.strokeStyle = stem; g.lineWidth = 7; g.beginPath(); g.moveTo(210, 100); g.quadraticCurveTo(230, 160, 300, 205); g.stroke();
+  [[255, 150, .5], [175, 165, -2.6]].forEach(([x, y, a]) => { g.save(); g.translate(x, y); g.rotate(a); g.fillStyle = leaf; g.strokeStyle = edge; g.lineWidth = 1; g.beginPath(); g.ellipse(32, 0, 40, 16, 0, 0, 7); g.fill(); g.stroke(); g.restore(); });
+  g.fillStyle = petal; g.strokeStyle = edge; g.lineWidth = 1;
+  for (let k = 0; k < 7; k++) { const a = k / 7 * Math.PI * 2; g.beginPath(); g.ellipse(210 + Math.cos(a) * 26, 82 + Math.sin(a) * 22, 26, 22, a, 0, 7); g.fill(); g.stroke(); }
+  for (let k = 0; k < 5; k++) { const a = k / 5 * Math.PI * 2 + .4; g.beginPath(); g.ellipse(210 + Math.cos(a) * 12, 82 + Math.sin(a) * 10, 17, 14, a, 0, 7); g.fill(); g.stroke(); }
+  g.beginPath(); g.arc(210, 82, 9, 0, 7); g.fill(); g.stroke();
+  $('#roseRO').innerHTML = `꽃: <b>${colorName(shade(REF.petal))}</b> &nbsp;·&nbsp; 잎: <b>${colorName(shade(REF.leaf))}</b> &nbsp;·&nbsp; 흰 종이: <b>${colorName(shade(REF.paper))}</b><br><span style="font-size:12.5px;color:#bbb">물체는 비춘 빛 가운데 자신이 반사하는 빛의 색으로 보인다.</span>`;
+}
+function refresh() {
+  ['R', 'G', 'B'].forEach((k, i) => { $('#s' + k).value = S.rgb[i]; $('#v' + k).textContent = S.rgb[i] + '%'; });
+  drawPic(); drawMix(); drawRose();
+}
+/* ---------- 조작 ---------- */
+['R', 'G', 'B'].forEach((k, i) => $('#s' + k).addEventListener('input', e => { S.rgb[i] = +e.target.value; drawMix(); drawRose(); $('#v' + k).textContent = S.rgb[i] + '%'; }));
+$$('[data-p]').forEach(b => b.addEventListener('click', () => { S.rgb = b.dataset.p.split(',').map(Number); refresh(); }));
+$('#takeBtn').addEventListener('click', () => { S.rgb = pixel(S.mag.x, S.mag.y).map(v => Math.round(v / 255 * 20) * 5); refresh(); });
+let drag = false, raf = 0;
+function toLocal(e) { const b = $('#pic').getBoundingClientRect(); return { x: (e.clientX - b.left) * PW / b.width, y: (e.clientY - b.top) * PH / b.height }; }
+$('#pic').addEventListener('pointerdown', e => { drag = true; $('#pic').setPointerCapture(e.pointerId); S.mag = toLocal(e); drawPic(); });
+$('#pic').addEventListener('pointermove', e => { if (!drag) return; S.mag = toLocal(e); if (!raf) raf = requestAnimationFrame(() => { raf = 0; drawPic(); }); });
+['pointerup', 'pointercancel'].forEach(t => $('#pic').addEventListener(t, () => { drag = false; }));
+$('#resetBtn').addEventListener('click', () => { S = newState(); refresh(); });
+S = newState(); refresh();
+</script>
+</body>
+</html>

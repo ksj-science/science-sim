@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<!-- 단원ID: ion · 중2 Ⅳ. 물질의 구성 > 2. 분자와 이온 > 02 이온(146~149쪽) · 활동 1개: 이온의 이동 관찰하기(이온이 전하를 띤 입자임을 확인) -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>이온의 이동 관찰하기 — 이온</title>
+<style>
+:root{--bg:#f3f5f9;--card:#fff;--ink:#1e2430;--muted:#5e6676;--line:#dbe0ea;--accent:#4b62c8;--accent-d:#33479f;--accent-l:#e7ebfb;--ok:#1f9a62}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+header{background:linear-gradient(120deg,#4b62c8,#8a55c9);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:20px;margin:0;font-weight:900}
+header .sub{font-size:13px;opacity:.95}
+header .sp{flex:1}
+header button{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+main{padding:10px 12px 24px;max-width:1300px;margin:0 auto}
+.intro{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:10px;padding:8px 14px;margin-bottom:10px;font-size:14px;line-height:1.55}
+.intro b{color:var(--accent-d)}
+.grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(300px,1fr);gap:10px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}
+.card h3{margin:0 4px 8px;font-size:15px;color:var(--accent-d)}
+canvas{width:100%;display:block;border-radius:8px}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0}
+.btn{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;padding:7px 11px;cursor:pointer;min-height:36px}
+.btn:hover{border-color:var(--accent);color:var(--accent-d)}
+.btn.on{background:var(--accent-l);border-color:var(--accent);color:var(--accent-d)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.lbl{font-size:13px;color:var(--muted);min-width:56px}
+input[type=range]{flex:1;min-width:110px;accent-color:var(--accent)}
+.ro{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0}
+.ro div{background:#1b2133;color:#d9e1ff;border-radius:9px;padding:6px 8px}
+.ro .k{font-size:11.5px;color:#a7b1cf}
+.ro .v{font-size:19px;font-weight:900}
+.ro .v small{font-size:12px;font-weight:500;margin-left:2px}
+.ionbox{background:#1b2133;color:#e9edff;border-radius:10px;padding:10px 12px;font-size:14px;line-height:1.7}
+.ionbox .f{font-size:30px;font-weight:900;font-family:"Times New Roman",serif}
+.note{font-size:12.5px;color:var(--muted);line-height:1.55;margin:6px 4px 0}
+.msg{min-height:20px;font-size:13.5px;font-weight:700;margin:4px 2px;color:var(--accent-d)}
+</style>
+</head>
+<body>
+<header>
+  <h1>이온의 이동 관찰하기</h1><span class="sub">양이온과 음이온 · 이온식 · 전류를 흘려 주면 이온이 이동한다</span>
+  <span class="sp"></span><button id="resetBtn" type="button">↺ 초기화</button>
+</header>
+<main>
+  <div class="intro">질산 칼륨 수용액을 적신 거름종이 가운데에 <b>색을 띠는 수용액</b>을 묻힌 종이 조각을 올리고 <b>전원을 켜</b> 색이 어느 극 쪽으로 움직이는지 관찰하세요. 오른쪽에서 수용액 속 <b>이온의 움직임</b>을 입자로 볼 수 있고, 아래에서 원자로 <b>이온을 만들어</b> 볼 수 있다.</div>
+  <div class="grid">
+    <div class="card">
+      <div class="row"><span class="lbl">수용액</span><button class="btn on" data-s="cu" type="button">황산 구리(Ⅱ) 수용액</button><button class="btn" data-s="mn" type="button">과망가니즈산 칼륨 수용액</button></div>
+      <canvas id="app" width="640" height="330" aria-label="페트리 접시 위 거름종이와 전극"></canvas>
+      <div class="row"><button class="btn pri" id="powBtn" type="button">⏻ 전원 켜기</button><button class="btn" id="swapBtn" type="button">⇄ 전극 바꾸어 연결</button><button class="btn" id="againBtn" type="button">새 거름종이로 다시</button></div>
+      <div class="row"><span class="lbl">전압</span><input id="volt" type="range" min="0" max="15" step="1" value="12"><b id="voltv" style="min-width:48px">12 V</b></div>
+      <div class="ro">
+        <div><div class="k">경과 시간</div><div class="v" id="vT">0<small>분</small></div></div>
+        <div><div class="k">색이 움직인 거리</div><div class="v" id="vD">0<small>mm</small></div></div>
+        <div><div class="k">움직인 쪽</div><div class="v" id="vS">–</div></div>
+      </div>
+      <div class="msg" id="msg"></div>
+    </div>
+    <div>
+      <div class="card">
+        <h3>입자로 보기 — 수용액 속 이온</h3>
+        <canvas id="beaker" width="420" height="250" aria-label="수용액 속 이온의 움직임"></canvas>
+        <p class="note" id="legend"></p>
+      </div>
+      <div class="card">
+        <h3>이온 만들기</h3>
+        <div class="row" id="atoms"></div>
+        <div class="row"><button class="btn" id="loseBtn" type="button">전자 1개 잃기</button><button class="btn" id="gainBtn" type="button">전자 1개 얻기</button><button class="btn" id="backBtn" type="button">원자로 되돌리기</button></div>
+        <div class="ionbox" id="ionbox"></div>
+        <p class="note"><b>모델의 한계</b> · 이동 속도는 실제 교실 실험에서 10분 동안 1 cm 남짓 움직이는 정도로 맞춘 대략적인 값이며, 시간은 60배 빠르게(1초 = 1분) 흐른다. 거름종이 속에서 이온이 퍼지는 모습은 단순화하였다. 입자 그림에서 물 분자와 이온의 실제 개수·크기는 나타내지 않았다.</p>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+/* ================================================================
+   이온의 이동(전기 이동) 모형
+   - 수용액에 전류를 흘려 주면 양이온은 (−)극 쪽으로, 음이온은 (+)극 쪽으로 이동한다.
+       황산 구리(Ⅱ): 구리 이온 Cu²⁺(파란색) → (−)극 쪽, 황산 이온 SO₄²⁻(무색) → (+)극 쪽
+       과망가니즈산 칼륨: 칼륨 이온 K⁺(무색) → (−)극 쪽, 과망가니즈산 이온 MnO₄⁻(보라색) → (+)극 쪽
+       질산 칼륨(거름종이): K⁺ → (−)극, NO₃⁻ → (+)극 (둘 다 무색, 전류가 흐르게 함)
+   - 이동 속도 v ∝ (이온의 이동도) × 전압. 15 V에서 10분에 Cu²⁺ 약 12 mm, MnO₄⁻ 약 14 mm(이동도 비 6.4/5.6)
+   - 퍼짐: 색 반점의 반지름 σ = √(3² + 0.4·t분) mm (단순화)
+   - 시간 배속 60배(실제 1초 = 실험 1분)
+   ================================================================ */
+const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
+function fit(cv, w, h) { const r = Math.min(2, window.devicePixelRatio || 1); cv.width = w * r; cv.height = h * r; const x = cv.getContext('2d'); x.setTransform(r, 0, 0, r, 0, 0); return x; }
+const W = 640, H = 330, MM = 6, CX = 320, CY = 170, c = fit($('#app'), W, H), bc = fit($('#beaker'), 420, 250);
+const SOL = {
+  cu: { name: '황산 구리(Ⅱ) 수용액', color: [40, 130, 230], sign: +1, k: 12 / 150, ion: '구리 이온(Cu²⁺)', partner: '황산 이온(SO₄²⁻, 무색)' },
+  mn: { name: '과망가니즈산 칼륨 수용액', color: [150, 40, 170], sign: -1, k: 14 / 150, ion: '과망가니즈산 이온(MnO₄⁻)', partner: '칼륨 이온(K⁺, 무색)' },
+};
+let S;
+function newState() { return { sol: 'cu', on: false, V: 12, leftNeg: true, t: 0, x: 0, ionAtom: 'Li', de: 0 }; }
+/* 색 이온의 이동: 양이온은 (−)극 쪽으로. 왼쪽이 (−)극이면 양이온은 왼쪽(−x) */
+function velocity() { const s = SOL[S.sol]; if (!S.on || S.V <= 0) return 0; const towardLeft = (s.sign > 0) === S.leftNeg; return (towardLeft ? -1 : 1) * s.k * S.V; }   // mm/분 (15 V: Cu²⁺ 1.2, MnO₄⁻ 1.4 mm/분)
+function step(dtMin) { S.t += dtMin; S.x += velocity() * dtMin; S.x = Math.max(-38, Math.min(38, S.x)); }
+
+function drawPaper() {
+  c.clearRect(0, 0, W, H); c.fillStyle = '#eef1f6'; c.fillRect(0, 0, W, H);
+  c.fillStyle = '#fbfcfe'; c.strokeStyle = '#b5bfcd'; c.lineWidth = 2; c.beginPath(); c.roundRect ? c.roundRect(50, 40, 540, 260, 18) : c.rect(50, 40, 540, 260); c.fill(); c.stroke();
+  c.fillStyle = '#f3f3ee'; c.fillRect(90, 60, 460, 220);     // 거름종이(젖음)
+  c.fillStyle = 'rgba(200,210,225,.35)'; c.fillRect(90, 60, 460, 220);
+  // 눈금(mm, 가운데 0)
+  c.strokeStyle = '#9aa6b5'; c.fillStyle = '#5e6676'; c.font = '10px sans-serif'; c.textAlign = 'center';
+  for (let mm = -35; mm <= 35; mm++) { const x = CX + mm * MM, len = mm % 10 === 0 ? 10 : mm % 5 === 0 ? 7 : 4; c.lineWidth = mm % 5 === 0 ? 1.2 : .6; c.beginPath(); c.moveTo(x, 268); c.lineTo(x, 268 - len); c.stroke(); if (mm % 10 === 0) c.fillText(Math.abs(mm) + '', x, 280); }
+  c.fillText('mm', CX + 35 * MM + 18, 280);
+  // 전극(ㄴ자, 양쪽)
+  const el = (x, neg) => { c.fillStyle = '#9ea7b2'; c.fillRect(x - 6, 55, 12, 230); c.fillStyle = neg ? '#222' : '#d6303c'; c.fillRect(x - 10, 18, 20, 40);
+    c.fillStyle = neg ? '#333' : '#d6303c'; c.font = 'bold 15px sans-serif'; c.textAlign = 'center'; c.fillText(neg ? '(−)극' : '(+)극', x, 14); };
+  el(80, S.leftNeg); el(560, !S.leftNeg);
+  // 가운데 종이 조각 + 색 퍼짐
+  const s = SOL[S.sol], [r, g, b] = s.color, sigma = Math.sqrt(9 + 0.4 * S.t), px = CX + S.x * MM;
+  const grd = c.createRadialGradient(px, CY, 0, px, CY, sigma * MM * 2.2);
+  grd.addColorStop(0, `rgba(${r},${g},${b},.9)`); grd.addColorStop(.5, `rgba(${r},${g},${b},.45)`); grd.addColorStop(1, `rgba(${r},${g},${b},0)`);
+  c.fillStyle = grd; c.beginPath(); c.ellipse(px, CY, sigma * MM * 2.2, sigma * MM * 1.6, 0, 0, 7); c.fill();
+  c.strokeStyle = 'rgba(80,80,80,.5)'; c.setLineDash([3, 3]); c.strokeRect(CX - 12, CY - 12, 24, 24); c.setLineDash([]);
+  c.fillStyle = '#555'; c.font = '11px sans-serif'; c.fillText('처음 놓은 자리', CX, CY - 18);
+  if (S.on && S.V > 0) { c.fillStyle = '#e8a400'; c.font = 'bold 13px sans-serif'; c.fillText(`⚡ 전류가 흐르는 중 (${S.V} V)`, CX, 52); }
+}
+/* 입자 그림: 양이온은 (−)극, 음이온은 (+)극 쪽으로 */
+const parts = [];
+function initParts() {
+  parts.length = 0; const s = SOL[S.sol];
+  const add = (n, q, col, lab, colored) => { for (let i = 0; i < n; i++) parts.push({ x: 70 + Math.random() * 280, y: 70 + Math.random() * 150, q, col, lab, colored, ph: Math.random() * 6 }); };
+  if (S.sol === 'cu') { add(5, +1, '#2f82e0', '2+', true); add(5, -1, '#9aa3ad', '2−', false); }
+  else { add(5, +1, '#9aa3ad', '+', false); add(5, -1, '#9a3fb3', '−', true); }
+  add(4, +1, '#c8ced6', '+', false); add(4, -1, '#c8ced6', '−', false);   // 질산 칼륨
+}
+function drawBeaker(dt) {
+  const g = bc; g.clearRect(0, 0, 420, 250); g.fillStyle = '#f7f9fc'; g.fillRect(0, 0, 420, 250);
+  g.fillStyle = 'rgba(150,200,240,.35)'; g.fillRect(50, 60, 320, 170); g.strokeStyle = '#8b97a6'; g.lineWidth = 3; g.beginPath(); g.moveTo(48, 30); g.lineTo(48, 232); g.lineTo(372, 232); g.lineTo(372, 30); g.stroke();
+  const ex = [70, 350]; ex.forEach((x, i) => { const neg = (i === 0) === S.leftNeg; g.fillStyle = '#9ea7b2'; g.fillRect(x - 5, 20, 10, 190); g.fillStyle = neg ? '#333' : '#d6303c'; g.font = 'bold 13px sans-serif'; g.textAlign = 'center'; g.fillText(neg ? '(−)극' : '(+)극', x, 15); });
+  const run = S.on && S.V > 0, negX = S.leftNeg ? 85 : 335, posX = S.leftNeg ? 335 : 85;
+  parts.forEach(p => {
+    p.ph += dt * 3; p.x += Math.cos(p.ph * 1.3) * 6 * dt; p.y += Math.sin(p.ph) * 8 * dt;
+    if (run) { const target = p.q > 0 ? negX : posX; p.x += Math.sign(target - p.x) * Math.min(Math.abs(target - p.x), (8 + S.V * 2) * dt); }
+    p.x = Math.max(82, Math.min(338, p.x)); p.y = Math.max(70, Math.min(222, p.y));
+    const r = p.colored ? 12 : 9; g.fillStyle = p.col; g.beginPath(); g.arc(p.x, p.y, r, 0, 7); g.fill(); g.strokeStyle = 'rgba(0,0,0,.2)'; g.lineWidth = 1; g.stroke();
+    g.fillStyle = '#fff'; g.font = `bold ${p.colored ? 11 : 10}px sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(p.lab, p.x, p.y + 1); g.textBaseline = 'alphabetic';
+  });
+}
+function legend() { const s = SOL[S.sol];
+  $('#legend').innerHTML = `색을 띠는 이온: <b>${s.ion}</b> · 함께 있는 이온: ${s.partner} · 연회색: 질산 칼륨의 K⁺, NO₃⁻(무색)`; }
+
+/* ---------- 이온 만들기 ---------- */
+const ATOMS = { Li: ['리튬', 3], Na: ['나트륨', 11], Mg: ['마그네슘', 12], O: ['산소', 8], F: ['플루오린', 9], Cl: ['염소', 17], S: ['황', 16] };
+const USUAL = { Li: 1, Na: 1, Mg: 2, O: -2, F: -1, Cl: -1, S: -2 };   // 보통 되는 이온의 전하
+const SUP = { 0: '⁰', 1: '¹', 2: '²', 3: '³', 4: '⁴' };
+// 조사 '은/는'
+function eun(w) { const code = w.charCodeAt(w.length - 1) - 0xAC00; return w + (code >= 0 && code < 11172 && code % 28 ? '은' : '는'); }
+function anionName(n) { return (n.endsWith('소') && (n === '산소' || n === '염소') ? n.slice(0, -1) : n) + '화 이온'; }
+function ionBox() {
+  const a = S.ionAtom, [nm, z] = ATOMS[a], q = -S.de, e = z + S.de;   // de: 얻은 전자 수(음수면 잃음)
+  let html = '';
+  if (q === 0) html = `<span class="f">${a}</span> &nbsp;${nm} 원자<br>양성자 ${z}개, 전자 ${e}개 → 전기적으로 중성`;
+  else { const f = a + (Math.abs(q) > 1 ? SUP[Math.abs(q)] : '') + (q > 0 ? '⁺' : '⁻'), name = q > 0 ? nm + ' 이온' : anionName(nm);
+    html = `<span class="f">${f}</span> &nbsp;${name} (${q > 0 ? '양이온' : '음이온'})<br>양성자 ${z}개, 전자 ${e}개 → 전자를 ${Math.abs(S.de)}개 ${q > 0 ? '잃어 (+)' : '얻어 (−)'}전하를 띤다`;
+    if (q !== USUAL[a]) html += `<br><span style="color:#ffcf8a;font-size:13px">※ ${eun(nm)} 보통 ${USUAL[a] > 0 ? '전자 ' + USUAL[a] + '개를 잃어 양이온' : '전자 ' + (-USUAL[a]) + '개를 얻어 음이온'}이 된다.</span>`; }
+  $('#ionbox').innerHTML = html;
+  $$('[data-a]').forEach(b => b.classList.toggle('on', b.dataset.a === a));
+}
+Object.keys(ATOMS).forEach(a => { const b = document.createElement('button'); b.className = 'btn'; b.type = 'button'; b.dataset.a = a; b.textContent = `${ATOMS[a][0]}(${a})`; b.addEventListener('click', () => { S.ionAtom = a; S.de = 0; ionBox(); }); $('#atoms').appendChild(b); });
+$('#loseBtn').addEventListener('click', () => { if (S.de > -3) S.de--; ionBox(); });
+$('#gainBtn').addEventListener('click', () => { if (S.de < 3) S.de++; ionBox(); });
+$('#backBtn').addEventListener('click', () => { S.de = 0; ionBox(); });
+
+/* ---------- 화면 갱신·조작 ---------- */
+function readouts() {
+  $('#vT').innerHTML = Math.floor(S.t) + '<small>분</small>'; $('#vD').innerHTML = Math.abs(S.x).toFixed(0) + '<small>mm</small>';
+  const left = S.x < -0.5, right = S.x > 0.5, negSide = S.leftNeg ? left : right;
+  $('#vS').textContent = (left || right) ? (negSide ? '(−)극 쪽' : '(+)극 쪽') : '–';
+  $('#powBtn').textContent = S.on ? '⏻ 전원 끄기' : '⏻ 전원 켜기'; $('#powBtn').classList.toggle('pri', !S.on);
+  $$('[data-s]').forEach(b => b.classList.toggle('on', b.dataset.s === S.sol)); $('#voltv').textContent = S.V + ' V';
+  $('#msg').textContent = S.on && S.V === 0 ? '전압이 0 V이면 전류가 흐르지 않아 이온이 이동하지 않아요.' : S.on ? '' : (S.t > 0 ? '전원을 끄면 이온의 이동이 멈춰요.' : '');
+}
+$$('[data-s]').forEach(b => b.addEventListener('click', () => { S.sol = b.dataset.s; S.t = 0; S.x = 0; S.on = false; initParts(); legend(); readouts(); drawPaper(); drawBeaker(0); }));
+$('#powBtn').addEventListener('click', () => { S.on = !S.on; readouts(); drawPaper(); });
+$('#swapBtn').addEventListener('click', () => { S.leftNeg = !S.leftNeg; readouts(); drawPaper(); });
+$('#againBtn').addEventListener('click', () => { S.t = 0; S.x = 0; S.on = false; initParts(); readouts(); drawPaper(); });
+$('#volt').addEventListener('input', e => { S.V = +e.target.value; readouts(); drawPaper(); });
+$('#resetBtn').addEventListener('click', () => { S = newState(); $('#volt').value = S.V; initParts(); legend(); readouts(); drawPaper(); drawBeaker(0); ionBox(); });
+let last = performance.now();
+function loop(ts) { const dt = Math.min(.1, (ts - last) / 1000); last = ts;
+  if (S.on && S.V > 0) { step(dt); readouts(); drawPaper(); }   // 실제 1초 = 실험 1분
+  drawBeaker(dt); requestAnimationFrame(loop); }
+S = newState(); initParts(); legend(); readouts(); drawPaper(); drawBeaker(0); ionBox(); requestAnimationFrame(loop);
+window.__run = min => { const on = S.on; S.on = true; for (let k = 0; k < min * 10; k++) step(0.1); S.on = on; readouts(); drawPaper(); return [S.x, $('#vS').textContent]; };
+</script>
+</body>
+</html>

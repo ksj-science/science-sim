@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<!-- 단원ID: circulation · 중2 Ⅵ. 동물과 에너지 > 1. 소화와 순환 > 03 순환계(198~202쪽) · 활동 1개: 적혈구가 되어 혈액 순환 경로 따라가기(+ 심장박동 수 측정, 혈액의 구성) -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>혈액 순환 경로 따라가기 — 순환계</title>
+<style>
+:root{--bg:#f6f4f7;--card:#fff;--ink:#231d2b;--muted:#665f70;--line:#e3dde9;--red:#d8453f;--red-d:#a92c28;--red-l:#fdecea;--blue:#3d6fd1;--blue-d:#27509f;--blue-l:#e8effc;--ok:#1f9a62}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+header{background:linear-gradient(120deg,#3d6fd1,#8a55c0 50%,#d8453f);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:20px;margin:0;font-weight:900}
+header .sub{font-size:13px;opacity:.95}
+header .sp{flex:1}
+header button{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+main{padding:10px 12px 24px;max-width:1320px;margin:0 auto}
+.intro{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--red);border-radius:10px;padding:8px 14px;margin-bottom:10px;font-size:14px;line-height:1.55}
+.intro b{color:var(--red-d)}
+.grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(320px,1fr);gap:10px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:10px}
+.card h3{margin:0 2px 8px;font-size:15px;color:#4b3a78}
+canvas{width:100%;display:block;border-radius:10px}
+#app{cursor:pointer;touch-action:manipulation}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0}
+.btn{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:9px;padding:7px 11px;cursor:pointer;min-height:38px}
+.btn:hover:not(:disabled){border-color:#8a55c0;color:#5d3696}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.on{background:#f0e8fa;border-color:#8a55c0;color:#5d3696}
+.btn.pri{background:#8a55c0;border-color:#8a55c0;color:#fff}
+.msg{border-radius:10px;padding:8px 11px;font-size:14.5px;line-height:1.5;margin-top:8px;background:#f8f5fb;border:1px dashed #cdbbe4}
+.msg.bad{background:#fff1ef;border-color:#f0aaa3;animation:shake .3s}
+.msg.good{background:#eaf7f0;border-color:#9fd8bb}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.path{display:flex;gap:4px;flex-wrap:wrap;align-items:center;margin:5px 0;font-size:13px}
+.path .ttl{font-weight:900;min-width:66px}
+.chip{border:1.5px dashed #c9c1d3;border-radius:999px;padding:3px 9px;color:#aaa2b5;background:#fff;white-space:nowrap}
+.chip.done{border-style:solid;font-weight:700}
+.chip.done.b{border-color:var(--blue);color:var(--blue-d);background:var(--blue-l)}
+.chip.done.r{border-color:var(--red);color:var(--red-d);background:var(--red-l)}
+.arrow{color:#b9b1c4}
+.ro{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:6px}
+.ro div{background:#231d2b;color:#e9e2f3;border-radius:10px;padding:6px 8px}
+.ro .k{font-size:11.5px;color:#b3a8c4}
+.ro .v{font-size:15px;font-weight:900;line-height:1.3}
+.info{font-size:14px;line-height:1.55;background:#faf8fc;border-radius:10px;padding:8px 10px;min-height:66px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{border:1px solid var(--line);padding:4px 6px;text-align:center}
+th{background:#f3eefa;color:#4b3a78}
+.blood{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.blood .btn{padding:6px 4px;font-size:13px;text-align:center}
+.note{font-size:12.5px;color:var(--muted);line-height:1.55;margin:6px 2px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>혈액 순환 경로 따라가기</h1><span class="sub">심장 · 동맥 · 모세혈관 · 정맥 · 허파순환 · 온몸순환</span>
+  <span class="sp"></span><button id="resetBtn" type="button">↺ 초기화</button>
+</header>
+<main>
+  <div class="intro">나는 <b>적혈구</b>! 지금 <b>우심실</b>에 있다. 혈액이 흘러가는 <b>다음 장소를 그림에서 차례로 눌러</b> 온몸을 한 바퀴 돌아오세요. 허파와 온몸의 모세혈관에서 내 색깔(산소의 양)이 어떻게 바뀌는지도 살펴보세요.</div>
+  <div class="grid">
+    <div class="card">
+      <canvas id="app" width="760" height="545" aria-label="심장, 허파, 온몸을 잇는 혈액 순환 그림. 다음 장소를 눌러 이동한다."></canvas>
+      <div class="path"><span class="ttl" style="color:#27509f">허파순환</span><span id="pathA"></span></div>
+      <div class="path"><span class="ttl" style="color:#a92c28">온몸순환</span><span id="pathB"></span></div>
+      <div class="row">
+        <button class="btn" id="hintBtn" type="button">💡 힌트</button>
+        <button class="btn" id="autoBtn" type="button">▶ 한 바퀴 자동으로 보기</button>
+        <button class="btn" id="againBtn" type="button">처음부터 다시</button>
+      </div>
+      <div class="msg" id="msg"></div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="ro">
+          <div><div class="k">지금 있는 곳</div><div class="v" id="vWhere">우심실</div></div>
+          <div><div class="k">종류</div><div class="v" id="vKind">심장</div></div>
+          <div><div class="k">혈액 속 산소</div><div class="v" id="vOxy">적다</div></div>
+          <div><div class="k">틀린 횟수</div><div class="v" id="vMiss">0</div></div>
+        </div>
+        <div class="info" id="info"></div>
+        <table style="margin-top:8px"><thead><tr><th>혈관</th><th>혈액이 흐르는 방향</th><th>특징</th></tr></thead><tbody>
+          <tr><th>동맥</th><td>심장에서 나온다</td><td>혈관벽이 두껍고 탄력이 크다 · 압력이 높다</td></tr>
+          <tr><th>모세혈관</th><td>동맥과 정맥을 잇는다</td><td>한 층의 세포 · 조직 세포와 물질 교환</td></tr>
+          <tr><th>정맥</th><td>심장으로 들어간다</td><td>혈관벽이 얇다 · 압력이 낮아 판막이 있다</td></tr></tbody></table>
+      </div>
+      <div class="card">
+        <h3>심장박동 수 측정하기 (맥박)</h3>
+        <canvas id="pulse" width="420" height="110" aria-label="뛰는 심장과 맥박 그래프"></canvas>
+        <div class="row"><button class="btn" data-s="rest" type="button">🪑 편안히 쉴 때</button><button class="btn" data-s="ex" type="button">🏃 앉았다 일어서기 20회 후</button><button class="btn pri" id="measBtn" type="button">⏱ 15초 동안 세기</button></div>
+        <table><thead><tr><th>상태</th><th>15초 동안 맥박 수</th><th>1분 동안 (× 4)</th></tr></thead><tbody id="ptb"></tbody></table>
+      </div>
+      <div class="card">
+        <h3>혈액의 구성 (눌러 보기)</h3>
+        <div class="blood"><button class="btn" data-b="rbc" type="button">🔴 적혈구</button><button class="btn" data-b="wbc" type="button">⚪ 백혈구</button><button class="btn" data-b="plt" type="button">🟡 혈소판</button><button class="btn" data-b="pla" type="button">💧 혈장</button></div>
+        <div class="info" id="binfo" style="margin-top:6px;min-height:44px">혈액은 액체 성분인 <b>혈장</b>과 세포 성분인 <b>혈구</b>(적혈구, 백혈구, 혈소판)로 이루어져 있다.</div>
+        <p class="note"><b>모델의 한계</b> · 심장과 혈관의 위치·모양은 경로를 알아보기 쉽게 단순화한 모식도이다. 혈관의 빨강·파랑은 산소가 많은 혈액과 적은 혈액을 구분하려고 정한 색이며 실제 혈관의 색이 아니다. 맥박 수(쉴 때 72회/분, 운동 후 120회/분)는 예시 값이고 사람마다 다르다.</p>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+/* ================================================================
+   혈액 순환 모형(모식도)
+   - 허파순환: 우심실 → 폐동맥 → 허파의 모세혈관 → 폐정맥 → 좌심방   (허파에서 이산화 탄소를 내보내고 산소를 받음)
+   - 온몸순환: 좌심실 → 대동맥 → 온몸의 모세혈관 → 대정맥 → 우심방   (조직 세포에 산소·영양소를 주고 이산화 탄소·노폐물을 받음)
+   - 산소가 많은 혈액(빨강): 허파의 모세혈관을 지난 뒤 ~ 온몸의 모세혈관 전 (폐정맥, 좌심방, 좌심실, 대동맥)
+     산소가 적은 혈액(파랑): 온몸의 모세혈관을 지난 뒤 ~ 허파의 모세혈관 전 (대정맥, 우심방, 우심실, 폐동맥)
+   - 맥박: 1분 동안의 맥박 수 = 1분 동안의 심장박동 수. 쉴 때 72회/분(15초에 18회), 운동 후 120회/분(15초에 30회)로 정함
+     k번째 박동 시각 = (k + 0.5) × 60 ÷ (분당 박동 수) 초
+   ================================================================ */
+const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
+function fit(cv, w, h) { const r = Math.min(2, window.devicePixelRatio || 1); cv.width = w * r; cv.height = h * r; const x = cv.getContext('2d'); x.setTransform(r, 0, 0, r, 0, 0); return x; }
+const W = 760, H = 545, c = fit($('#app'), W, H), pc = fit($('#pulse'), 420, 110);
+const RED = '#d8453f', BLUE = '#3d6fd1';
+// 순환 경로(닫힌 꺾은선). 정류장: 꼭짓점 번호
+const PTS = [[295,250],[295,325],[340,305],[362,285],[362,165],[281,165],[200,165],[200,110],[280,88],[380,80],[480,88],[600,110],[600,180],[600,250],[510,250],[465,250],[465,325],[510,335],[640,335],[640,410],[640,470],[490,485],[380,492],[270,485],[120,470],[120,360],[120,250],[250,250]];
+const ST = [
+  { id: 'RA', name: '우심방', v: 0, kind: '심장(심방)', oxy: 0, rect: [250, 220, 90, 60], info: '<b>우심방</b>: 온몸을 돌고 온 혈액을 대정맥에서 받아 우심실로 보낸다. 심방은 혈액을 받아들이는 곳으로 정맥과 연결되어 있다.' },
+  { id: 'RV', name: '우심실', v: 1, kind: '심장(심실)', oxy: 0, rect: [250, 290, 90, 70], info: '<b>우심실</b>: 혈액을 폐동맥으로 내보낸다. 심실은 혈액을 내보내는 곳으로 동맥과 연결되어 있고, 강한 근육으로 되어 있다.' },
+  { id: 'PA', name: '폐동맥', v: 5, kind: '동맥', oxy: 0, rect: [240, 150, 82, 30], info: '<b>폐동맥</b>: 심장(우심실)에서 허파로 나가는 혈관. 심장에서 나오므로 동맥이지만, <b>산소가 적은 혈액</b>이 흐른다!' },
+  { id: 'LC', name: '허파의 모세혈관', v: 9, kind: '모세혈관', oxy: 1, rect: [310, 78, 140, 30], info: '<b>허파의 모세혈관</b>: 이산화 탄소를 내보내고 <b>산소를 받아 온다</b>. 내 색깔이 빨갛게 바뀌었다.' },
+  { id: 'PV', name: '폐정맥', v: 12, kind: '정맥', oxy: 1, rect: [559, 165, 82, 30], info: '<b>폐정맥</b>: 허파에서 심장(좌심방)으로 들어가는 혈관. 심장으로 들어가므로 정맥이지만, <b>산소가 많은 혈액</b>이 흐른다!' },
+  { id: 'LA', name: '좌심방', v: 15, kind: '심장(심방)', oxy: 1, rect: [420, 220, 90, 60], info: '<b>좌심방</b>: 허파에서 산소를 받아 온 혈액을 폐정맥에서 받아 좌심실로 보낸다. 심방과 심실 사이의 판막은 혈액이 한쪽 방향으로만 흐르게 한다.' },
+  { id: 'LV', name: '좌심실', v: 16, kind: '심장(심실)', oxy: 1, rect: [420, 290, 90, 70], info: '<b>좌심실</b>: 강하게 수축하여 혈액을 대동맥으로, 온몸으로 내보낸다. 펌프 역할을 하기에 알맞게 근육이 두껍다.' },
+  { id: 'AO', name: '대동맥', v: 19, kind: '동맥', oxy: 1, rect: [599, 395, 82, 30], info: '<b>대동맥</b>: 심장(좌심실)에서 온몸으로 나가는 혈관. 혈관벽이 두껍고 탄력이 커서 심장의 수축으로 생기는 높은 압력을 견딘다.' },
+  { id: 'BC', name: '온몸의 모세혈관', v: 22, kind: '모세혈관', oxy: 0, rect: [310, 477, 140, 30], info: '<b>온몸의 모세혈관</b>: 조직 세포에 <b>산소와 영양소를 주고</b> 이산화 탄소와 노폐물을 받는다. 내 색깔이 검붉게(그림에서는 파랗게) 바뀌었다.' },
+  { id: 'VC', name: '대정맥', v: 25, kind: '정맥', oxy: 0, rect: [79, 345, 82, 30], info: '<b>대정맥</b>: 온몸에서 심장(우심방)으로 들어가는 혈관. 압력이 매우 낮아서 <b>판막</b>이 혈액이 거꾸로 흐르는 것을 막는다.' },
+];
+const HINT = { RV: '심실에서 나가는 혈액은 <b>동맥</b>으로 흐른다. 우심실과 이어진 동맥은?', PA: '폐동맥은 <b>허파</b>로 간다.', LC: '허파에서 심장으로 <b>들어가는</b> 혈관은 정맥이다.', PV: '정맥은 <b>심방</b>과 이어져 있다. 허파에서 온 혈액이 들어가는 심방은?', LA: '심방의 혈액은 바로 아래 <b>심실</b>로 간다.', LV: '좌심실에서 나가 온몸으로 가는 <b>동맥</b>은?', AO: '대동맥은 가지를 쳐서 온몸의 <b>모세혈관</b>으로 이어진다.', BC: '모세혈관을 지난 혈액은 <b>정맥</b>으로 모인다.', VC: '온몸을 돌고 온 혈액이 들어가는 <b>심방</b>은?', RA: '심방의 혈액은 바로 아래 <b>심실</b>로 간다.' };
+// 경로 길이 계산
+const N = PTS.length, SEG = [], CUM = [0];
+for (let i = 0; i < N; i++) { const a = PTS[i], b = PTS[(i + 1) % N], l = Math.hypot(b[0] - a[0], b[1] - a[1]); SEG.push(l); CUM.push(CUM[i] + l); }
+const LOOP = CUM[N], dOf = v => CUM[v];
+function posAt(d) { d = ((d % LOOP) + LOOP) % LOOP; let i = 0; while (i < N - 1 && CUM[i + 1] <= d) i++; const f = (d - CUM[i]) / SEG[i], a = PTS[i], b = PTS[(i + 1) % N]; return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f]; }
+const D_LC = dOf(9), D_BC = dOf(22);
+const isRed = d => { d = ((d % LOOP) + LOOP) % LOOP; return d >= D_LC && d < D_BC; };
+let S;
+function newState() { return { cur: 1, from: null, move: null, visited: ['RV'], miss: 0, laps: 0, done: false, hint: 0, auto: false, t: 0, bad: null, bpm: 72, state: 'rest', meas: null, rec: {} , oxy: 0 }; }
+const next = i => (i + 1) % ST.length;
+/* ---------------- 그리기 ---------------- */
+function rr(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+function bed(cx, cy, label) {   // 모세혈관 그물(왼쪽 파랑 ↔ 오른쪽 빨강)
+  const g = c.createLinearGradient(cx - 110, 0, cx + 110, 0); g.addColorStop(0, BLUE); g.addColorStop(.5, '#8a55c0'); g.addColorStop(1, RED);
+  c.strokeStyle = g; c.lineWidth = 5; c.lineCap = 'round';
+  for (const k of [-38, -19, 0, 19, 38]) { c.beginPath(); c.moveTo(cx - 105, cy); c.quadraticCurveTo(cx, cy + k * 2, cx + 105, cy); c.stroke(); }
+  c.lineWidth = 3; for (const x of [-55, 0, 55]) { c.beginPath(); c.moveTo(cx + x, cy - 26); c.lineTo(cx + x, cy + 26); c.stroke(); }
+}
+function draw() {
+  c.clearRect(0, 0, W, H); c.fillStyle = '#fcfbfd'; c.fillRect(0, 0, W, H);
+  // 허파(위), 온몸(아래) 배경
+  c.fillStyle = '#f7d9d6'; c.beginPath(); c.ellipse(330, 84, 78, 52, 0, 0, 7); c.fill(); c.beginPath(); c.ellipse(430, 84, 78, 52, 0, 0, 7); c.fill();
+  c.fillStyle = '#b9837e'; c.font = 'bold 13px sans-serif'; c.textAlign = 'center'; c.fillText('허파', 380, 28);
+  c.fillStyle = '#fbe9d2'; rr(c, 240, 446, 280, 92, 40); c.fill();
+  c.fillStyle = '#b08c57'; c.fillText('온몸의 조직 세포', 380, 532);
+  for (let k = 0; k < 9; k++) { c.fillStyle = '#f3d3a4'; c.beginPath(); c.arc(262 + k * 29.5, 520 - (k % 2) * 62, 8, 0, 7); c.fill(); }
+  // 심장 바탕
+  const beat = S.move && (ST[S.move.from].id === 'RV' || ST[S.move.from].id === 'LV') ? Math.sin(Math.min(1, S.move.p * 3) * Math.PI) : 0;
+  c.fillStyle = '#f9cfc8'; rr(c, 236, 206, 288, 168, 30); c.fill(); c.strokeStyle = '#e9a79d'; c.lineWidth = 2; c.stroke();
+  c.fillStyle = '#b9837e'; c.font = 'bold 13px sans-serif'; c.fillText('심장', 380, 368);
+  // 혈관(굵은 선): 파랑 = 산소가 적은 혈액, 빨강 = 산소가 많은 혈액
+  c.lineCap = 'round'; c.lineJoin = 'round';
+  for (let i = 0; i < N; i++) { if ((i >= 8 && i <= 9) || (i >= 21 && i <= 22)) continue;   // 모세혈관 구간은 그물로
+    const a = PTS[i], b = PTS[(i + 1) % N], mid = (CUM[i] + CUM[i + 1]) / 2, col = isRed(mid) ? RED : BLUE;
+    c.strokeStyle = col; c.lineWidth = 15; c.beginPath(); c.moveTo(a[0], a[1]); c.lineTo(b[0], b[1]); c.stroke();
+    c.strokeStyle = 'rgba(255,255,255,.28)'; c.lineWidth = 5; c.beginPath(); c.moveTo(a[0], a[1]); c.lineTo(b[0], b[1]); c.stroke(); }
+  bed(380, 84); bed(380, 490);
+  // 흐르는 혈구 점
+  for (let k = 0; k < 44; k++) { const d = S.t * 46 + k * LOOP / 44, [x, y] = posAt(d); c.fillStyle = isRed(d) ? '#ffd9d6' : '#d6e3ff'; c.beginPath(); c.arc(x, y, 2.6, 0, 7); c.fill(); }
+  // 심방·심실
+  ST.forEach((s, i) => { if (!s.kind.startsWith('심장')) return; const [x, y, w, h] = s.rect, red = s.oxy, sq = (s.id === 'RV' || s.id === 'LV') ? beat * 4 : 0;
+    c.fillStyle = red ? '#e2635d' : '#5c88dc'; rr(c, x + sq, y + sq, w - 2 * sq, h - 2 * sq, 14); c.fill();
+    c.strokeStyle = red ? '#a92c28' : '#27509f'; c.lineWidth = (s.id === 'RV' || s.id === 'LV') ? 5 : 2.5; c.stroke(); });
+  // 판막(심방-심실 사이)
+  c.strokeStyle = '#fff'; c.lineWidth = 3; [[295, 285], [465, 285]].forEach(([x, y]) => { c.beginPath(); c.moveTo(x - 12, y - 5); c.lineTo(x, y + 4); c.lineTo(x + 12, y - 5); c.stroke(); });
+  c.fillStyle = '#8b6f6a'; c.font = '11px sans-serif'; c.fillText('판막', 398, 302);
+  // 이름표
+  const nx = next(S.cur), hintOn = S.hint > S.t;
+  ST.forEach((s, i) => { const [x, y, w, h] = s.rect, chamber = s.kind.startsWith('심장'), here = i === S.cur && !S.move;
+    if (!chamber) { c.fillStyle = '#fff'; rr(c, x, y, w, h, 15); c.fill(); c.strokeStyle = here ? '#231d2b' : (s.oxy ? '#e9a7a3' : '#a9bfee'); c.lineWidth = here ? 3 : 2; c.stroke(); }
+    if (hintOn && i === nx) { c.strokeStyle = '#f5b301'; c.lineWidth = 5; c.setLineDash([7, 5]); c.lineDashOffset = -S.t * 30; rr(c, x - 5, y - 5, w + 10, h + 10, 18); c.stroke(); c.setLineDash([]); }
+    if (S.bad && S.bad.i === i && S.t - S.bad.t < .5) { c.strokeStyle = '#e03b2f'; c.lineWidth = 5; rr(c, x - 4, y - 4, w + 8, h + 8, 18); c.stroke(); }
+    c.fillStyle = chamber ? '#fff' : '#231d2b'; c.font = 'bold 14px sans-serif'; c.textAlign = 'center'; c.fillText(s.name, x + w / 2, chamber ? y + 22 : y + h / 2 + 5); });
+  // 물질 교환 표시
+  if (!S.move && ST[S.cur].id === 'LC') exch(380, 44, '이산화 탄소 ↑', '산소 ↓');
+  if (!S.move && ST[S.cur].id === 'BC') exch(380, 458, '산소·영양소 ↓', '이산화 탄소·노폐물 ↑');
+  // 나(적혈구)
+  let d = dOf(ST[S.cur].v), red = S.oxy;
+  if (S.move) { const a = dOf(ST[S.move.from].v); let b = dOf(ST[S.move.to].v); if (b <= a) b += LOOP; const e = S.move.p < .5 ? 2 * S.move.p * S.move.p : 1 - 2 * (1 - S.move.p) ** 2; d = a + (b - a) * e; red = isRed(d) ? 1 : 0; }
+  let [tx, ty] = posAt(d); const oy = (!S.move && ST[S.cur].kind.startsWith('심장')) ? 14 : 0;
+  if (!S.move && ST[S.cur].id === 'LC') tx += 92; if (!S.move && ST[S.cur].id === 'BC') tx -= 92;   // 이름표를 가리지 않게 옆으로
+  c.fillStyle = 'rgba(0,0,0,.18)'; c.beginPath(); c.ellipse(tx + 2, ty + oy + 4, 15, 13, 0, 0, 7); c.fill();
+  c.fillStyle = red ? '#e5362f' : '#7b3f8f'; c.strokeStyle = '#fff'; c.lineWidth = 3; c.beginPath(); c.ellipse(tx, ty + oy, 15, 13, 0, 0, 7); c.fill(); c.stroke();
+  c.fillStyle = red ? '#b3211b' : '#5a2b6b'; c.beginPath(); c.ellipse(tx, ty + oy, 7, 5.5, 0, 0, 7); c.fill();
+  c.fillStyle = '#fff'; c.font = 'bold 11px sans-serif'; c.fillText('나', tx, ty + oy + 4);
+  c.textAlign = 'left';
+  // 범례
+  c.fillStyle = RED; c.fillRect(18, 505, 22, 8); c.fillStyle = BLUE; c.fillRect(18, 522, 22, 8); c.fillStyle = '#231d2b'; c.font = '12px sans-serif'; c.fillText('산소가 많은 혈액', 46, 514); c.fillText('산소가 적은 혈액', 46, 531);
+}
+function exch(x, y, a, b) { c.font = 'bold 12.5px sans-serif'; c.textAlign = 'center'; const w = c.measureText(a + '   ' + b).width + 22; c.fillStyle = 'rgba(255,255,255,.95)'; rr(c, x - w / 2, y - 14, w, 24, 12); c.fill(); c.strokeStyle = '#8a55c0'; c.lineWidth = 1.5; c.stroke(); c.fillStyle = '#5d3696'; c.fillText(a + '   ' + b, x, y + 3); }
+/* ---------------- 화면 글 ---------------- */
+function say(t, cls) { const m = $('#msg'); m.className = 'msg' + (cls ? ' ' + cls : ''); m.innerHTML = t; }
+function paths() {
+  const A = ['RV', 'PA', 'LC', 'PV', 'LA'], B = ['LV', 'AO', 'BC', 'VC', 'RA'], nm = id => ST.find(s => s.id === id).name;
+  const mk = (ids) => ids.map(id => { const s = ST.find(x => x.id === id), on = S.visited.includes(id); return `<span class="chip ${on ? 'done ' + (s.oxy ? 'r' : 'b') : ''}">${on ? nm(id) : '?'}</span>`; }).join('<span class="arrow"> → </span>');
+  $('#pathA').innerHTML = mk(A); $('#pathB').innerHTML = mk(B);
+}
+function readouts() {
+  const s = ST[S.cur];
+  $('#vWhere').textContent = s.name; $('#vKind').textContent = s.kind; $('#vOxy').innerHTML = S.oxy ? '<span style="color:#ff9d97">많다</span>' : '<span style="color:#9db8ff">적다</span>'; $('#vMiss').textContent = S.miss;
+  $('#info').innerHTML = s.info; paths();
+  $('#hintBtn').disabled = S.auto || !!S.move; $('#autoBtn').disabled = S.auto; $('#autoBtn').textContent = S.auto ? '자동으로 도는 중…' : '▶ 한 바퀴 자동으로 보기';
+}
+function arrive() {
+  const s = ST[S.cur]; S.oxy = s.oxy; if (!S.visited.includes(s.id)) S.visited.push(s.id);
+  if (s.id === 'LA') say('🎉 <b>허파순환</b> 완성! 우심실 → 폐동맥 → 허파의 모세혈관 → 폐정맥 → 좌심방. 이제 온몸으로 가 보자.', 'good');
+  else if (s.id === 'RA') { S.laps++; say('🎉 <b>온몸순환</b> 완성! 좌심실 → 대동맥 → 온몸의 모세혈관 → 대정맥 → 우심방. ' + (S.auto ? '' : `틀린 횟수 ${S.miss}번으로 한 바퀴를 돌았다. `) + '다음은 다시 우심실이다.', 'good'); }
+  else if (s.id === 'LC') say('허파의 모세혈관 도착! 이산화 탄소를 내보내고 <b>산소를 받았다</b>. 다음은 어디일까?');
+  else if (s.id === 'BC') say('온몸의 모세혈관 도착! 조직 세포에 <b>산소와 영양소를 주고</b> 이산화 탄소와 노폐물을 받았다. 다음은?');
+  else say(`<b>${s.name}</b>에 도착했다. 다음 장소를 그림에서 누르세요.`);
+  if (S.auto) { if (S.autoLeft-- > 0) setTimeout(() => go(next(S.cur)), 650); else { S.auto = false; say('한 바퀴를 모두 돌았다. 이제 <b>처음부터 다시</b>를 눌러 직접 경로를 찾아보세요.', 'good'); } }
+  readouts();
+}
+function go(i) { S.move = { from: S.cur, to: i, p: 0 }; S.hint = 0; readouts(); }
+function clickAt(x, y) {
+  if (S.move || S.auto) return;
+  const i = ST.findIndex(s => x >= s.rect[0] - 6 && x <= s.rect[0] + s.rect[2] + 6 && y >= s.rect[1] - 6 && y <= s.rect[1] + s.rect[3] + 6);
+  if (i < 0 || i === S.cur) return;
+  if (i === next(S.cur)) go(i);
+  else { S.miss++; S.bad = { i, t: S.t }; say(`앗, ${ST[S.cur].name}에서 <b>${ST[i].name}</b>(으)로는 바로 갈 수 없어요. ` + HINT[ST[S.cur].id], 'bad'); readouts(); }
+}
+$('#app').addEventListener('click', e => { const r = e.target.getBoundingClientRect(); clickAt((e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height); });
+$('#hintBtn').onclick = () => { S.hint = S.t + 2.5; say('💡 ' + HINT[ST[S.cur].id] + ' (노란 점선을 보세요)'); };
+$('#autoBtn').onclick = () => { const keep = { rec: S.rec, state: S.state, bpm: S.bpm }; S = Object.assign(newState(), keep); S.auto = true; S.autoLeft = 9; say('자동으로 한 바퀴 도는 중… 혈액이 지나는 순서를 눈여겨보세요.'); readouts(); setTimeout(() => go(next(S.cur)), 500); };
+function restart() { const keep = { rec: S.rec, state: S.state, bpm: S.bpm }; S = Object.assign(newState(), keep); say('나는 지금 <b>우심실</b>에 있다. 심실에서 나간 혈액은 어디로 갈까? 그림에서 다음 장소를 누르세요.'); readouts(); pulseUI(); }
+$('#againBtn').onclick = restart;
+$('#resetBtn').onclick = () => { S = newState(); restart(); $('#binfo').innerHTML = '혈액은 액체 성분인 <b>혈장</b>과 세포 성분인 <b>혈구</b>(적혈구, 백혈구, 혈소판)로 이루어져 있다.'; $$('[data-b]').forEach(e => e.classList.remove('on')); };
+/* ---------------- 맥박 ---------------- */
+const BPM = { rest: 72, ex: 120 }, SNAME = { rest: '편안히 쉴 때', ex: '운동 후' };
+const beatsIn = (bpm, sec) => { let n = 0; while ((n + .5) * 60 / bpm < sec) n++; return n; };
+function pulseUI() {
+  $$('[data-s]').forEach(e => { e.classList.toggle('on', e.dataset.s === S.state); e.disabled = !!S.meas; }); $('#measBtn').disabled = !!S.meas;
+  $('#ptb').innerHTML = ['rest', 'ex'].map(k => { const r = S.rec[k]; return `<tr><th>${SNAME[k]}</th><td>${r ? r + '회' : '–'}</td><td>${r ? '<b>' + r * 4 + '</b>회' : '–'}</td></tr>`; }).join('')
+    + (S.rec.rest && S.rec.ex ? '<tr><td colspan="3" style="text-align:left">운동을 하면 세포에서 에너지가 더 많이 필요하다. 산소와 영양소를 더 빨리 공급하려고 심장이 더 빨리 뛴다.</td></tr>' : '');
+}
+function drawPulse() {
+  const w = 420, h = 110, bpm = BPM[S.state], T = 60 / bpm, ph = (S.t % T) / T, k = Math.exp(-ph * 9) * Math.sin(ph * 22);
+  pc.clearRect(0, 0, w, h); pc.fillStyle = '#1f1826'; pc.fillRect(0, 0, w, h);
+  // 심장 아이콘
+  const s = 1 + .16 * Math.max(0, k); pc.save(); pc.translate(52, 56); pc.scale(s, s); pc.fillStyle = '#e5484d'; pc.beginPath(); pc.moveTo(0, 22); pc.bezierCurveTo(-34, -2, -18, -30, 0, -12); pc.bezierCurveTo(18, -30, 34, -2, 0, 22); pc.fill(); pc.restore();
+  // 맥박 파형
+  pc.strokeStyle = '#6df0a2'; pc.lineWidth = 2; pc.beginPath();
+  for (let x = 0; x <= 290; x += 2) { const tt = S.t - (290 - x) / 60, p2 = ((tt % T) + T) % T / T, y = 60 - 34 * Math.exp(-p2 * 9) * Math.sin(p2 * 22); x ? pc.lineTo(110 + x, y) : pc.moveTo(110 + x, y); } pc.stroke();
+  pc.fillStyle = '#fff'; pc.font = 'bold 13px sans-serif'; pc.fillText(SNAME[S.state], 112, 20);
+  if (S.meas) { const el = S.t - S.meas.t0, n = beatsIn(bpm, Math.min(15, el)); pc.fillStyle = '#ffd86b'; pc.font = 'bold 15px sans-serif'; pc.fillText(`${Math.min(15, el).toFixed(1)}초 · ${n}회`, 300, 20);
+    if (el >= 15) { S.rec[S.state] = beatsIn(bpm, 15); S.meas = null; pulseUI(); } }
+}
+$$('[data-s]').forEach(e => e.onclick = () => { S.state = e.dataset.s; pulseUI(); });
+$('#measBtn').onclick = () => { S.meas = { t0: S.t }; pulseUI(); };
+/* ---------------- 혈액의 구성 ---------------- */
+const BL = { rbc: '<b>적혈구</b>: 가운데가 오목한 원반 모양. <b>산소를 운반</b>한다.', wbc: '<b>백혈구</b>: 몸에 들어온 세균 등으로부터 <b>우리 몸을 보호</b>한다.', plt: '<b>혈소판</b>: 상처가 났을 때 <b>혈액을 응고</b>하여 출혈을 멈추게 한다.', pla: '<b>혈장</b>: 혈액의 약 55 %를 차지하는 액체 성분(주성분은 물). <b>영양소와 노폐물</b> 등 여러 가지 물질을 운반한다.' };
+$$('[data-b]').forEach(e => e.onclick = () => { $$('[data-b]').forEach(x => x.classList.toggle('on', x === e)); $('#binfo').innerHTML = BL[e.dataset.b]; });
+/* ---------------- 반복 ---------------- */
+let last = performance.now();
+function loop(ts) {
+  const dt = Math.min(0.1, (ts - last) / 1000); last = ts; S.t += dt;
+  if (S.move) { S.move.p += dt / 1.1; if (S.move.p >= 1) { S.cur = S.move.to; S.move = null; arrive(); } }
+  draw(); drawPulse(); requestAnimationFrame(loop);
+}
+S = newState(); restart(); requestAnimationFrame(loop);
+// 테스트용
+window.__click = id => { const s = ST.find(x => x.id === id); clickAt(s.rect[0] + s.rect[2] / 2, s.rect[1] + s.rect[3] / 2); };
+window.__finish = () => { if (S.move) { S.cur = S.move.to; S.move = null; arrive(); } return ST[S.cur].id; };
+window.__S = () => ({ cur: ST[S.cur].id, miss: S.miss, laps: S.laps, visited: S.visited.length, oxy: S.oxy, rec: S.rec });
+window.__beats = k => beatsIn(BPM[k], 15);
+</script>
+</body>
+</html>

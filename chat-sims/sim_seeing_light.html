@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<!-- 단원ID: seeing_light · Ⅲ. 빛과 파동 > 1. 빛 > 02 물체를 보는 과정(94~95쪽) · 활동 1개: 빛의 진행 경로로 물체를 보는 과정 나타내기 -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>빛의 경로 그리기 — 물체를 보는 과정</title>
+<style>
+:root{--bg:#f3f5f2;--card:#fff;--ink:#1f2a24;--muted:#5d6b62;--line:#d9e2dc;--accent:#e08a1e;--accent-d:#a86210;--accent-l:#fdf0dd;--ok:#1f9a62;--bad:#d4475a}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+header{background:linear-gradient(120deg,#e08a1e,#e3b52a);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:20px;margin:0;font-weight:900}
+header .sub{font-size:13px;opacity:.95}
+header .sp{flex:1}
+header button{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+main{padding:10px 12px 24px;max-width:1300px;margin:0 auto}
+.intro{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:10px;padding:8px 14px;margin-bottom:10px;font-size:14px;line-height:1.55}
+.intro b{color:var(--accent-d)}
+.grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(290px,1fr);gap:10px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}
+.card h3{margin:0 4px 8px;font-size:15px;color:var(--accent-d)}
+canvas{width:100%;display:block;border-radius:8px;touch-action:none}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0}
+.btn{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;padding:8px 12px;cursor:pointer;min-height:38px}
+.btn:hover{border-color:var(--accent);color:var(--accent-d)}
+.btn.on{background:var(--accent-l);border-color:var(--accent);color:var(--accent-d)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.lbl{font-size:13px;color:var(--muted)}
+input[type=range]{flex:1;min-width:120px;accent-color:var(--accent)}
+.ro{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:8px}
+.ro div{background:#1e2b26;color:#ffe2a8;border-radius:9px;padding:6px 10px}
+.ro .k{font-size:12px;color:#b9c9bf}
+.ro .v{font-size:22px;font-weight:900}
+.ro .v small{font-size:13px;font-weight:500;margin-left:2px}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{border:1px solid var(--line);padding:5px 6px;text-align:center}
+th{background:var(--accent-l);color:var(--accent-d)}
+.note{font-size:12.5px;color:var(--muted);line-height:1.55;margin:6px 4px 0}
+.msg{min-height:22px;font-size:14px;font-weight:700;margin:4px 4px 0;color:var(--accent-d)}
+.msg.ok{color:var(--ok)}.msg.bad{color:var(--bad)}
+.seq{font-size:15px;font-weight:800;color:#333;min-height:24px;margin:2px 4px}
+.hide{display:none}
+</style>
+</head>
+<body>
+<header>
+  <h1>빛의 경로 그리기</h1><span class="sub">물체를 보는 과정 · 광원과 반사</span>
+  <span class="sp"></span><button id="resetBtn" type="button">↺ 초기화</button>
+</header>
+<main>
+  <div class="row" id="scenes" style="margin-top:0">
+    <button class="btn on" data-s="room" type="button">장면 1 · 책상 위의 전등과 책</button>
+    <button class="btn" data-s="pool" type="button">장면 2 · 물속에 있는 발</button>
+  </div>
+  <div id="roomUI">
+    <div class="intro"><b>보려는 물체</b>를 고른 뒤, 그림에서 <b>빛이 지나가는 순서대로</b> 물체를 눌러 화살표를 그리고 <b>확인하기</b>를 누르세요. 전등을 끄거나 눈을 감으면 어떻게 되는지도 확인해 보세요.</div>
+    <div class="grid">
+      <div class="card">
+        <canvas id="room" width="640" height="420" aria-label="책상 위 전등, 책, 컵과 학생이 있는 방"></canvas>
+        <div class="row"><span class="lbl">보려는 물체</span>
+          <button class="btn on" data-t="lamp" type="button">전등</button><button class="btn" data-t="book" type="button">책</button><button class="btn" data-t="cup" type="button">컵</button></div>
+        <div class="seq" id="seq">빛의 경로: (그림에서 물체를 눌러 보세요)</div>
+        <div class="row"><button class="btn pri" id="checkBtn" type="button">확인하기</button><button class="btn" id="undoBtn" type="button">한 칸 지우기</button><button class="btn" id="clearBtn" type="button">다시 그리기</button></div>
+        <div class="msg" id="msg"></div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="row"><button class="btn on" id="lampBtn" type="button">💡 전등 켜짐</button><button class="btn on" id="eyeBtn" type="button">👁 눈 뜸</button><button class="btn" id="raysBtn" type="button">빛 퍼짐 보기</button></div>
+          <h3>학생의 눈에 보이는 모습</h3>
+          <canvas id="view" width="420" height="190" aria-label="학생의 눈에 보이는 모습"></canvas>
+        </div>
+        <div class="card">
+          <h3>맞힌 경로</h3>
+          <table><thead><tr><th>보려는 물체</th><th>빛의 경로</th></tr></thead><tbody id="tb"><tr><td colspan="2" class="lbl">아직 없어요.</td></tr></tbody></table>
+          <p class="note"><b>모델의 한계</b> · 빛은 화살표 몇 개로만 나타냈지만 실제로는 광원에서 사방으로 퍼져 나가고, 물체 표면에서도 여러 방향으로 반사된다. 벽이나 다른 물체에서 여러 번 반사되는 빛은 생각하지 않았다.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="poolUI" class="hide">
+    <div class="intro">물속에 있는 발에서 반사된 빛은 물에서 공기로 나올 때 <b>굴절</b>하여 눈에 들어온다. 우리 눈은 빛이 <b>곧게 온 것으로</b> 생각하므로 발이 <b>점선이 만나는 곳</b>에 있는 것처럼 보인다. 슬라이더로 발의 깊이와 눈의 위치를 바꿔 보세요.</div>
+    <div class="grid">
+      <div class="card">
+        <canvas id="pool" width="640" height="440" aria-label="물속 발과 눈의 옆모습"></canvas>
+        <div class="row"><span class="lbl" style="min-width:150px">발의 실제 깊이</span><input id="dep" type="range" min="20" max="60" step="1" value="40"><b id="depv" style="min-width:56px">40 cm</b></div>
+        <div class="row"><span class="lbl" style="min-width:150px">눈과 발 사이 가로 거리</span><input id="hor" type="range" min="0" max="100" step="1" value="60"><b id="horv" style="min-width:56px">60 cm</b></div>
+      </div>
+      <div class="card">
+        <div class="ro">
+          <div><div class="k">발의 실제 깊이</div><div class="v" id="pD">40<small>cm</small></div></div>
+          <div><div class="k">눈에 보이는 깊이</div><div class="v" id="pA">–<small>cm</small></div></div>
+        </div>
+        <p class="note">눈의 높이는 수면 위 50 cm로 고정하였다. 빨간 실선은 실제 빛의 경로, 점선은 눈이 생각하는 빛의 경로이다.</p>
+        <p class="note"><b>모델의 한계</b> · 물의 굴절률 1.33, 공기 1.00으로 계산하였다. 눈동자 크기만큼 떨어진 두 빛의 연장선이 만나는 곳을 '보이는 위치'로 정하였다. 수면은 잔잔하다고 보았다.</p>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+/* ================================================================
+   장면 1: 물체를 보는 과정
+     - 광원(전등)은 스스로 빛을 내므로 [전등 → 눈]으로 보인다.
+     - 광원이 아닌 물체(책, 컵)는 [전등 → 물체(반사) → 눈]으로 보인다.
+     - 전등이 꺼지면(빛 없음) 또는 눈을 감으면 아무것도 보이지 않는다.
+   장면 2: 물속 물체가 떠 보이는 현상
+     - 굴절 법칙 n물·sin(i) = n공기·sin(r), n물 = 1.33
+     - 눈(수면 위 50 cm)과 발 사이 경로의 수면 통과점을 이분법으로 구하고,
+       눈동자 양 끝(±0.3 cm)으로 가는 두 빛의 공기 쪽 직선을 거꾸로 늘여 만나는 점 = 보이는 위치
+     - 검산: 바로 위(가로 0 cm)에서 볼 때 보이는 깊이 ≈ 실제 깊이 / 1.33 (40 cm → 30.1 cm)
+   ================================================================ */
+const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
+function fit(cv, w, h) { const r = Math.min(2, window.devicePixelRatio || 1); cv.width = w * r; cv.height = h * r; const x = cv.getContext('2d'); x.setTransform(r, 0, 0, r, 0, 0); return x; }
+const rc = fit($('#room'), 640, 420), vc = fit($('#view'), 420, 190), pc = fit($('#pool'), 640, 440);
+const NODES = {
+  lamp: { name: '전등', x: 150, y: 168 },
+  book: { name: '책', x: 330, y: 300 },
+  cup: { name: '컵', x: 230, y: 282 },
+  eye: { name: '눈', x: 498, y: 196 },
+};
+let S;
+function newState() { return { scene: 'room', target: 'lamp', path: [], lampOn: true, eyeOpen: true, rays: false, solved: {}, okShown: false, dep: 40, hor: 60 }; }
+
+/* ---------- 장면 1 그리기 ---------- */
+function arrow(c, a, b, col, w, dash) {
+  c.save(); c.strokeStyle = col; c.fillStyle = col; c.lineWidth = w; if (dash) c.setLineDash(dash);
+  const ang = Math.atan2(b.y - a.y, b.x - a.x), ex = b.x - Math.cos(ang) * 16, ey = b.y - Math.sin(ang) * 16, sx = a.x + Math.cos(ang) * 14, sy = a.y + Math.sin(ang) * 14;
+  c.beginPath(); c.moveTo(sx, sy); c.lineTo(ex, ey); c.stroke(); c.setLineDash([]);
+  c.beginPath(); c.moveTo(ex + Math.cos(ang) * 4, ey + Math.sin(ang) * 4); c.lineTo(ex - Math.cos(ang - .45) * 13, ey - Math.sin(ang - .45) * 13); c.lineTo(ex - Math.cos(ang + .45) * 13, ey - Math.sin(ang + .45) * 13); c.fill();
+  c.restore();
+}
+function drawRoom() {
+  const c = rc, lit = S.lampOn;
+  c.clearRect(0, 0, 640, 420);
+  c.fillStyle = lit ? '#5d7468' : '#1b2320'; c.fillRect(0, 0, 640, 420);
+  if (lit) { const g = c.createRadialGradient(150, 175, 10, 200, 300, 330); g.addColorStop(0, 'rgba(255,246,200,.85)'); g.addColorStop(1, 'rgba(255,246,200,0)'); c.fillStyle = g; c.beginPath(); c.moveTo(150, 168); c.lineTo(60, 330); c.lineTo(470, 330); c.closePath(); c.fill(); }
+  // 책상
+  c.fillStyle = lit ? '#a9b8ad' : '#2a332f'; c.fillRect(0, 318, 640, 102);
+  c.fillStyle = lit ? '#8a9a90' : '#222a27'; c.fillRect(0, 318, 640, 8);
+  // 전등
+  c.strokeStyle = '#3d4a44'; c.lineWidth = 7; c.lineCap = 'round';
+  c.beginPath(); c.moveTo(85, 316); c.lineTo(85, 300); c.moveTo(85, 302); c.lineTo(70, 200); c.lineTo(125, 140); c.stroke();
+  c.fillStyle = '#3d4a44'; c.beginPath(); c.ellipse(85, 316, 34, 7, 0, 0, 7); c.fill();
+  c.save(); c.translate(140, 155); c.rotate(.75); c.fillStyle = '#4b5a53'; c.beginPath(); c.moveTo(-14, -26); c.lineTo(14, -26); c.lineTo(32, 20); c.lineTo(-32, 20); c.closePath(); c.fill(); c.restore();
+  c.fillStyle = lit ? '#fff7c2' : '#55605a'; c.beginPath(); c.arc(150, 168, 11, 0, 7); c.fill();
+  // 컵
+  c.fillStyle = lit ? '#e5eef5' : '#2c3438'; c.fillRect(214, 262, 34, 54); c.strokeStyle = lit ? '#9fb2c0' : '#333c40'; c.lineWidth = 4; c.beginPath(); c.arc(250, 286, 10, -1.3, 1.3); c.stroke();
+  // 책
+  c.fillStyle = lit ? '#fbfaf3' : '#30352f'; c.beginPath(); c.moveTo(270, 316); c.lineTo(392, 316); c.lineTo(380, 296); c.lineTo(282, 296); c.closePath(); c.fill();
+  c.strokeStyle = lit ? '#b8b29a' : '#3b4038'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(331, 296); c.lineTo(331, 316); c.stroke();
+  for (let k = 0; k < 4; k++) { c.beginPath(); c.moveTo(290 + k, 301 + k * 4); c.lineTo(325, 301 + k * 4); c.moveTo(337, 301 + k * 4); c.lineTo(372 - k, 301 + k * 4); c.stroke(); }
+  // 학생(옆모습, 왼쪽을 봄)
+  c.fillStyle = lit ? '#e6a9b8' : '#3a2f33'; c.beginPath(); c.moveTo(470, 318); c.quadraticCurveTo(470, 250, 540, 250); c.quadraticCurveTo(600, 252, 606, 318); c.fill();
+  c.fillStyle = lit ? '#f1c9a5' : '#3d342c'; c.beginPath(); c.ellipse(522, 200, 34, 42, 0, 0, 7); c.fill();
+  c.fillStyle = '#1d1a1a'; c.beginPath(); c.ellipse(532, 180, 38, 34, 0, Math.PI * 1.05, Math.PI * 2.1); c.fill(); c.fillRect(540, 170, 26, 60);
+  if (S.eyeOpen) { c.fillStyle = '#fff'; c.beginPath(); c.ellipse(500, 196, 7, 5, 0, 0, 7); c.fill(); c.fillStyle = '#222'; c.beginPath(); c.arc(497, 196, 3, 0, 7); c.fill(); }
+  else { c.strokeStyle = '#222'; c.lineWidth = 2; c.beginPath(); c.arc(500, 194, 6, .3, Math.PI - .3); c.stroke(); }
+  // 빛 퍼짐(사방으로)
+  if (S.rays && lit) {
+    c.save(); c.strokeStyle = 'rgba(255,230,120,.55)'; c.lineWidth = 1.5;
+    for (let k = 0; k < 18; k++) { const a = k / 18 * Math.PI * 2; c.beginPath(); c.moveTo(150 + Math.cos(a) * 14, 168 + Math.sin(a) * 14); c.lineTo(150 + Math.cos(a) * 70, 168 + Math.sin(a) * 70); c.stroke(); }
+    [NODES.book, NODES.cup].forEach(n => { for (let k = 0; k < 7; k++) { const a = Math.PI + k / 6 * Math.PI; c.strokeStyle = 'rgba(255,255,255,.55)'; c.beginPath(); c.moveTo(n.x, n.y - 6); c.lineTo(n.x + Math.cos(a) * 40, n.y - 6 + Math.sin(a) * 40); c.stroke(); } });
+    c.restore();
+  }
+  // 노드 표시
+  c.font = 'bold 13px sans-serif'; c.textAlign = 'center';
+  Object.keys(NODES).forEach(k => {
+    const n = NODES[k], inPath = S.path.includes(k);
+    c.strokeStyle = inPath ? '#ffd23f' : 'rgba(255,255,255,.55)'; c.lineWidth = inPath ? 3 : 1.5; c.setLineDash(inPath ? [] : [4, 4]);
+    c.beginPath(); c.arc(n.x, n.y, 22, 0, 7); c.stroke(); c.setLineDash([]);
+    c.fillStyle = '#fff'; c.fillText(n.name, n.x, n.y + (k === 'eye' ? -28 : 38));
+  });
+  // 학생이 그린 경로
+  for (let k = 1; k < S.path.length; k++) arrow(c, NODES[S.path[k - 1]], NODES[S.path[k]], '#ffd23f', 4);
+  if (!lit) { c.fillStyle = '#fff'; c.font = 'bold 15px sans-serif'; c.fillText('깜깜해요! 빛이 없어요.', 320, 60); }
+}
+function visibleSet() {
+  if (!S.eyeOpen || !S.lampOn) return {};
+  return { lamp: true, book: true, cup: true };
+}
+function drawView() {
+  const c = vc, v = visibleSet();
+  c.clearRect(0, 0, 420, 190); c.fillStyle = '#000'; c.fillRect(0, 0, 420, 190);
+  if (!S.eyeOpen) { c.fillStyle = '#ccc'; c.font = 'bold 15px sans-serif'; c.textAlign = 'center'; c.fillText('눈을 감았어요 — 빛이 눈에 들어오지 못해요', 210, 98); return; }
+  if (!S.lampOn) { c.fillStyle = '#666'; c.font = 'bold 15px sans-serif'; c.textAlign = 'center'; c.fillText('아무것도 보이지 않아요', 210, 98); return; }
+  c.fillStyle = '#6f877b'; c.fillRect(0, 0, 420, 190); c.fillStyle = '#a9b8ad'; c.fillRect(0, 140, 420, 50);
+  // 앞에서 본 모습: 전등, 컵, 책
+  if (v.lamp) { c.fillStyle = '#3d4a44'; c.fillRect(56, 60, 6, 80); c.beginPath(); c.moveTo(30, 60); c.lineTo(88, 60); c.lineTo(72, 34); c.lineTo(46, 34); c.fill(); c.fillStyle = '#fff7c2'; c.beginPath(); c.arc(59, 64, 9, 0, 7); c.fill(); }
+  if (v.cup) { c.fillStyle = '#e5eef5'; c.fillRect(150, 100, 34, 44); c.strokeStyle = '#9fb2c0'; c.lineWidth = 4; c.beginPath(); c.arc(186, 120, 9, -1.3, 1.3); c.stroke(); }
+  if (v.book) { c.fillStyle = '#fbfaf3'; c.fillRect(230, 128, 130, 18); c.strokeStyle = '#b8b29a'; c.beginPath(); c.moveTo(295, 128); c.lineTo(295, 146); c.stroke(); }
+  const t = S.target; c.strokeStyle = '#ffd23f'; c.lineWidth = 3;
+  const box = { lamp: [22, 26, 76, 120], cup: [142, 92, 56, 58], book: [222, 120, 146, 32] }[t]; c.strokeRect(...box);
+  c.fillStyle = '#222'; c.font = 'bold 13px sans-serif'; c.textAlign = 'left'; c.fillText('보려는 물체: ' + NODES[t].name, 10, 18);
+}
+function seqText() { return '빛의 경로: ' + (S.path.length ? S.path.map(k => NODES[k].name).join(' → ') : '(그림에서 물체를 눌러 보세요)'); }
+function say(t, cls) { const m = $('#msg'); m.textContent = t || ''; m.className = 'msg' + (cls ? ' ' + cls : ''); }
+function check() {
+  const p = S.path, t = S.target, nm = NODES[t].name;
+  if (!S.lampOn) return say('전등이 꺼져 있으면 빛이 없어서 어떤 물체도 볼 수 없어요. 전등을 켜고 다시 해 보세요.', 'bad');
+  if (!S.eyeOpen) return say('눈을 감으면 빛이 눈에 들어오지 못해 볼 수 없어요. 눈을 뜨고 다시 해 보세요.', 'bad');
+  if (p.length < 2) return say('물체를 두 개 이상 눌러 경로를 그려 보세요.', 'bad');
+  if (p[0] === 'eye') return say('빛은 눈에서 나가지 않아요. 빛이 눈으로 들어와야 볼 수 있어요.', 'bad');
+  if (p[p.length - 1] !== 'eye') return say('빛이 마지막에 어디로 들어가야 물체를 볼 수 있을까요?', 'bad');
+  if (!p.includes(t)) return say(nm + '을(를) 보려면 ' + nm + '에서 나온 빛이 눈에 들어와야 해요.', 'bad');
+  const want = t === 'lamp' ? ['lamp', 'eye'] : ['lamp', t, 'eye'];
+  if (p.join() === want.join()) {
+    S.solved[t] = want.map(k => NODES[k].name).join(' → '); renderTable();
+    return say(t === 'lamp' ? '정답! 전등은 광원이라 스스로 낸 빛이 바로 눈에 들어와요.' : '정답! 전등(광원)에서 나온 빛이 ' + nm + '에서 반사되어 눈에 들어와요.', 'ok');
+  }
+  if (t !== 'lamp' && p[0] === t) return say(nm + '은(는) 스스로 빛을 내지 않아요. ' + nm + '에 닿는 빛은 어디에서 왔을까요?', 'bad');
+  if (t === 'lamp') return say('전등은 스스로 빛을 내요. 다른 물체를 거치지 않고 곧장 눈에 들어오는 경로를 그려 보세요.', 'bad');
+  say('보려는 물체만 거치는 가장 간단한 경로를 생각해 보세요.', 'bad');
+}
+function renderTable() {
+  const ks = Object.keys(S.solved);
+  $('#tb').innerHTML = ks.length ? ks.map(k => `<tr><td>${NODES[k].name}</td><td>${S.solved[k]}</td></tr>`).join('') : '<tr><td colspan="2" class="lbl">아직 없어요.</td></tr>';
+}
+
+/* ---------- 장면 2 ---------- */
+const NW = 1.33, EYE_H = 50, SC = 3.0, SX = 150, SY = 205;  // 1 cm = 3 px, 발 x = SX, 수면 y = SY
+function surfacePoint(d, ex, ey) {     // 발(0,-d) → 수면(x,0) → 눈(ex,ey). 굴절 법칙을 만족하는 x
+  if (Math.abs(ex) < 1e-9) return 0;
+  const f = x => NW * x / Math.hypot(x, d) - (ex - x) / Math.hypot(ex - x, ey);
+  let lo = Math.min(0, ex), hi = Math.max(0, ex);
+  for (let k = 0; k < 60; k++) { const m = (lo + hi) / 2; if ((f(m) > 0) === (f(hi) > 0)) hi = m; else lo = m; }
+  return (lo + hi) / 2;
+}
+function apparent(d, h, half) {   // 눈동자 양 끝 h±half 로 가는 두 빛의 연장선 교점
+  const P = [], dir = [];
+  [h - half, h + half].forEach(ex => { const x = surfacePoint(d, ex, EYE_H); P.push([x, 0]); dir.push([ex - x, EYE_H]); });
+  const [x1, y1] = P[0], [dx1, dy1] = dir[0], [x2, y2] = P[1], [dx2, dy2] = dir[1];
+  const den = dx1 * dy2 - dy1 * dx2; if (Math.abs(den) < 1e-12) return { x: 0, y: -d / NW };
+  const t = ((x2 - x1) * dy2 - (y2 - y1) * dx2) / den;
+  return { x: x1 + dx1 * t, y: y1 + dy1 * t };
+}
+const toPx = (x, y) => [SX + x * SC, SY - y * SC];
+function foot(c, x, y, alpha, leg) {
+  c.save(); c.globalAlpha = alpha; c.translate(x, y);
+  c.fillStyle = '#f0c8a8'; c.strokeStyle = '#b98b6b'; c.lineWidth = 1.5;
+  c.beginPath(); c.moveTo(-6, -leg); c.lineTo(-6, -14); c.quadraticCurveTo(-8, 4, 10, 6); c.lineTo(46, 6); c.quadraticCurveTo(58, 2, 50, -8); c.lineTo(16, -18); c.lineTo(16, -leg); c.closePath(); c.fill(); c.stroke();
+  c.fillStyle = '#e74c3c'; c.beginPath(); c.arc(0, 0, 4, 0, 7); c.fill();
+  c.restore();
+}
+function drawPool() {
+  const c = pc, d = S.dep, h = S.hor;
+  c.clearRect(0, 0, 640, 440); c.fillStyle = '#eaf6fb'; c.fillRect(0, 0, 640, 440);
+  c.fillStyle = 'rgba(80,180,225,.45)'; c.fillRect(0, SY, 640, 290);
+  c.strokeStyle = '#3a9bc8'; c.lineWidth = 2; c.beginPath(); c.moveTo(0, SY); c.lineTo(640, SY); c.stroke();
+  c.fillStyle = '#2b6f92'; c.font = '13px sans-serif'; c.fillText('공기', 590, SY - 10); c.fillText('물', 600, SY + 22);
+  // 바닥
+  c.fillStyle = '#c9dfe8'; c.fillRect(0, SY + 60 * SC + 8, 640, 60);
+  const half = 0.3, app = apparent(d, h, half);
+  const [fx, fy] = toPx(0, -d), [ax, ay] = toPx(app.x, app.y);
+  foot(c, fx, fy, 1, fy - SY + 60); foot(c, ax, ay, .45, 40);
+  // 그림용 두 빛(눈동자보다 넓게 벌려 보기 쉽게)
+  [h - 3, h + 3].forEach(ex => {
+    const x = surfacePoint(d, ex, EYE_H), [sx, sy] = toPx(x, 0), [exp, eyp] = toPx(ex, EYE_H);
+    c.strokeStyle = '#e8303f'; c.lineWidth = 2.2; c.beginPath(); c.moveTo(fx, fy); c.lineTo(sx, sy); c.lineTo(exp, eyp); c.stroke();
+    const mx = (sx + exp) / 2, my = (sy + eyp) / 2, a = Math.atan2(eyp - sy, exp - sx);
+    c.fillStyle = '#e8303f'; c.beginPath(); c.moveTo(mx + Math.cos(a) * 8, my + Math.sin(a) * 8); c.lineTo(mx + Math.cos(a + 2.5) * 8, my + Math.sin(a + 2.5) * 8); c.lineTo(mx + Math.cos(a - 2.5) * 8, my + Math.sin(a - 2.5) * 8); c.fill();
+    // 눈이 생각하는 경로(연장선)
+    const t = (ay - sy) / (sy - eyp); c.save(); c.setLineDash([5, 5]); c.strokeStyle = '#e8303f'; c.lineWidth = 1.4;
+    c.beginPath(); c.moveTo(sx, sy); c.lineTo(sx + (sx - exp) * t, ay); c.stroke(); c.restore();
+  });
+  // 눈
+  const [ex, ey] = toPx(h, EYE_H);
+  c.fillStyle = '#fff'; c.strokeStyle = '#333'; c.lineWidth = 1.5; c.beginPath(); c.ellipse(ex, ey, 14, 8, 0, 0, 7); c.fill(); c.stroke();
+  c.fillStyle = '#333'; c.beginPath(); c.arc(ex, ey + 2, 4, 0, 7); c.fill();
+  c.fillStyle = '#333'; c.font = 'bold 13px sans-serif'; c.fillText('눈', ex + 18, ey - 6);
+  c.fillStyle = '#b02a37'; c.fillText('실제 발의 위치', fx + 58, fy + 4);
+  c.fillStyle = '#8a5a2b'; c.fillText('눈에 보이는 발의 위치', ax + 58, ay - 10);
+  // 깊이 자
+  c.strokeStyle = '#555'; c.lineWidth = 1; c.beginPath(); c.moveTo(40, SY); c.lineTo(40, fy); c.stroke();
+  for (let k = 0; k <= d; k += 10) { const yy = SY + k * SC; c.beginPath(); c.moveTo(34, yy); c.lineTo(46, yy); c.stroke(); c.fillStyle = '#555'; c.font = '11px sans-serif'; c.fillText(k + '', 8, yy + 4); }
+  $('#pD').innerHTML = d + '<small>cm</small>'; $('#pA').innerHTML = (-app.y).toFixed(1) + '<small>cm</small>';
+}
+
+/* ---------- 공통 ---------- */
+function refresh() {
+  $('#roomUI').classList.toggle('hide', S.scene !== 'room'); $('#poolUI').classList.toggle('hide', S.scene !== 'pool');
+  $$('#scenes .btn').forEach(b => b.classList.toggle('on', b.dataset.s === S.scene));
+  $$('[data-t]').forEach(b => b.classList.toggle('on', b.dataset.t === S.target));
+  $('#lampBtn').classList.toggle('on', S.lampOn); $('#lampBtn').textContent = S.lampOn ? '💡 전등 켜짐' : '💡 전등 꺼짐';
+  $('#eyeBtn').classList.toggle('on', S.eyeOpen); $('#eyeBtn').textContent = S.eyeOpen ? '👁 눈 뜸' : '👁 눈 감음';
+  $('#raysBtn').classList.toggle('on', S.rays);
+  $('#seq').textContent = seqText();
+  $('#dep').value = S.dep; $('#depv').textContent = S.dep + ' cm'; $('#hor').value = S.hor; $('#horv').textContent = S.hor + ' cm';
+  if (S.scene === 'room') { drawRoom(); drawView(); } else drawPool();
+}
+$$('#scenes .btn').forEach(b => b.addEventListener('click', () => { S.scene = b.dataset.s; refresh(); }));
+$$('[data-t]').forEach(b => b.addEventListener('click', () => { S.target = b.dataset.t; S.path = []; say(''); refresh(); }));
+$('#lampBtn').addEventListener('click', () => { S.lampOn = !S.lampOn; say(S.lampOn ? '' : '전등을 껐어요. 무엇이 보이나요?'); refresh(); });
+$('#eyeBtn').addEventListener('click', () => { S.eyeOpen = !S.eyeOpen; say(S.eyeOpen ? '' : '눈을 감았어요. 무엇이 보이나요?'); refresh(); });
+$('#raysBtn').addEventListener('click', () => { S.rays = !S.rays; refresh(); });
+$('#checkBtn').addEventListener('click', check);
+$('#undoBtn').addEventListener('click', () => { S.path.pop(); say(''); refresh(); });
+$('#clearBtn').addEventListener('click', () => { S.path = []; say(''); refresh(); });
+$('#room').addEventListener('pointerdown', e => {
+  const b = e.currentTarget.getBoundingClientRect(), x = (e.clientX - b.left) * 640 / b.width, y = (e.clientY - b.top) * 420 / b.height;
+  let best = null, bd = 40; Object.keys(NODES).forEach(k => { const dd = Math.hypot(NODES[k].x - x, NODES[k].y - y); if (dd < bd) { bd = dd; best = k; } });
+  if (!best) return; if (S.path[S.path.length - 1] === best || S.path.length >= 5) return;
+  S.path.push(best); say(''); refresh();
+});
+$('#dep').addEventListener('input', e => { S.dep = +e.target.value; refresh(); });
+$('#hor').addEventListener('input', e => { S.hor = +e.target.value; refresh(); });
+$('#resetBtn').addEventListener('click', () => { S = newState(); say(''); renderTable(); refresh(); });
+S = newState(); renderTable(); refresh();
+</script>
+</body>
+</html>

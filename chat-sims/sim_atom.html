@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<!-- 단원ID: atom · 중2 Ⅳ. 물질의 구성 > 1. 원소와 주기율표 > 02 원자(132~134쪽) · 활동 1개: 여러 가지 원자의 원자 모형 나타내기 -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>원자 모형 만들기 — 원자</title>
+<style>
+:root{--bg:#f5f3fa;--card:#fff;--ink:#221f2e;--muted:#625e74;--line:#ddd9ea;--accent:#7a5cc8;--accent-d:#5a3fa3;--accent-l:#efeafc;--ok:#1f9a62;--p:#e04a4a;--n:#e8a83a;--e:#2f74d0}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+header{background:linear-gradient(120deg,#7a5cc8,#5a8ee0);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:20px;margin:0;font-weight:900}
+header .sub{font-size:13px;opacity:.95}
+header .sp{flex:1}
+header button{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+main{padding:10px 12px 24px;max-width:1300px;margin:0 auto}
+.intro{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:10px;padding:8px 14px;margin-bottom:10px;font-size:14px;line-height:1.55}
+.intro b{color:var(--accent-d)}
+.grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(300px,1fr);gap:10px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}
+.card h3{margin:0 4px 8px;font-size:15px;color:var(--accent-d)}
+canvas{width:100%;display:block;border-radius:8px}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0}
+.btn{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;padding:7px 11px;cursor:pointer;min-height:36px}
+.btn:hover{border-color:var(--accent);color:var(--accent-d)}
+.btn.on{background:var(--accent-l);border-color:var(--accent);color:var(--accent-d)}
+.cnt{display:grid;grid-template-columns:110px 44px 56px 44px 1fr;gap:6px;align-items:center;margin:6px 0;font-size:14px}
+.cnt .pm{font-size:20px;font-weight:900;padding:2px 0;min-height:40px}
+.cnt b{text-align:center;font-size:22px}
+.dot{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:-2px;margin-right:4px}
+.ro{background:#1e1a2c;color:#ece6ff;border-radius:10px;padding:10px 12px;font-size:14px;line-height:1.7}
+.ro .big{font-size:24px;font-weight:900}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{border:1px solid var(--line);padding:6px;text-align:center}
+th{background:var(--accent-l);color:var(--accent-d)}
+td.ok{background:#e6f6ee;color:#14653f;font-weight:800}
+select{font:inherit;font-size:14px;padding:6px 8px;border-radius:8px;border:1px solid var(--line)}
+.note{font-size:12.5px;color:var(--muted);line-height:1.55;margin:6px 4px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>원자 모형 만들기</h1><span class="sub">원자핵(양성자·중성자)과 전자 · 원자는 전기적으로 중성</span>
+  <span class="sp"></span><button id="resetBtn" type="button">↺ 초기화</button>
+</header>
+<main>
+  <div class="intro"><b>＋/－</b> 단추로 양성자, 중성자, 전자의 개수를 바꿔 원자 모형을 만들어 보세요. 양성자 개수에 따라 어떤 원자가 되는지, 전하의 합이 어떻게 되는지 오른쪽에서 확인할 수 있다. 아래 표의 원자를 모두 만들어 보세요.</div>
+  <div class="grid">
+    <div class="card">
+      <canvas id="app" width="620" height="460" aria-label="원자 모형"></canvas>
+      <div class="row"><button class="btn" id="zoomBtn" type="button">원자핵 확대해 보기</button><button class="btn" id="scaleBtn" type="button">실제 크기 비율 보기</button></div>
+      <p class="note" id="scaleNote"></p>
+    </div>
+    <div>
+      <div class="card">
+        <div class="cnt"><span><span class="dot" style="background:var(--p)"></span>양성자(＋)</span><button class="btn pm" data-k="p" data-d="-1" type="button">－</button><b id="cp">0</b><button class="btn pm" data-k="p" data-d="1" type="button">＋</button><span></span></div>
+        <div class="cnt"><span><span class="dot" style="background:var(--n)"></span>중성자</span><button class="btn pm" data-k="n" data-d="-1" type="button">－</button><b id="cn">0</b><button class="btn pm" data-k="n" data-d="1" type="button">＋</button><span></span></div>
+        <div class="cnt"><span><span class="dot" style="background:var(--e)"></span>전자(－)</span><button class="btn pm" data-k="e" data-d="-1" type="button">－</button><b id="ce">0</b><button class="btn pm" data-k="e" data-d="1" type="button">＋</button><span></span></div>
+        <div class="row"><span class="note" style="margin:0">빠르게 시작:</span><select id="quick"><option value="">원자 고르기…</option></select><button class="btn" id="clearBtn" type="button">모두 비우기</button></div>
+        <div class="ro" id="ro"></div>
+      </div>
+      <div class="card">
+        <h3>여러 가지 원자의 원자 모형</h3>
+        <table><thead><tr><th>원자</th><th>수소(H)</th><th>헬륨(He)</th><th>리튬(Li)</th><th>탄소(C)</th><th>산소(O)</th><th>나트륨(Na)</th></tr></thead>
+          <tbody><tr><th>양성자의 개수</th><td>1</td><td>2</td><td>3</td><td>6</td><td>8</td><td>11</td></tr>
+          <tr id="eRow"><th>전자의 개수</th><td></td><td></td><td></td><td></td><td></td><td></td></tr></tbody></table>
+        <p class="note">원자를 바르게(전기적으로 중성이 되게) 만들면 전자의 개수 칸이 채워진다.</p>
+        <p class="note"><b>모델의 한계</b> · 원자핵과 전자의 크기를 실제보다 아주 크게 그렸다(실제 원자는 원자핵보다 약 10만 배 크다). 전자는 원자핵 주위를 끊임없이 움직이는 모습으로만 나타냈고, 실제 전자가 움직이는 경로를 그린 것이 아니다. 중성자 수는 원소마다 가장 흔한 값으로 시작한다.</p>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+/* ================================================================
+   원자 모형
+   - 원자 = 원자핵((+)전하: 양성자, 전하 없음: 중성자) + 전자((−)전하)
+   - 양성자 1개의 전하량 = 전자 1개의 전하량(부호만 반대)  → 전하의 합 = 양성자 수 − 전자 수
+   - 원자의 종류는 양성자 수(= 원자 번호)로 결정된다. 중성자 수가 달라도 같은 원소이다.
+   - 원자는 양성자 수 = 전자 수 이므로 전기적으로 중성 (같지 않으면 원자가 아니라 이온 → Ⅳ-2-02에서 배움)
+   - 중성자 시작값: 가장 흔한 동위 원소(H 0, He 2, Li 4, Be 5, B 6, C 6, N 7, O 8, F 10, Ne 10, Na 12, Mg 12, Al 14, Si 14, P 16, S 16, Cl 18, Ar 22, K 20, Ca 20)
+   ================================================================ */
+const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
+function fit(cv, w, h) { const r = Math.min(2, window.devicePixelRatio || 1); cv.width = w * r; cv.height = h * r; const x = cv.getContext('2d'); x.setTransform(r, 0, 0, r, 0, 0); return x; }
+const W = 620, H = 460, CX = 310, CY = 230, RC = 200, c = fit($('#app'), W, H);
+const EL = [null,
+  ['H', '수소', 0], ['He', '헬륨', 2], ['Li', '리튬', 4], ['Be', '베릴륨', 5], ['B', '붕소', 6], ['C', '탄소', 6], ['N', '질소', 7], ['O', '산소', 8], ['F', '플루오린', 10], ['Ne', '네온', 10],
+  ['Na', '나트륨', 12], ['Mg', '마그네슘', 12], ['Al', '알루미늄', 14], ['Si', '규소', 14], ['P', '인', 16], ['S', '황', 16], ['Cl', '염소', 18], ['Ar', '아르곤', 22], ['K', '칼륨', 20], ['Ca', '칼슘', 20]];
+const MAXP = 20, MAXN = 24, MAXE = 22;
+const TARGETS = [1, 2, 3, 6, 8, 11];
+let S;
+function newState() { return { p: 0, n: 0, e: 0, zoom: false, scale: false, done: {}, t: 0 }; }
+// 전자마다 고유한 궤도(타원, 기울기, 속도) — 개수가 바뀌어도 앞의 전자는 그대로
+const ORB = Array.from({ length: MAXE }, (_, i) => { const r = (k) => (Math.sin(i * 12.9898 + k * 78.233) * 43758.5453) % 1; const a = Math.abs; return { rx: 70 + a(r(1)) * 110, ry: 40 + a(r(2)) * 120, rot: a(r(3)) * Math.PI, sp: (0.6 + a(r(4)) * 0.9) * (i % 2 ? 1 : -1), ph: a(r(5)) * 6.28 }; });
+
+/* 원자핵: 양성자·중성자를 촘촘히 쌓는 위치(황금각 나선) */
+function nucleusPos(count, r) { const out = []; for (let i = 0; i < count; i++) { const rr = r * Math.sqrt(i + 0.5) * 0.95, a = i * 2.39996; out.push([Math.cos(a) * rr, Math.sin(a) * rr]); } return out; }
+function ball(x, y, r, col, sign) {
+  const g = c.createRadialGradient(x - r * .35, y - r * .35, r * .2, x, y, r); g.addColorStop(0, '#fff'); g.addColorStop(.25, col); g.addColorStop(1, col);
+  c.fillStyle = g; c.beginPath(); c.arc(x, y, r, 0, 7); c.fill(); c.strokeStyle = 'rgba(0,0,0,.25)'; c.lineWidth = 1; c.stroke();
+  if (sign) { c.fillStyle = '#fff'; c.font = `bold ${Math.round(r * 1.3)}px sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(sign, x, y + 1); }
+}
+function draw() {
+  c.clearRect(0, 0, W, H); c.fillStyle = '#f7f6fc'; c.fillRect(0, 0, W, H);
+  const cloud = c.createRadialGradient(CX, CY, 20, CX, CY, RC); cloud.addColorStop(0, 'rgba(170,220,250,.95)'); cloud.addColorStop(1, 'rgba(120,190,240,.55)');
+  c.fillStyle = cloud; c.beginPath(); c.arc(CX, CY, RC, 0, 7); c.fill();
+  if (S.scale) {   // 실제 비율: 원자 지름 400 px이면 원자핵 지름 ≈ 0.004 px (보이지 않음)
+    c.fillStyle = '#e04a4a'; c.beginPath(); c.arc(CX, CY, 1, 0, 7); c.fill();
+    c.fillStyle = '#333'; c.font = 'bold 14px sans-serif'; c.textAlign = 'center'; c.fillText('실제 비율이면 원자핵은 이 점보다도 훨씬 작다', CX, CY + 30); c.textAlign = 'left';
+    return;
+  }
+  const total = S.p + S.n, br = S.zoom ? 16 : 9, pos = nucleusPos(total, br * 1.05);
+  // 양성자와 중성자를 번갈아 배치
+  const kinds = []; let a = S.p, b = S.n; while (a || b) { if (a && (a >= b || !b)) { kinds.push('p'); a--; } if (b) { kinds.push('n'); b--; } }
+  pos.forEach(([x, y], i) => ball(CX + x, CY + y, br, kinds[i] === 'p' ? '#e04a4a' : '#e8a83a', kinds[i] === 'p' ? '+' : ''));
+  if (!S.zoom) for (let i = 0; i < S.e; i++) {
+    const o = ORB[i], th = o.ph + S.t * o.sp, ex = Math.cos(th) * o.rx, ey = Math.sin(th) * o.ry;
+    ball(CX + ex * Math.cos(o.rot) - ey * Math.sin(o.rot), CY + ex * Math.sin(o.rot) + ey * Math.cos(o.rot), 9, '#2f74d0', '−');
+  }
+  c.fillStyle = '#4b4566'; c.font = '13px sans-serif'; c.textAlign = 'left';
+  if (total) c.fillText(S.zoom ? '원자핵을 확대한 모습 (빨강: 양성자, 노랑: 중성자)' : '원자핵', CX + Math.max(18, Math.sqrt(total) * br) + 6, CY - 6);
+}
+function info() {
+  const { p, n, e } = S, el = EL[p], q = p - e;
+  let html = '';
+  if (!p) html = '<span class="big">원자핵이 없어요</span><br>양성자를 더해 보세요. 원자의 종류는 <b>양성자의 개수</b>로 정해진다.';
+  else {
+    html = `<span class="big">${el[1]}(${el[0]})</span> &nbsp;원자 번호 ${p}<br>원자핵의 (＋)전하: <b>+${p}</b> · 전자의 (－)전하: <b>−${e}</b> · 전하의 합: <b>${q > 0 ? '+' : ''}${q}</b><br>`;
+    html += q === 0 ? '✅ 양성자 수 = 전자 수 → <b>전기적으로 중성인 원자</b>' : q > 0 ? `⚠️ 전자가 ${q}개 모자라 (＋)전하를 띤다 — 원자가 아니라 이온(뒤에서 배움)` : `⚠️ 전자가 ${-q}개 많아 (－)전하를 띤다 — 원자가 아니라 이온(뒤에서 배움)`;
+    if (n !== el[2]) html += `<br><span style="color:#cbbcf2;font-size:13px">중성자 ${n}개: 중성자 수가 달라도 양성자가 ${p}개이면 여전히 ${el[1]}이다.</span>`;
+  }
+  $('#ro').innerHTML = html;
+  if (p && q === 0 && TARGETS.includes(p)) S.done[p] = true;
+  $$('#eRow td').forEach((td, i) => { const z = TARGETS[i]; td.textContent = S.done[z] ? z : ''; td.classList.toggle('ok', !!S.done[z]); });
+}
+function refresh() { $('#cp').textContent = S.p; $('#cn').textContent = S.n; $('#ce').textContent = S.e; $('#zoomBtn').classList.toggle('on', S.zoom); $('#scaleBtn').classList.toggle('on', S.scale);
+  $('#scaleNote').textContent = S.scale ? '수소 원자의 크기는 원자핵보다 약 10만 배 크다. 원자를 축구장만큼 키우면 원자핵은 개미 한 마리 정도이다.' : ''; info(); draw(); }
+$$('.pm').forEach(b => b.addEventListener('click', () => { const k = b.dataset.k, max = { p: MAXP, n: MAXN, e: MAXE }[k]; S[k] = Math.max(0, Math.min(max, S[k] + +b.dataset.d)); refresh(); }));
+EL.forEach((el, z) => { if (el) { const o = document.createElement('option'); o.value = z; o.textContent = `${z} ${el[1]}(${el[0]}) — 원자핵만`; $('#quick').appendChild(o); } });
+$('#quick').addEventListener('change', e => { const z = +e.target.value; if (!z) return; S.p = z; S.n = EL[z][2]; S.e = 0; e.target.value = ''; refresh(); });
+$('#clearBtn').addEventListener('click', () => { S.p = S.n = S.e = 0; refresh(); });
+$('#zoomBtn').addEventListener('click', () => { S.zoom = !S.zoom; S.scale = false; refresh(); });
+$('#scaleBtn').addEventListener('click', () => { S.scale = !S.scale; S.zoom = false; refresh(); });
+$('#resetBtn').addEventListener('click', () => { S = newState(); refresh(); });
+let last = performance.now();
+function loop(ts) { const dt = Math.min(.1, (ts - last) / 1000); last = ts; if (S.e && !S.zoom && !S.scale) { S.t += dt; draw(); } requestAnimationFrame(loop); }
+S = newState(); refresh(); requestAnimationFrame(loop);
+</script>
+</body>
+</html>

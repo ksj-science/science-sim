@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<!-- 단원ID: earth_layers · Ⅱ. 지권의 변화 > 1. 지권의 구조 > 02 지권의 층상 구조 · 활동 1개: 지구 내부 탐사 -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>지구 내부 탐사 — 지권의 층상 구조</title>
+<style>
+:root{--bg:#f5f3f1;--card:#fff;--ink:#1f2a30;--muted:#5f6f76;--line:#e2dcd6;--accent:#e0603a;--accent-d:#b44526;--accent-l:#fdebe4}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+header{background:linear-gradient(120deg,#e0603a,#e99a3b);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:20px;margin:0;font-weight:900}
+header .sub{font-size:13px;opacity:.92}
+header .sp{flex:1}
+header button{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+main{padding:10px 12px 24px;max-width:1300px;margin:0 auto}
+.intro{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:10px;padding:8px 14px;margin-bottom:10px;font-size:14px;line-height:1.55}
+.intro b{color:var(--accent-d)}
+.grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(300px,1fr);gap:10px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}
+.card h3{margin:0 4px 8px;font-size:15px;color:var(--accent-d)}
+canvas{width:100%;display:block;border-radius:8px;touch-action:none}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0}
+.btn{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;padding:8px 12px;cursor:pointer;min-height:38px}
+.btn.on{background:var(--accent-l);border-color:var(--accent);color:var(--accent-d)}
+.lbl{font-size:13px;color:var(--muted)}
+input[type=range]{flex:1;min-width:140px;accent-color:var(--accent)}
+.ro{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:8px}
+.ro div{background:#2a1f1b;color:#ffd2b8;border-radius:9px;padding:6px 10px}
+.ro .k{font-size:12px;color:#c9b3a8}
+.ro .v{font-size:22px;font-weight:900}
+.ro .v small{font-size:13px;font-weight:500;margin-left:2px}
+dl.info{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;margin:0;font-size:14px}
+dl.info dt{color:var(--muted)}
+dl.info dd{margin:0;font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{border:1px solid var(--line);padding:5px 6px;text-align:center}
+th{background:var(--accent-l);color:var(--accent-d)}
+tr.cur td{background:#fff6e0;font-weight:700}
+.note{font-size:12.5px;color:var(--muted);line-height:1.55;margin:6px 4px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>지구 내부 탐사</h1><span class="sub">지권의 층상 구조 · 지각, 맨틀, 외핵, 내핵</span>
+  <span class="sp"></span><button id="resetBtn" type="button">↺ 초기화</button>
+</header>
+<main>
+  <div class="intro">탐사 장치를 <b>지표에서 지구 중심까지</b> 내려 보내며(슬라이더 또는 그림을 끌기) 깊이에 따라 층의 이름, 상태, 구성 물질이 어떻게 바뀌는지 관찰한다. <b>대륙/해양</b>을 바꾸어 지각의 두께도 비교한다.</div>
+  <div class="grid">
+    <div class="card">
+      <canvas id="cv" width="640" height="460" aria-label="지구 단면과 탐사 장치"></canvas>
+      <div class="row"><span class="lbl">탐사 깊이</span><input id="dep" type="range" min="0" max="6400" step="5" value="0"><b id="depv" style="min-width:86px">0 km</b></div>
+      <div class="row"><span class="lbl">탐사 위치</span>
+        <button class="btn loc on" data-l="land" type="button">대륙에서 출발</button><button class="btn loc" data-l="sea" type="button">바다에서 출발</button>
+        <span class="lbl" style="margin-left:8px">빠른 이동</span>
+        <button class="btn jmp" data-d="20" type="button">20 km</button><button class="btn jmp" data-d="2900" type="button">2900 km</button><button class="btn jmp" data-d="5100" type="button">5100 km</button><button class="btn jmp" data-d="6400" type="button">중심</button></div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="ro">
+          <div><div class="k">지표로부터의 깊이</div><div class="v" id="vD">0<small>km</small></div></div>
+          <div><div class="k">지금 있는 층</div><div class="v" id="vL">지각</div></div>
+        </div>
+        <dl class="info">
+          <dt>상태</dt><dd id="iS">–</dd>
+          <dt>이 층의 깊이</dt><dd id="iR">–</dd>
+          <dt>구성 물질</dt><dd id="iM">–</dd>
+          <dt>밀도(대략)</dt><dd id="iDen">–</dd>
+        </dl>
+      </div>
+      <div class="card">
+        <h3>층별 부피 비율 (지구 전체 = 100 %)</h3>
+        <table><thead><tr><th>층</th><th>깊이 범위(km)</th><th>상태</th><th>부피 비율(%)</th></tr></thead><tbody id="tb"></tbody></table>
+        <p class="note"><b>모델의 한계</b> · 지구를 반지름 6400 km인 완전한 공으로 보고, 각 층의 경계를 교과서 값(지각 35 km 또는 5 km, 2900 km, 5100 km)으로 나누었다. 실제 경계는 지역에 따라 조금씩 다르고, 밀도는 깊이에 따라 점점 커지므로 범위로 나타냈다. 지구 내부는 직접 가 볼 수 없어 지진파를 분석하여 알아낸 것이다.</p>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+/* ================================================================
+   지권의 층상 구조 모형
+   - 지구 반지름 R = 6400 km, 경계 깊이: 지각 바닥(대륙 35 km / 해양 5 km), 맨틀–외핵 2900 km, 외핵–내핵 5100 km
+   - 층의 부피 = 4/3·π·(r바깥³ − r안³),  비율 = 층의 부피 ÷ 지구 부피 × 100
+     검산(대륙 35 km): 지각 1.6 %, 맨틀 82.0 %, 외핵 15.5 %, 내핵 0.8 %
+   - 밀도(대략, PREM 모형 범위): 지각 2.7~3.0, 맨틀 3.3~5.6, 외핵 9.9~12.2, 내핵 12.8~13.1 g/cm³
+   ================================================================ */
+const R = 6400;
+const $ = s => document.querySelector(s);
+let depth = 0, loc = 'land';
+const crustDepth = () => loc === 'land' ? 35 : 5;
+function layers() {
+  const c = crustDepth();
+  return [
+    { k: 'crust', name: '지각', top: 0, bot: c, state: '고체', mat: loc === 'land' ? '여러 가지 암석(대륙 지각: 주로 화강암)' : '여러 가지 암석(해양 지각: 주로 현무암)', den: '약 2.7~3.0 g/cm³', col: '#8a6b4f' },
+    { k: 'mantle', name: '맨틀', top: c, bot: 2900, state: '고체', mat: '지각보다 밀도가 큰 암석', den: '약 3.3~5.6 g/cm³', col: '#d9542b' },
+    { k: 'outer', name: '외핵', top: 2900, bot: 5100, state: '액체', mat: '철, 니켈 등 금속 물질', den: '약 9.9~12.2 g/cm³', col: '#f2a33a' },
+    { k: 'inner', name: '내핵', top: 5100, bot: 6400, state: '고체', mat: '철, 니켈 등 금속 물질', den: '약 12.8~13.1 g/cm³', col: '#ffe08a' },
+  ];
+}
+const volPct = L => 100 * (Math.pow(R - L.top, 3) - Math.pow(R - L.bot, 3)) / Math.pow(R, 3);
+function layerAt(d) { const ls = layers(); return ls.find(L => d < L.bot) || ls[3]; }
+
+/* ---------- 그림 ---------- */
+const cv = $('#cv'), c = cv.getContext('2d');
+(function fit() { const r = Math.min(2, window.devicePixelRatio || 1); cv.width = 640 * r; cv.height = 460 * r; c.setTransform(r, 0, 0, r, 0, 0); })();
+const CX = 220, CY = 240, RP = 200;            // 지구 단면 중심과 반지름(px)
+const PX = d => CY - RP + RP * d / R;          // 깊이 d의 y좌표(위쪽 반지름 선 위)
+function draw() {
+  c.clearRect(0, 0, 640, 460); c.fillStyle = '#0f1724'; c.fillRect(0, 0, 640, 460);
+  const ls = layers();
+  // 단면 원(바깥부터 그림)
+  ls.forEach(L => { c.fillStyle = L.col; c.beginPath(); c.arc(CX, CY, RP * (R - L.top) / R, 0, 7); c.fill(); });
+  c.strokeStyle = 'rgba(255,255,255,.25)'; c.lineWidth = 1; ls.forEach(L => { c.beginPath(); c.arc(CX, CY, RP * (R - L.bot) / R, 0, 7); c.stroke(); });
+  c.strokeStyle = '#2f6fb0'; c.lineWidth = 3; c.beginPath(); c.arc(CX, CY, RP, 0, 7); c.stroke();      // 지표
+  // 층 이름
+  c.font = 'bold 14px sans-serif'; c.textAlign = 'center';
+  [['맨틀', RP * 0.78], ['외핵', RP * 0.43], ['내핵', 0]].forEach(([s, r]) => { c.fillStyle = 'rgba(0,0,0,.6)'; c.fillText(s, CX + r * 0.71 + 1, CY + r * 0.71 + 1); c.fillStyle = '#fff'; c.fillText(s, CX + r * 0.71, CY + r * 0.71); });
+  c.fillStyle = '#fff'; c.fillText('지각(얇아서 선으로 보임)', CX - 60, CY + RP + 22); c.textAlign = 'left';
+  // 탐사 경로와 장치
+  c.setLineDash([5, 5]); c.strokeStyle = 'rgba(255,255,255,.8)'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(CX, CY - RP - 18); c.lineTo(CX, CY); c.stroke(); c.setLineDash([]);
+  const py = PX(depth);
+  c.fillStyle = '#ffffff'; c.strokeStyle = '#111'; c.lineWidth = 2; c.beginPath(); c.moveTo(CX, py + 10); c.lineTo(CX - 9, py - 6); c.lineTo(CX + 9, py - 6); c.closePath(); c.fill(); c.stroke();
+  c.fillStyle = '#fff'; c.font = '12px sans-serif'; c.fillText(Math.round(depth) + ' km', CX + 12, py + 4);
+  // 눈금
+  c.fillStyle = '#c9d3dd'; c.font = '11px sans-serif';
+  [0, 2900, 5100, 6400].forEach(d => { c.fillRect(CX - 26, PX(d), 10, 1.5); c.fillText(d, CX - 66, PX(d) + 4); });
+  // 오른쪽: 지각 확대 그림(깊이 0~60 km)
+  const X0 = 445, Y0 = 70, W = 175, H = 260, Dmax = 60, Y = d => Y0 + H * d / Dmax;
+  c.fillStyle = '#fff'; c.font = 'bold 13px sans-serif'; c.fillText('지표 부근 확대(0~60 km)', X0, Y0 - 30);
+  // 대륙(왼쪽 절반), 해양(오른쪽 절반)
+  c.fillStyle = '#d9542b'; c.fillRect(X0, Y0, W, H);                                  // 맨틀
+  c.fillStyle = '#b8936a'; c.fillRect(X0, Y0, W / 2, Y(35) - Y0);                        // 대륙 지각
+  c.fillStyle = '#6f5a48'; c.fillRect(X0 + W / 2, Y0, W / 2, Y(5) - Y0);                 // 해양 지각
+  c.fillStyle = '#3b7dd8'; c.fillRect(X0 + W / 2, Y0 - 12, W / 2, 12);                   // 바닷물
+  c.fillStyle = '#5f9a4f'; c.fillRect(X0, Y0 - 12, W / 2, 12);
+  c.fillStyle = '#fff'; c.font = '12px sans-serif';
+  c.fillText('대륙 지각', X0 + 8, Y0 + 30); c.fillText('약 35 km', X0 + 8, Y0 + 46); c.fillText('해양 지각 약 5 km', X0 + W / 2 + 4, Y(5) + 16); c.fillText('맨틀', X0 + 70, Y0 + H - 14);
+  c.fillStyle = '#c9d3dd'; c.font = '11px sans-serif'; [0, 20, 40, 60].forEach(d => { c.fillRect(X0 - 6, Y(d), 6, 1.5); c.fillText(d, X0 - 26, Y(d) + 4); });
+  c.strokeStyle = '#fff'; c.lineWidth = 1; c.strokeRect(X0, Y0 - 12, W, H + 12);
+  if (depth <= Dmax) { const xx = X0 + (loc === 'land' ? W / 4 : W * 3 / 4), yy = Y(depth); c.fillStyle = '#fff'; c.strokeStyle = '#111'; c.lineWidth = 2; c.beginPath(); c.moveTo(xx, yy + 9); c.lineTo(xx - 8, yy - 5); c.lineTo(xx + 8, yy - 5); c.closePath(); c.fill(); c.stroke(); }
+  else { c.fillStyle = '#c9d3dd'; c.font = '12px sans-serif'; c.fillText('탐사 장치가 60 km보다 깊이 있다', X0 - 6, Y0 + H + 22); }
+}
+let lastRows = '';
+function update() {
+  const L = layerAt(depth);
+  $('#depv').textContent = Math.round(depth) + ' km'; $('#dep').value = depth;
+  $('#vD').innerHTML = Math.round(depth) + '<small>km</small>'; $('#vL').textContent = L.name;
+  $('#iS').textContent = L.state; $('#iR').textContent = '약 ' + L.top + ' ~ ' + L.bot + ' km';
+  $('#iM').textContent = L.mat; $('#iDen').textContent = L.den;
+  const rows = layers().map(x => `<tr class="${x.k === L.k ? 'cur' : ''}"><td>${x.name}</td><td>${x.top} ~ ${x.bot}</td><td>${x.state}</td><td>${volPct(x).toFixed(1)}</td></tr>`).join('');
+  if (rows !== lastRows) { $('#tb').innerHTML = rows; lastRows = rows; }
+  draw();
+}
+let pending = false;
+function req() { if (!pending) { pending = true; requestAnimationFrame(() => { pending = false; update(); }); } }
+$('#dep').addEventListener('input', () => { depth = +$('#dep').value; req(); });
+document.querySelectorAll('.loc').forEach(b => b.addEventListener('click', () => { loc = b.dataset.l; document.querySelectorAll('.loc').forEach(o => o.classList.toggle('on', o === b)); req(); }));
+document.querySelectorAll('.jmp').forEach(b => b.addEventListener('click', () => { depth = +b.dataset.d; req(); }));
+// 그림의 탐사선 끌기(세로 방향)
+let drag = false;
+function fromEvent(e) { const r = cv.getBoundingClientRect(), y = (e.clientY - r.top) * 460 / r.height, x = (e.clientX - r.left) * 640 / r.width; return { x, y }; }
+cv.addEventListener('pointerdown', e => { const p = fromEvent(e); if (Math.abs(p.x - CX) < 40) { drag = true; cv.setPointerCapture(e.pointerId); move(p); } });
+cv.addEventListener('pointermove', e => { if (drag) move(fromEvent(e)); });
+cv.addEventListener('pointerup', () => drag = false);
+function move(p) { depth = Math.max(0, Math.min(R, Math.round((p.y - (CY - RP)) / RP * R / 5) * 5)); req(); }
+$('#resetBtn').addEventListener('click', () => { depth = 0; loc = 'land'; document.querySelectorAll('.loc').forEach(o => o.classList.toggle('on', o.dataset.l === 'land')); req(); });
+update();
+</script>
+</body>
+</html>

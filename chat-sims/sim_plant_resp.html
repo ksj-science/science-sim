@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<!-- 단원ID: plant_resp · 중2 Ⅴ. 식물과 에너지 > 2. 식물의 호흡과 에너지 > 01 호흡과 광합성의 관계(173~175쪽) · 활동 1개: BTB 용액으로 호흡과 광합성의 관계 분석하기 -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>호흡과 광합성의 관계 분석하기</title>
+<style>
+:root{--bg:#eff6f4;--card:#fff;--ink:#1b2a27;--muted:#5a6b67;--line:#d4e3df;--accent:#2a8f7c;--accent-d:#1c6a5b;--accent-l:#def3ee}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+header{background:linear-gradient(120deg,#2a8f7c,#4fae5a);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:20px;margin:0;font-weight:900}
+header .sub{font-size:13px;opacity:.95}
+header .sp{flex:1}
+header button{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+main{padding:10px 12px 24px;max-width:1300px;margin:0 auto}
+.intro{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:10px;padding:8px 14px;margin-bottom:10px;font-size:14px;line-height:1.55}
+.intro b{color:var(--accent-d)}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}
+.card h3{margin:0 4px 8px;font-size:15px;color:var(--accent-d)}
+canvas{width:100%;display:block;border-radius:8px}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0}
+.lbl{font-size:13px;color:var(--muted);min-width:46px}
+.btn{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;padding:7px 11px;cursor:pointer;min-height:38px}
+.btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent-d)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.on{background:var(--accent-l);border-color:var(--accent);color:var(--accent-d)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+input[type=range]{flex:1;min-width:140px;accent-color:var(--accent)}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{border:1px solid var(--line);padding:5px 6px;text-align:center}
+th{background:#e9f5f2;color:var(--accent-d)}
+select{font:inherit;font-size:13px;padding:3px;border-radius:6px;border:1px solid var(--line)}
+.msg{background:#f5faf9;border:1px dashed #9fcfc4;border-radius:8px;padding:7px 10px;font-size:14px;line-height:1.5;margin-top:8px}
+.net{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}
+.net div{background:#14302a;color:#cdeee6;border-radius:9px;padding:6px 9px;font-size:13px}
+.net b{display:block;font-size:17px;color:#fff}
+.note{font-size:12.5px;color:var(--muted);line-height:1.55;margin:6px 4px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>호흡과 광합성의 관계 분석하기</h1><span class="sub">BTB 용액 · 검정말 · 알루미늄 포일 · 하루 동안의 기체 출입</span>
+  <span class="sp"></span><button id="resetBtn" type="button">↺ 초기화</button>
+</header>
+<main>
+  <div class="intro">초록색 BTB 용액이 든 시험관 A(검정말 없음), B(검정말), C(검정말 + <b>알루미늄 포일</b>)를 창가에 30분 동안 둔다. 먼저 색깔을 <b>예상</b>하고 실험해 보세요. 오른쪽에서는 하루 동안 식물의 <b>광합성량과 호흡량</b>을 비교해 보세요.</div>
+  <div class="grid">
+    <div class="card">
+      <h3>① BTB 용액 실험</h3>
+      <canvas id="bench" width="620" height="330" aria-label="창가의 시험관 A, B, C"></canvas>
+      <div class="row"><span class="lbl">날씨</span>
+        <button class="btn" data-w="sun" type="button">☀️ 맑은 날</button><button class="btn" data-w="cloud" type="button">☁️ 흐리고 비 오는 날</button><button class="btn" data-w="night" type="button">🌙 밤(빛 없음)</button>
+        <span style="flex:1"></span><button class="btn pri" id="runBtn" type="button">▶ 30분 두기</button></div>
+      <table><thead><tr><th>시험관</th><th>A (검정말 없음)</th><th>B (검정말)</th><th>C (검정말 + 포일)</th></tr></thead>
+        <tbody><tr><th>예상</th><td><select data-p="A"></select></td><td><select data-p="B"></select></td><td><select data-p="C"></select></td></tr>
+        <tr><th>실제 결과</th><td id="rA">–</td><td id="rB">–</td><td id="rC">–</td></tr></tbody></table>
+      <div class="msg" id="msg">날씨를 고르고 예상 색깔을 정한 뒤 ▶ 30분 두기를 누르세요.</div>
+    </div>
+    <div class="card">
+      <h3>② 하루 동안 식물의 기체 출입</h3>
+      <canvas id="day" width="620" height="250" aria-label="식물의 광합성과 호흡으로 드나드는 기체"></canvas>
+      <div class="row"><span class="lbl">시각</span><input id="hour" type="range" min="0" max="24" step="0.5" value="12"><b id="hourv" style="min-width:70px">12:00</b><button class="btn" id="playBtn" type="button">▶ 하루 재생</button></div>
+      <canvas id="graph" width="620" height="170" aria-label="시각에 따른 광합성량과 호흡량 그래프"></canvas>
+      <div class="net"><div>광합성량 / 호흡량<b id="pr"></b></div><div>식물 밖과 실제로 드나드는 기체<b id="netv"></b></div></div>
+      <p class="note"><b>모델의 한계</b> · 호흡량은 하루 내내 일정하다고 보았고(온도 변화 무시), 광합성량은 빛의 세기에만 비례하도록 단순화했다(해 뜨는 6시 ~ 해 지는 18시, 정오에 가장 셈). 흐린 날은 빛이 맑은 날의 1/3이라고 정했다. BTB 색은 30분 동안 늘거나 준 이산화 탄소의 양으로만 정했다.</p>
+    </div>
+  </div>
+</main>
+<script>
+/* ================================================================
+   식물의 호흡과 광합성 모형 (상대값)
+   - 호흡량 R = 1 (빛과 관계없이 살아 있는 모든 세포에서 항상) : 산소 흡수, 이산화 탄소 방출
+   - 광합성량 P = 3 × 빛의 세기 L (엽록체가 있는 세포에서 빛이 있을 때만) : 이산화 탄소 흡수, 산소 방출
+       시험관 실험의 빛: 맑은 날 L = 1, 흐린 날 L = 1/3, 밤 L = 0, 포일로 감싼 C는 L = 0
+       하루 그래프의 빛: L(h) = 날씨 × sin(π(h − 6)/12)  (6~18시, 그 밖에는 0)
+   - 시험관 속 이산화 탄소 변화량 = (R − P) × 30분 (검정말이 없으면 0)
+   - BTB 색: 변화량 ≤ −10 → 파란색(이산화 탄소 적음), −10 ~ +10 → 초록색, ≥ +10 → 노란색(많음)
+       예) 맑은 날 B: (1 − 3) × 30 = −60 → 파란색 / 흐린 날 B: (1 − 1) × 30 = 0 → 초록색 / C: +30 → 노란색
+   ================================================================ */
+const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
+function fit(cv, w, h) { const r = Math.min(2, window.devicePixelRatio || 1); cv.width = w * r; cv.height = h * r; const x = cv.getContext('2d'); x.setTransform(r, 0, 0, r, 0, 0); return x; }
+const BW = 620, BH = 330, DW = 620, DH = 250, GW = 620, GH = 170, R = 1, PMAX = 3;
+const b = fit($('#bench'), BW, BH), d = fit($('#day'), DW, DH), g = fit($('#graph'), GW, GH);
+const LIGHT = { sun: 1, cloud: 1 / 3, night: 0 }, WNAME = { sun: '맑은 날', cloud: '흐리고 비 오는 날', night: '밤' };
+let S;
+function newState() { return { w: 'sun', t: 0, run: null, done: false, hour: 12, play: false, anim: 0 }; }
+function delta(tube, mins) { if (tube === 'A') return 0; const L = tube === 'C' ? 0 : LIGHT[S.w]; return (R - PMAX * L) * mins; }
+function colorName(x) { return x <= -10 ? '파란색' : x >= 10 ? '노란색' : '초록색'; }
+function mix(a, c, k) { return a.map((v, i) => Math.round(v + (c[i] - v) * k)); }
+function btbRGB(x) {   // x: 이산화 탄소 변화량
+  const k = Math.max(-1, Math.min(1, x / 20)), G = [52, 150, 80], B = [40, 80, 200], Y = [225, 195, 40];
+  const c = k < 0 ? mix(G, B, -k) : mix(G, Y, k); return `rgb(${c})`;
+}
+/* ---------------- 시험관 그림 ---------------- */
+function rr(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+function plant(ctx, cx, top, bot) {
+  ctx.strokeStyle = '#2d7a2a'; ctx.lineWidth = 2.2; ctx.beginPath(); ctx.moveTo(cx, bot); ctx.lineTo(cx, top); ctx.stroke(); ctx.fillStyle = '#2f8a2c';
+  for (let y = bot - 6; y > top; y -= 9) for (const s of [-1, 1]) { ctx.save(); ctx.translate(cx, y); ctx.rotate(s * 1.0); ctx.beginPath(); ctx.ellipse(0, -7, 2.3, 8, 0, 0, 7); ctx.fill(); ctx.restore(); }
+}
+function drawBench() {
+  const L = LIGHT[S.w];
+  b.fillStyle = S.w === 'night' ? '#20283f' : S.w === 'cloud' ? '#d7dde3' : '#fff6d2'; b.fillRect(0, 0, BW, BH);
+  // 창문
+  b.fillStyle = S.w === 'night' ? '#0d1530' : S.w === 'cloud' ? '#9aa8b5' : '#9fd6ff'; b.fillRect(20, 20, 150, 200); b.strokeStyle = '#fff'; b.lineWidth = 6; b.strokeRect(20, 20, 150, 200); b.beginPath(); b.moveTo(95, 20); b.lineTo(95, 220); b.stroke();
+  if (S.w === 'sun') { b.fillStyle = '#ffd23a'; b.beginPath(); b.arc(60, 60, 20, 0, 7); b.fill(); b.fillStyle = 'rgba(255,230,120,.35)'; b.beginPath(); b.moveTo(170, 30); b.lineTo(600, 150); b.lineTo(600, 290); b.lineTo(170, 220); b.fill(); }
+  if (S.w === 'cloud') { b.fillStyle = '#eef1f4'; [[60, 60], [90, 55], [120, 62]].forEach(([x, y]) => { b.beginPath(); b.arc(x, y, 18, 0, 7); b.fill(); }); b.strokeStyle = '#6f8aa3'; b.lineWidth = 1.5; for (let k = 0; k < 14; k++) { const x = 30 + (k * 37) % 130, y = 90 + ((k * 53 + S.anim * 120) % 120); b.beginPath(); b.moveTo(x, y); b.lineTo(x - 3, y + 9); b.stroke(); } }
+  if (S.w === 'night') { b.fillStyle = '#f3e7a0'; b.beginPath(); b.arc(130, 60, 14, 0, 7); b.fill(); b.fillStyle = '#0d1530'; b.beginPath(); b.arc(137, 55, 13, 0, 7); b.fill(); }
+  b.fillStyle = '#c8b08a'; b.fillRect(0, 300, BW, 30); b.fillStyle = '#e6dccb'; b.fillRect(230, 230, 330, 12);
+  const k = S.run ? Math.min(1, (S.anim - S.run) / 4) : (S.done ? 1 : 0), mins = 30 * k;
+  ['A', 'B', 'C'].forEach((T, i) => {
+    const x = 290 + i * 105, top = 70, bot = 290, w = 40;
+    b.fillStyle = 'rgba(230,245,255,.5)'; b.strokeStyle = '#8fa8bb'; b.lineWidth = 2;
+    b.beginPath(); b.moveTo(x - w / 2, top); b.lineTo(x - w / 2, bot - w / 2); b.arc(x, bot - w / 2, w / 2, Math.PI, 0, true); b.lineTo(x + w / 2, top); b.fill(); b.stroke();
+    b.fillStyle = btbRGB(delta(T, mins)); b.beginPath(); b.moveTo(x - w / 2 + 2, top + 28); b.lineTo(x - w / 2 + 2, bot - w / 2); b.arc(x, bot - w / 2, w / 2 - 2, Math.PI, 0, true); b.lineTo(x + w / 2 - 2, top + 28); b.fill();
+    if (T !== 'A' && !(T === 'C' && !S.done && !S.run && false)) plant(b, x, top + 40, bot - 8);
+    if (T === 'C' && !S.done) {   // 포일(실험이 끝나면 벗겨서 색 관찰)
+      const gr = b.createLinearGradient(x - 24, 0, x + 24, 0); gr.addColorStop(0, '#9aa3ab'); gr.addColorStop(.4, '#eef1f4'); gr.addColorStop(1, '#c3c9cf');
+      b.fillStyle = gr; b.strokeStyle = '#7d868e'; b.beginPath(); b.moveTo(x - 24, top + 6); b.lineTo(x - 24, bot - w / 2); b.arc(x, bot - w / 2, 24, Math.PI, 0, true); b.lineTo(x + 24, top + 6); b.closePath(); b.fill(); b.stroke();
+      b.strokeStyle = 'rgba(110,118,126,.5)'; b.lineWidth = 1; for (let j = 0; j < 12; j++) { const y = top + 18 + j * 17; b.beginPath(); b.moveTo(x - 22, y); b.lineTo(x - 4, y + 6); b.lineTo(x + 22, y - 3); b.stroke(); }
+    }
+    b.fillStyle = '#2f3438'; rr(b, x - w / 2 - 3, top - 16, w + 6, 18, 4); b.fill();
+    b.fillStyle = '#fff'; b.beginPath(); b.arc(x, 314, 12, 0, 7); b.fill(); b.fillStyle = '#1b2a27'; b.font = 'bold 15px sans-serif'; b.textAlign = 'center'; b.fillText(T, x, 319); b.textAlign = 'left';
+  });
+  b.fillStyle = S.w === 'night' ? '#fff' : '#1b2a27'; b.font = 'bold 15px sans-serif'; b.fillText(WNAME[S.w] + ' · ' + Math.round(mins) + '분 지남', 240, 30);
+  // BTB 색 기준
+  const lx = 20, ly = 245; b.font = '12px sans-serif'; b.fillStyle = S.w === 'night' ? '#dfe7ff' : '#1b2a27'; b.fillText('BTB 용액: 이산화 탄소', lx, ly);
+  [[-20, '적다'], [0, ''], [20, '많다']].forEach(([v, t], i) => { b.fillStyle = btbRGB(v); b.fillRect(lx + i * 55, ly + 8, 50, 16); b.fillStyle = S.w === 'night' ? '#dfe7ff' : '#1b2a27'; b.fillText(['파랑', '초록', '노랑'][i] + (t ? ' (' + t + ')' : ''), lx + i * 55, ly + 40); });
+}
+/* ---------------- 하루 그래프 ---------------- */
+const lightAt = h => (h <= 6 || h >= 18) ? 0 : LIGHT[S.w === 'night' ? 'sun' : S.w] * Math.sin(Math.PI * (h - 6) / 12);
+const dayW = () => S.w === 'night' ? 'sun' : S.w;
+function arrow(ctx, x1, y1, x2, y2, col, wdt, label) {
+  if (wdt <= 0.05) return; ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = 2 + wdt * 4; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+  const a = Math.atan2(y2 - y1, x2 - x1), s = 10 + wdt * 4; ctx.beginPath(); ctx.moveTo(x2 + Math.cos(a) * s * .6, y2 + Math.sin(a) * s * .6); ctx.lineTo(x2 - Math.cos(a - .5) * s, y2 - Math.sin(a - .5) * s); ctx.lineTo(x2 - Math.cos(a + .5) * s, y2 - Math.sin(a + .5) * s); ctx.fill();
+  ctx.font = 'bold 12px sans-serif'; ctx.fillText(label, Math.min(x1, x2) - 4, Math.min(y1, y2) - 6);
+}
+function drawDay() {
+  const h = S.hour, L = lightAt(h), P = PMAX * L;
+  const sky = L > 0 ? (dayW() === 'cloud' ? '#c9d3dc' : '#bfe6ff') : '#1d2645';
+  d.fillStyle = sky; d.fillRect(0, 0, DW, DH); d.fillStyle = '#9b7b55'; d.fillRect(0, 215, DW, 35);
+  if (L > 0) { d.fillStyle = dayW() === 'cloud' ? '#f2f2f2' : '#ffd23a'; d.beginPath(); d.arc(60 + (h - 6) / 12 * 500, 60 - 30 * Math.sin(Math.PI * (h - 6) / 12), 18, 0, 7); d.fill(); }
+  else { d.fillStyle = '#f3e7a0'; d.beginPath(); d.arc(540, 45, 13, 0, 7); d.fill(); }
+  // 나무
+  d.fillStyle = '#7a5532'; d.fillRect(300, 130, 22, 88); d.fillStyle = '#3f9a3c'; [[311, 95, 70], [262, 120, 45], [360, 120, 45]].forEach(([x, y, r]) => { d.beginPath(); d.arc(x, y, r, 0, 7); d.fill(); });
+  // 광합성(왼쪽): 이산화 탄소 들어감, 산소 나감 / 호흡(오른쪽): 산소 들어감, 이산화 탄소 나감
+  const pw = P / PMAX, rw = R / PMAX;
+  arrow(d, 140, 170, 245, 140, '#e2733a', pw, '이산화 탄소');
+  arrow(d, 245, 70, 140, 40, '#2f7fd0', pw, '산소');
+  arrow(d, 480, 40, 380, 70, '#2f7fd0', rw, '산소');
+  arrow(d, 380, 140, 480, 170, '#e2733a', rw, '이산화 탄소');
+  d.font = 'bold 14px sans-serif'; d.fillStyle = L > 0 ? '#1b2a27' : '#fff';
+  d.fillText('광합성' + (P > 0.05 ? '' : ' (일어나지 않음)'), 90, 205); d.fillText('호흡 (항상)', 440, 205);
+  d.fillStyle = L > 0 ? '#1b2a27' : '#fff'; d.font = 'bold 16px sans-serif'; d.textAlign = 'center'; d.fillText(fmtH(h) + ' · ' + (dayW() === 'cloud' ? '흐린 날' : '맑은 날'), DW / 2, 24); d.textAlign = 'left';
+}
+function fmtH(h) { const hh = Math.floor(h) % 24, mm = Math.round((h - Math.floor(h)) * 60); return String(hh).padStart(2, '0') + ':' + String(mm).padStart(2, '0'); }
+function drawGraph() {
+  g.fillStyle = '#fbfdfc'; g.fillRect(0, 0, GW, GH);
+  const x0 = 46, x1 = GW - 14, y0 = 140, y1 = 12, X = h => x0 + h / 24 * (x1 - x0), Y = v => y0 - v / 3.2 * (y0 - y1);
+  g.strokeStyle = '#e1ebe8'; for (let h = 0; h <= 24; h += 3) { g.beginPath(); g.moveTo(X(h), y1); g.lineTo(X(h), y0); g.stroke(); }
+  g.strokeStyle = '#7d8f8a'; g.beginPath(); g.moveTo(x0, y1); g.lineTo(x0, y0); g.lineTo(x1, y0); g.stroke();
+  g.fillStyle = '#5a6b67'; g.font = '11px sans-serif'; g.textAlign = 'center'; for (let h = 0; h <= 24; h += 3) g.fillText(h + '시', X(h), y0 + 14); g.textAlign = 'left';
+  g.save(); g.translate(12, 80); g.rotate(-Math.PI / 2); g.textAlign = 'center'; g.fillText('양(상대값)', 0, 0); g.restore();
+  g.strokeStyle = '#3f9a3c'; g.lineWidth = 2.5; g.beginPath(); for (let h = 0; h <= 24; h += 0.1) { const y = Y(PMAX * lightAt(h)); h ? g.lineTo(X(h), y) : g.moveTo(X(h), y); } g.stroke();
+  g.strokeStyle = '#c0504d'; g.setLineDash([6, 4]); g.beginPath(); g.moveTo(X(0), Y(R)); g.lineTo(X(24), Y(R)); g.stroke(); g.setLineDash([]);
+  g.fillStyle = '#3f9a3c'; g.font = 'bold 12px sans-serif'; g.fillText('광합성량', X(12) - 24, Y(PMAX * lightAt(12)) - 6); g.fillStyle = '#c0504d'; g.fillText('호흡량', X(21), Y(R) - 6);
+  g.strokeStyle = '#1b2a27'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(X(S.hour), y1); g.lineTo(X(S.hour), y0); g.stroke();
+}
+function updateDay() {
+  const P = PMAX * lightAt(S.hour);
+  $('#hourv').textContent = fmtH(S.hour); $('#hour').value = S.hour;
+  $('#pr').textContent = P.toFixed(1) + ' / ' + R.toFixed(1);
+  $('#netv').textContent = P > R + 0.05 ? '이산화 탄소 흡수, 산소 방출' : P < R - 0.05 ? '산소 흡수, 이산화 탄소 방출' : '드나드는 기체가 거의 없음';
+  drawDay(); drawGraph();
+}
+/* ---------------- 단추 ---------------- */
+const OPTS = ['', '노란색', '초록색', '파란색'];
+$$('select[data-p]').forEach(s => { s.innerHTML = OPTS.map(o => `<option value="${o}">${o || '고르기'}</option>`).join(''); });
+function syncW() { $$('[data-w]').forEach(e => e.classList.toggle('on', e.dataset.w === S.w)); $('#runBtn').disabled = !!S.run; }
+function clearResult() { S.done = false; S.run = null; ['A', 'B', 'C'].forEach(T => $('#r' + T).textContent = '–'); }
+$$('[data-w]').forEach(e => e.onclick = () => { S.w = e.dataset.w; clearResult(); $('#msg').innerHTML = WNAME[S.w] + '을(를) 골랐다. 예상을 정하고 ▶ 30분 두기를 누르세요.'; syncW(); updateDay(); });
+$('#runBtn').onclick = () => { clearResult(); S.run = S.anim; $('#msg').innerHTML = '30분 동안 두는 중…'; syncW(); };
+function finish() {
+  S.run = null; S.done = true;
+  let right = 0; ['A', 'B', 'C'].forEach(T => { const c = colorName(delta(T, 30)), p = document.querySelector(`select[data-p="${T}"]`).value; $('#r' + T).innerHTML = `<b style="color:${btbRGB(delta(T, 30))}">${c}</b>` + (p ? (p === c ? ' ✓' : ' ✗') : ''); if (p === c) right++; });
+  const B = colorName(delta('B', 30));
+  let t = `${WNAME[S.w]}: 포일을 벗기고 검정말을 뺐다. A ${colorName(0)}, B ${B}, C ${colorName(delta('C', 30))}. `;
+  if (S.w === 'sun') t += 'B는 <b>광합성량이 호흡량보다 많아</b> 이산화 탄소가 줄었고, 빛을 못 받은 C는 <b>호흡만</b> 하여 이산화 탄소가 늘었다.';
+  else if (S.w === 'cloud') t += '흐린 날 B는 <b>광합성량과 호흡량이 비슷해</b> 이산화 탄소의 양이 거의 변하지 않아 A와 같은 색이다.';
+  else t += '빛이 없으면 B도 C처럼 <b>호흡만</b> 하여 이산화 탄소가 늘어난다.';
+  $('#msg').innerHTML = t + (right ? ` (예상 ${right}개 맞음)` : ''); syncW();
+}
+$('#hour').addEventListener('input', e => { S.hour = +e.target.value; S.play = false; $('#playBtn').textContent = '▶ 하루 재생'; updateDay(); });
+$('#playBtn').onclick = () => { S.play = !S.play; if (S.play && S.hour >= 24) S.hour = 0; $('#playBtn').textContent = S.play ? '❚❚ 멈춤' : '▶ 하루 재생'; };
+$('#resetBtn').onclick = () => { S = newState(); $$('select[data-p]').forEach(s => s.value = ''); clearResult(); $('#msg').innerHTML = '날씨를 고르고 예상 색깔을 정한 뒤 ▶ 30분 두기를 누르세요.'; syncW(); updateDay(); $('#playBtn').textContent = '▶ 하루 재생'; };
+let last = performance.now();
+function loop(ts) {
+  const dt = Math.min(0.1, (ts - last) / 1000); last = ts; S.anim += dt;
+  if (S.run && S.anim - S.run >= 4) finish();
+  if (S.play) { S.hour = Math.min(24, S.hour + dt * 2); if (S.hour >= 24) { S.play = false; $('#playBtn').textContent = '▶ 하루 재생'; } updateDay(); }
+  drawBench(); requestAnimationFrame(loop);
+}
+S = newState(); syncW(); updateDay(); requestAnimationFrame(loop);
+window.__run = w => { S.w = w; finish(); return ['A', 'B', 'C'].map(T => colorName(delta(T, 30))); };
+window.__at = h => { S.hour = h; updateDay(); return [$('#pr').textContent, $('#netv').textContent]; };
+</script>
+</body>
+</html>

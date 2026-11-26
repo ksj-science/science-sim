@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<!-- 단원ID: excretion · 중2 Ⅵ. 동물과 에너지 > 2. 호흡과 배설 > 02 배설계(210~213쪽) · 활동 1개: 네프론에서 오줌이 만들어지는 과정(여과·재흡수·분비) 탐구 -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>오줌은 어떻게 만들어질까 — 배설계</title>
+<style>
+:root{--bg:#f7f5ef;--card:#fff;--ink:#27231a;--muted:#6b6455;--line:#e6dfcf;--accent:#c98a16;--accent-d:#8f600a;--accent-l:#fbf0d6;--re:#1f9a8a;--se:#7a55c0;--ok:#1f9a62}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+header{background:linear-gradient(120deg,#d8573f,#e0a12a);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:20px;margin:0;font-weight:900}
+header .sub{font-size:13px;opacity:.95}
+header .sp{flex:1}
+header button{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+main{padding:10px 12px 24px;max-width:1320px;margin:0 auto}
+.intro{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:10px;padding:8px 14px;margin-bottom:10px;font-size:14px;line-height:1.55}
+.intro b{color:var(--accent-d)}
+.grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(320px,1fr);gap:10px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:10px}
+.card h3{margin:0 2px 8px;font-size:15px;color:var(--accent-d)}
+canvas{width:100%;display:block;border-radius:10px}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0}
+.lbl{font-size:13px;color:var(--muted)}
+.btn{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:9px;padding:7px 11px;cursor:pointer;min-height:38px}
+.btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent-d)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.on{background:var(--accent-l);border-color:var(--accent);color:var(--accent-d)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{border:1px solid var(--line);padding:4px 5px;text-align:center}
+th{background:#faf3e2;color:var(--accent-d)}
+td.u{background:#fff8e1;font-weight:900}
+td.hot{background:#ffe3df;color:#b3312a;font-weight:900}
+.sw{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:4px}
+.pred .btn{min-height:30px;padding:2px 10px;min-width:44px}
+.pred td.ok{background:#e6f6ee;color:#14653f;font-weight:900}.pred td.no{background:#fdeceb;color:#b3312a;font-weight:900}
+.msg{background:#fbf8f0;border:1px dashed #dcc48f;border-radius:10px;padding:8px 11px;font-size:14px;line-height:1.5;margin-top:8px}
+.flow{display:flex;gap:5px;flex-wrap:wrap;align-items:center;font-size:13.5px;margin:6px 0;min-height:32px}
+.chip{border:1.5px solid var(--line);border-radius:999px;padding:4px 10px;background:#fff;font-weight:700;cursor:default}
+.chip.w{background:#eef6ff;border-color:#a9c8ee}.chip.a{background:#f3ecfb;border-color:#c5b0e6}.chip.u{background:#eaf7ea;border-color:#a5d6a5}.chip.o{background:#fff3d6;border-color:#e3c36e}
+button.chip{cursor:pointer;font:inherit;font-size:13.5px;font-weight:700}
+button.chip.done{background:#e6f6ee;border-color:#9fd8bb;color:#14653f}
+button.chip.bad{animation:shake .3s;border-color:#e03b2f}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.note{font-size:12.5px;color:var(--muted);line-height:1.55;margin:6px 2px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>오줌은 어떻게 만들어질까</h1><span class="sub">콩팥 · 네프론(토리, 보먼주머니, 세뇨관) · 여과 · 재흡수 · 분비</span>
+  <span class="sp"></span><button id="resetBtn" type="button">↺ 초기화</button>
+</header>
+<main>
+  <div class="intro">콩팥 속 <b>네프론</b> 하나를 크게 그린 모형이다. 콩팥동맥으로 들어온 혈액 속 물질이 어디로 가는지 따라가 보세요. 먼저 오른쪽에서 <b>여과될 물질을 예상</b>한 뒤 <b>▶ 측정 시작</b>을 눌러 물질의 수를 세어 보세요.</div>
+  <div class="grid">
+    <div class="card">
+      <canvas id="app" width="760" height="330" aria-label="네프론 모형: 콩팥동맥, 토리, 보먼주머니, 세뇨관, 모세혈관, 콩팥정맥"></canvas>
+      <div class="row">
+        <span class="lbl">콩팥의 상태</span>
+        <button class="btn" data-sc="normal" type="button">건강한 콩팥</button>
+        <button class="btn" data-sc="glu" type="button">포도당 재흡수 이상</button>
+        <button class="btn" data-sc="glom" type="button">토리 손상</button>
+        <span style="flex:1"></span>
+        <button class="btn" id="fastBtn" type="button">⏩ 빠르게</button>
+        <button class="btn pri" id="measBtn" type="button">▶ 측정 시작</button>
+      </div>
+      <table><thead><tr><th style="text-align:left">물질</th><th>콩팥동맥으로<br>들어옴</th><th>여과됨<br>(→ 보먼주머니)</th><th>재흡수됨<br>(→ 모세혈관)</th><th>분비됨<br>(→ 세뇨관)</th><th>오줌</th><th>콩팥정맥으로<br>나감</th></tr></thead><tbody id="tb"></tbody></table>
+      <div class="msg" id="msg">혈액이 네프론을 지나고 있다. ▶ 측정 시작을 누르면 혈액 속 물질 120개가 어디로 가는지 센다.</div>
+    </div>
+    <div>
+      <div class="card pred">
+        <h3>예상하기: 토리에서 보먼주머니로 여과될까?</h3>
+        <table><thead><tr><th style="text-align:left">물질</th><th>내 예상 (눌러서 바꾸기)</th><th>결과</th></tr></thead><tbody id="pred"></tbody></table>
+        <p class="note">크기가 <b>작은</b> 물질은 물과 함께 토리를 빠져나가고, 크기가 <b>큰</b> 물질은 빠져나가지 못한다.</p>
+      </div>
+      <div class="card">
+        <h3>노폐물은 어떻게 생길까? (영양소를 눌러 보기)</h3>
+        <div class="row" style="margin-top:0"><button class="btn" data-n="cf" type="button">탄수화물 · 지방</button><button class="btn" data-n="pr" type="button">단백질</button></div>
+        <div class="flow" id="waste"><span class="lbl">세포에서 영양소를 분해해 에너지를 얻을 때 노폐물이 생긴다.</span></div>
+        <h3 style="margin-top:10px">오줌이 몸 밖으로 나가는 길 (순서대로 누르기)</h3>
+        <div class="flow" id="route"></div>
+        <div class="flow" id="routeDone" style="min-height:0"></div>
+        <p class="note"><b>모델의 한계</b> · 물질의 수는 이해를 돕기 위한 상대적인 값이다(실제로는 여과된 물의 약 99 %가 재흡수된다). 포도당·아미노산은 모두, 물은 대부분 재흡수되고 요소는 재흡수되지 않는 것으로 단순화했다. 네프론의 모양과 혈관의 위치는 모식도이다.</p>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+/* ================================================================
+   네프론 모형 — 혈액 속 물질 한 묶음(120개)의 이동
+   물질(개수): 요소 20, 포도당 20, 아미노산 20, 물 40, 단백질 10, 혈구 10
+   - 여과(토리 → 보먼주머니): 크기가 작은 물질(요소, 포도당, 아미노산, 물)의 절반. 단백질·혈구는 여과되지 않음
+   - 재흡수(세뇨관 → 모세혈관): 포도당·아미노산은 전부(10개씩), 물은 여과된 20개 중 16개, 요소는 0개
+   - 분비(모세혈관 → 세뇨관): 여과되지 않고 혈액에 남은 요소 10개 중 5개
+   - 오줌 = 여과 − 재흡수 + 분비 → 건강한 콩팥: 요소 15, 물 4, 포도당 0, 아미노산 0, 단백질 0, 혈구 0
+   - 포도당 재흡수 이상: 포도당 재흡수 0 → 오줌에 포도당 10 / 토리 손상: 단백질 4, 혈구 3이 여과되어 오줌으로
+   ================================================================ */
+const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
+function fit(cv, w, h) { const r = Math.min(2, window.devicePixelRatio || 1); cv.width = w * r; cv.height = h * r; const x = cv.getContext('2d'); x.setTransform(r, 0, 0, r, 0, 0); return x; }
+const W = 760, H = 330, c = fit($('#app'), W, H);
+const TYPES = [
+  { id: 'urea', name: '요소', col: '#7cc142', n: 20, small: true },
+  { id: 'glu', name: '포도당', col: '#f2c230', n: 20, small: true },
+  { id: 'amino', name: '아미노산', col: '#2fa58e', n: 20, small: true },
+  { id: 'water', name: '물', col: '#58b8ea', n: 40, small: true },
+  { id: 'prot', name: '단백질', col: '#9a63c9', n: 10, small: false },
+  { id: 'cell', name: '혈구', col: '#e0453f', n: 10, small: false },
+];
+const RULE = {   // [여과, 재흡수, 분비]
+  normal: { urea: [10, 0, 5], glu: [10, 10, 0], amino: [10, 10, 0], water: [20, 16, 0], prot: [0, 0, 0], cell: [0, 0, 0] },
+  glu: { urea: [10, 0, 5], glu: [10, 0, 0], amino: [10, 10, 0], water: [20, 16, 0], prot: [0, 0, 0], cell: [0, 0, 0] },
+  glom: { urea: [10, 0, 5], glu: [10, 10, 0], amino: [10, 10, 0], water: [20, 16, 0], prot: [4, 0, 0], cell: [3, 0, 0] },
+};
+const SCN = { normal: '건강한 콩팥', glu: '포도당 재흡수 이상', glom: '토리 손상' };
+// 경로: 혈액 B(콩팥동맥 → 토리 → 모세혈관 → 콩팥정맥), 여과액 F(보먼주머니 → 세뇨관 → 오줌)
+const B = [[10, 70], [350, 70], [350, 150], [700, 150], [700, 70], [750, 70]], F = [[230, 82], [230, 230], [750, 230]];
+const len = P => { let L = [0]; for (let i = 1; i < P.length; i++) L.push(L[i - 1] + Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1])); return L; };
+const BL = len(B), FL = len(F), B_END = BL[BL.length - 1], F_END = FL[FL.length - 1], S_FILT = 220, S_CAP = BL[2], F_TUB = FL[1];
+function at(P, L, s, jit) { let i = 0; while (i < P.length - 2 && L[i + 1] <= s) i++; const f = Math.min(1, (s - L[i]) / (L[i + 1] - L[i])), a = P[i], b = P[i + 1], hor = a[1] === b[1]; return [a[0] + (b[0] - a[0]) * f + (hor ? 0 : jit), a[1] + (b[1] - a[1]) * f + (hor ? jit : 0)]; }
+function rng(seed) { let s = seed >>> 0 || 1; return () => { s ^= s << 13; s >>>= 0; s ^= s >> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; }; }
+function makeBatch(scn, seed) {
+  const r = rng(seed), out = [];
+  TYPES.forEach(T => { const [f, re, se] = RULE[scn][T.id]; for (let i = 0; i < T.n; i++) out.push({ type: T.id, filt: i < f, reab: i < re, sec: i >= f && i < f + se, jit: (r() - .5) * 15, rx: 400 + r() * 70, sx: 540 + r() * 70, st: 'B', s: 0 }); });
+  for (let i = out.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [out[i], out[j]] = [out[j], out[i]]; }
+  return out;
+}
+let S;
+const zero = () => { const o = {}; ['art', 'filt', 'reab', 'sec', 'urine', 'vein'].forEach(k => { o[k] = {}; TYPES.forEach(T => o[k][T.id] = 0); }); return o; };
+function newState() { return { scn: 'normal', parts: [], queue: [], spawnT: 0, seed: 7, measuring: false, done: false, cnt: zero(), fast: false, t: 0, pred: {}, predResult: null, route: [], lastScn: null }; }
+function step(dt) {
+  const v = 95 * dt; S.t += dt; S.spawnT -= dt;
+  if (S.spawnT <= 0) { if (!S.queue.length && !S.measuring) S.queue = makeBatch(S.scn, S.seed++); if (S.queue.length) { const p = S.queue.shift(); S.parts.push(p); if (S.measuring) S.cnt.art[p.type]++; S.spawnT = 0.085; } }
+  const m = S.measuring;
+  for (const p of S.parts) {
+    if (p.st === 'B') { const prev = p.s; p.s += v;
+      if (p.filt && !p.f1 && p.s >= S_FILT) { p.f1 = 1; p.st = 'F'; p.s = 0; if (m) S.cnt.filt[p.type]++; }
+      else if (p.sec && !p.s1 && p.s >= S_CAP + (p.sx - 350)) { p.s1 = 1; p.st = 'DN'; p.y = 150; }
+      else if (p.s >= B_END) { p.gone = 1; if (m) S.cnt.vein[p.type]++; } }
+    else if (p.st === 'F') { p.s += v;
+      if (p.reab && !p.r1 && p.s >= F_TUB + (p.rx - 230)) { p.r1 = 1; p.st = 'UP'; p.y = 230; }
+      else if (p.s >= F_END) { p.gone = 1; if (m) S.cnt.urine[p.type]++; } }
+    else if (p.st === 'UP') { p.y -= v; if (p.y <= 150) { p.st = 'B'; p.s = S_CAP + (p.rx - 350); if (m) S.cnt.reab[p.type]++; } }
+    else if (p.st === 'DN') { p.y += v; if (p.y >= 230) { p.st = 'F'; p.s = F_TUB + (p.sx - 230); if (m) S.cnt.sec[p.type]++; } }
+  }
+  S.parts = S.parts.filter(p => !p.gone);
+  if (S.measuring && !S.queue.length && !S.parts.length) finish();
+}
+/* ---------------- 그림 ---------------- */
+function rr(x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+function poly(P, w, col) { c.strokeStyle = col; c.lineWidth = w; c.lineJoin = 'round'; c.lineCap = 'butt'; c.beginPath(); P.forEach((p, i) => i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); c.stroke(); }
+function shape(T, x, y) {
+  c.fillStyle = T.col; c.strokeStyle = 'rgba(255,255,255,.9)'; c.lineWidth = 1.2;
+  if (T.id === 'urea') { c.fillRect(x - 4.5, y - 4.5, 9, 9); c.strokeRect(x - 4.5, y - 4.5, 9, 9); }
+  else if (T.id === 'glu') { c.beginPath(); for (let i = 0; i < 6; i++) c.lineTo(x + 5.5 * Math.cos(i * Math.PI / 3), y + 5.5 * Math.sin(i * Math.PI / 3)); c.closePath(); c.fill(); c.stroke(); }
+  else if (T.id === 'amino') { c.beginPath(); c.arc(x, y, 5, 0, 7); c.fill(); c.stroke(); c.fillStyle = '#fff'; c.beginPath(); c.arc(x, y, 2, 0, 7); c.fill(); }
+  else if (T.id === 'water') { c.beginPath(); c.arc(x, y, 3.6, 0, 7); c.fill(); }
+  else if (T.id === 'prot') { c.beginPath(); c.moveTo(x - 7, y); c.lineTo(x + 6, y - 7); c.lineTo(x + 6, y + 7); c.closePath(); c.fill(); c.stroke(); }
+  else { c.beginPath(); c.ellipse(x, y, 8.5, 6, 0, 0, 7); c.fill(); c.stroke(); c.fillStyle = '#b3211b'; c.beginPath(); c.ellipse(x, y, 3.5, 2.4, 0, 0, 7); c.fill(); }
+}
+function tag(x, y, t, col, bg) { c.font = 'bold 12.5px sans-serif'; const w = c.measureText(t).width + 14; c.fillStyle = bg || 'rgba(255,255,255,.95)'; rr(x - w / 2, y - 11, w, 22, 11); c.fill(); if (!bg) { c.strokeStyle = col; c.lineWidth = 1.5; c.stroke(); } c.fillStyle = bg ? '#fff' : '#27231a'; c.textAlign = 'center'; c.fillText(t, x, y + 4.5); c.textAlign = 'left'; }
+function draw() {
+  c.clearRect(0, 0, W, H); c.fillStyle = '#fdfcf8'; c.fillRect(0, 0, W, H);
+  // 재흡수·분비 구역(세뇨관과 모세혈관 사이)
+  c.fillStyle = 'rgba(31,154,138,.14)'; rr(392, 136, 86, 108, 10); c.fill(); c.fillStyle = 'rgba(122,85,192,.14)'; rr(532, 136, 86, 108, 10); c.fill();
+  // 보먼주머니 + 세뇨관
+  c.fillStyle = '#f9e3a6'; c.strokeStyle = '#d9a93a'; c.lineWidth = 3; c.beginPath(); c.arc(230, 70, 60, Math.PI * .06, Math.PI * .94); c.closePath(); c.fill(); c.stroke();
+  poly(F, 32, '#d9a93a'); poly(F, 26, '#f9e3a6');
+  c.fillStyle = '#f9e3a6'; c.fillRect(217, 100, 26, 34);
+  // 혈관
+  poly(B, 32, '#c9453f'); poly(B, 26, '#f3b3ad');
+  // 토리(모세혈관 뭉치)
+  const dmg = S.scn === 'glom';
+  [[212, 62, 24, 19], [248, 62, 24, 19], [230, 82, 26, 18], [230, 58, 18, 24]].forEach(([x, y, a, b]) => { c.strokeStyle = '#c9453f'; c.lineWidth = 9; c.beginPath(); c.ellipse(x, y, a, b, 0, 0, 7); c.stroke(); c.strokeStyle = '#f3b3ad'; c.lineWidth = 5; c.beginPath(); c.ellipse(x, y, a, b, 0, 0, 7); c.stroke(); });
+  if (dmg) { c.strokeStyle = '#27231a'; c.lineWidth = 2; c.setLineDash([4, 3]); c.beginPath(); c.moveTo(214, 98); c.lineTo(222, 108); c.lineTo(216, 116); c.moveTo(244, 98); c.lineTo(238, 110); c.stroke(); c.setLineDash([]); }
+  // 여과 화살표
+  c.strokeStyle = '#2b8fd0'; c.fillStyle = '#2b8fd0'; c.lineWidth = 2.5; [-16, 0, 16].forEach(dx => { const ph = (S.t * 1.2 + dx / 40) % 1; c.beginPath(); c.moveTo(230 + dx, 96); c.lineTo(230 + dx, 112); c.stroke(); c.beginPath(); c.moveTo(230 + dx, 118); c.lineTo(226 + dx, 110); c.lineTo(234 + dx, 110); c.fill(); });
+  // 재흡수(위로)·분비(아래로) 화살표
+  const arr = (x, up, col) => { c.strokeStyle = col; c.fillStyle = col; c.lineWidth = 3; c.beginPath(); c.moveTo(x, up ? 212 : 168); c.lineTo(x, up ? 176 : 204); c.stroke(); c.beginPath(); const y = up ? 168 : 212; c.moveTo(x, y); c.lineTo(x - 6, y + (up ? 10 : -10)); c.lineTo(x + 6, y + (up ? 10 : -10)); c.fill(); };
+  arr(420, true, '#1f9a8a'); arr(450, true, '#1f9a8a'); arr(560, false, '#7a55c0'); arr(590, false, '#7a55c0');
+  if (S.scn === 'glu') { c.strokeStyle = '#e03b2f'; c.lineWidth = 4; c.beginPath(); c.moveTo(402, 176); c.lineTo(468, 206); c.moveTo(468, 176); c.lineTo(402, 206); c.stroke(); }
+  // 물질
+  for (const p of S.parts) { const T = TYPES.find(t => t.id === p.type); let x, y;
+    if (p.st === 'B') { [x, y] = at(B, BL, p.s, p.jit * .7); if (p.s > 170 && p.s < 270) y += Math.sin(p.s / 9 + p.jit) * 9; }
+    else if (p.st === 'F') [x, y] = at(F, FL, p.s, p.jit * .6);
+    else { x = p.st === 'UP' ? p.rx : p.sx; y = p.y; }
+    shape(T, x, y); }
+  // 오줌 방울
+  c.fillStyle = '#f2c230'; const dy = (S.t * 60) % 40; c.beginPath(); c.arc(752, 252 + dy, 4, 0, 7); c.fill();
+  // 이름표
+  tag(70, 40, '콩팥동맥 →', '#c9453f'); tag(230, 18, dmg ? '토리 (손상)' : '토리', '#c9453f'); tag(132, 122, '보먼주머니', '#d9a93a'); tag(318, 262, '세뇨관', '#d9a93a'); tag(500, 122, '모세혈관', '#c9453f'); tag(690, 40, '→ 콩팥정맥', '#c9453f'); tag(712, 262, '오줌 →', '#d9a93a');
+  tag(290, 118, '여과', null, '#2b8fd0'); tag(435, 150, S.scn === 'glu' ? '재흡수 (포도당 ✕)' : '재흡수', null, '#1f9a8a'); tag(575, 150, '분비', null, '#7a55c0');
+  // 범례
+  let lx = 14; TYPES.forEach(T => { shape(T, lx + 6, 308); c.fillStyle = '#27231a'; c.font = '12.5px sans-serif'; c.fillText(T.name, lx + 18, 312); lx += 30 + c.measureText(T.name).width + 14; });
+  if (S.measuring) { c.fillStyle = '#8f600a'; c.font = 'bold 13px sans-serif'; c.textAlign = 'right'; c.fillText('측정 중… 남은 물질 ' + (S.queue.length + S.parts.length) + '개', 746, 312); c.textAlign = 'left'; }
+}
+/* ---------------- 표 ---------------- */
+function table() {
+  const on = S.measuring || S.done, v = (k, id) => on ? S.cnt[k][id] : '–';
+  $('#tb').innerHTML = TYPES.map(T => { const u = S.cnt.urine[T.id], hot = S.done && u > 0 && (T.id === 'glu' || T.id === 'prot' || T.id === 'cell');
+    return `<tr><th style="text-align:left"><span class="sw" style="background:${T.col}"></span>${T.name}</th><td>${v('art', T.id)}</td><td>${v('filt', T.id)}</td><td>${v('reab', T.id)}</td><td>${v('sec', T.id)}</td><td class="${hot ? 'hot' : 'u'}">${v('urine', T.id)}</td><td>${v('vein', T.id)}</td></tr>`; }).join('');
+}
+const say = t => { $('#msg').innerHTML = t; };
+function finish() {
+  S.measuring = false; S.done = true; S.lastScn = S.scn; const u = S.cnt.urine;
+  let t = `<b>${SCN[S.scn]}</b> 측정 완료 · 오줌: 요소 ${u.urea}, 물 ${u.water}, 포도당 ${u.glu}, 아미노산 ${u.amino}, 단백질 ${u.prot}, 혈구 ${u.cell}. `;
+  if (S.scn === 'normal') t += '포도당과 아미노산은 여과되었지만 <b>모두 재흡수</b>되어 오줌에 없다. 물은 대부분 재흡수되고 요소는 남아서, 오줌에는 요소가 진하게 들어 있다.';
+  else if (S.scn === 'glu') t += '포도당이 재흡수되지 못해 <b>오줌에 포도당</b>이 나왔다. 건강 검진에서 오줌에 포도당이 검출되면 재흡수 과정에 문제가 있음을 알 수 있다.';
+  else t += '토리가 손상되어 크기가 큰 <b>단백질과 혈구</b>까지 여과되어 오줌으로 나왔다. 건강한 토리에서는 큰 물질이 빠져나오지 못한다.';
+  say(t); S.predResult = {}; TYPES.forEach(T => S.predResult[T.id] = S.cnt.filt[T.id] > 0); table(); predUI(); ui();
+}
+/* ---------------- 예상하기 ---------------- */
+function predUI() {
+  $('#pred').innerHTML = TYPES.map(T => { const p = S.pred[T.id], r = S.predResult && S.lastScn === 'normal' ? S.predResult[T.id] : null;
+    const res = r === null ? '<td>?</td>' : p === undefined ? `<td>${r ? '여과됨' : '여과 안 됨'}</td>` : `<td class="${p === r ? 'ok' : 'no'}">${r ? '여과됨' : '여과 안 됨'} ${p === r ? '○' : '×'}</td>`;
+    return `<tr><th style="text-align:left"><span class="sw" style="background:${T.col}"></span>${T.name}</th><td><button class="btn ${p === true ? 'on' : ''}" data-p="${T.id}" data-v="1" type="button">된다</button> <button class="btn ${p === false ? 'on' : ''}" data-p="${T.id}" data-v="0" type="button">안 된다</button></td>${res}</tr>`; }).join('');
+  $$('[data-p]').forEach(b => b.onclick = () => { S.pred[b.dataset.p] = b.dataset.v === '1'; predUI(); });
+}
+/* ---------------- 노폐물·배설 경로 ---------------- */
+const WASTE = { cf: '<span class="chip">탄수화물·지방</span>→<span class="chip w">이산화 탄소</span>+<span class="chip w">물</span><span class="lbl">이산화 탄소는 날숨으로, 물은 날숨과 오줌으로 나간다.</span>',
+  pr: '<span class="chip">단백질</span>→<span class="chip w">이산화 탄소</span>+<span class="chip w">물</span>+<span class="chip a">암모니아</span>→<span class="chip">간</span>→<span class="chip u">요소</span>→<span class="chip">콩팥</span>→<span class="chip o">오줌</span><span class="lbl">독성이 강한 암모니아는 간에서 독성이 약한 요소로 바뀐다.</span>' };
+$$('[data-n]').forEach(b => b.onclick = () => { $$('[data-n]').forEach(x => x.classList.toggle('on', x === b)); $('#waste').innerHTML = WASTE[b.dataset.n]; });
+const ROUTE = ['콩팥', '오줌관', '방광', '요도'], RINFO = ['콩팥: 혈액 속 노폐물을 걸러 오줌을 만든다', '오줌관: 오줌이 방광으로 이동하는 관', '방광: 오줌을 저장한다', '요도: 오줌이 몸 밖으로 나가는 통로'];
+function routeUI() {
+  const order = ['방광', '요도', '콩팥', '오줌관'];
+  $('#route').innerHTML = order.map(n => `<button class="chip ${S.route.includes(n) ? 'done' : ''}" data-r="${n}" type="button" ${S.route.includes(n) ? 'disabled' : ''}>${n}</button>`).join('');
+  $('#routeDone').innerHTML = S.route.length ? S.route.map((n, i) => `<span class="chip o">${i + 1}. ${n}</span>`).join('→') + (S.route.length === 4 ? '<span class="lbl">→ 몸 밖 · 완성! 🎉</span>' : `<span class="lbl">${RINFO[S.route.length - 1]}</span>`) : '<span class="lbl">오줌이 만들어지는 곳부터 차례로 눌러 보세요.</span>';
+  $$('[data-r]').forEach(b => b.onclick = () => { if (b.dataset.r === ROUTE[S.route.length]) { S.route.push(b.dataset.r); routeUI(); } else { b.classList.add('bad'); setTimeout(() => b.classList.remove('bad'), 350); } });
+}
+/* ---------------- 조작 ---------------- */
+function ui() { $$('[data-sc]').forEach(b => { b.classList.toggle('on', b.dataset.sc === S.scn); b.disabled = S.measuring; }); $('#measBtn').disabled = S.measuring; $('#measBtn').textContent = S.done ? '▶ 다시 측정' : '▶ 측정 시작'; $('#fastBtn').classList.toggle('on', S.fast); }
+function startMeasure() { S.parts = []; S.cnt = zero(); S.queue = makeBatch(S.scn, 7); S.measuring = true; S.done = false; S.spawnT = 0; say(`<b>${SCN[S.scn]}</b>: 물질 120개가 들어온다. 여과 → 재흡수 → 분비를 거쳐 어디로 나가는지 표에서 확인하세요.`); table(); ui(); }
+$$('[data-sc]').forEach(b => b.onclick = () => { S.scn = b.dataset.sc; S.done = false; S.parts = []; S.queue = []; S.cnt = zero(); say(`콩팥의 상태를 <b>${SCN[S.scn]}</b>(으)로 바꾸었다. ▶ 측정 시작을 눌러 오줌의 성분을 건강한 콩팥과 비교해 보세요.`); table(); ui(); });
+$('#measBtn').onclick = startMeasure;
+$('#fastBtn').onclick = () => { S.fast = !S.fast; ui(); };
+$('#resetBtn').onclick = () => { S = newState(); say('혈액이 네프론을 지나고 있다. ▶ 측정 시작을 누르면 혈액 속 물질 120개가 어디로 가는지 센다.'); $('#waste').innerHTML = '<span class="lbl">세포에서 영양소를 분해해 에너지를 얻을 때 노폐물이 생긴다.</span>'; $$('[data-n]').forEach(x => x.classList.remove('on')); table(); predUI(); routeUI(); ui(); };
+let last = performance.now(), tick = 0;
+function loop(ts) { let dt = Math.min(0.1, (ts - last) / 1000) * (S.fast ? 4 : 1); last = ts; while (dt > 1e-6) { const d = Math.min(0.03, dt); step(d); dt -= d; } draw(); if (S.measuring && ++tick % 6 === 0) table(); requestAnimationFrame(loop); }
+S = newState(); table(); predUI(); routeUI(); ui(); requestAnimationFrame(loop);
+// 테스트용: 한 묶음을 끝까지 측정
+window.__measure = scn => { S.scn = scn; startMeasure(); let n = 0; while (S.measuring && n++ < 200000) step(0.03); const o = {}; ['filt', 'reab', 'sec', 'urine', 'vein'].forEach(k => o[k] = TYPES.map(T => S.cnt[k][T.id]).join(',')); return o; };
+</script>
+</body>
+</html>

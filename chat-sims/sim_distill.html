@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<!-- 단원ID: distill · 2. 혼합물의 분리 > 02 끓는점 차를 이용한 분리(증류) · 활동 1개: 물과 에탄올 혼합물 가열하기 -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>증류 실험실 — 물과 에탄올 혼합물 분리하기</title>
+<style>
+:root{--bg:#f3f6f8;--card:#fff;--ink:#1f2a30;--muted:#5f6f76;--line:#d9e2e6;--accent:#e2702a;--accent-d:#b9541a;--accent-l:#fdeee3;--blue:#2f7fd1;--red:#e8455a;--green:#2fae84}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+header{background:linear-gradient(120deg,#e2702a,#e8a33a);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:20px;margin:0;font-weight:900}
+header .sub{font-size:13px;opacity:.92}
+header .sp{flex:1}
+header button{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+main{padding:10px 12px 24px;max-width:1300px;margin:0 auto}
+.intro{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:10px;padding:8px 14px;margin-bottom:10px;font-size:14px;line-height:1.55}
+.intro b{color:var(--accent-d)}
+.grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(300px,1fr);gap:10px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}
+.card h3{margin:0 4px 8px;font-size:15px;color:var(--accent-d)}
+canvas{width:100%;display:block;border-radius:8px;touch-action:none}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0}
+.btn{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;padding:8px 12px;cursor:pointer;min-height:38px}
+.btn:hover{border-color:var(--accent);color:var(--accent-d)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.blue{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn.on{background:var(--accent-l);border-color:var(--accent);color:var(--accent-d)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.lbl{font-size:13px;color:var(--muted)}
+input[type=range]{flex:1;min-width:140px;accent-color:var(--accent)}
+.ro{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:8px}
+.ro div{background:#1d2a30;color:#ffd9a8;border-radius:9px;padding:6px 10px}
+.ro .k{font-size:12px;color:#a9bcc3}
+.ro .v{font-size:22px;font-weight:900}
+.ro .v small{font-size:13px;font-weight:500;color:#e8d9c8;margin-left:2px}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{border:1px solid var(--line);padding:5px 6px;text-align:center}
+th{background:var(--accent-l);color:var(--accent-d)}
+tr.cur td{background:#fff8e6;font-weight:700}
+.note{font-size:12.5px;color:var(--muted);line-height:1.55;margin:6px 4px 0}
+.status{display:inline-block;padding:3px 10px;border-radius:99px;font-size:13px;font-weight:700;background:#eef2f4;color:var(--muted)}
+.status.boil{background:#ffe3d0;color:#b9541a}
+.status.heat{background:#fff2c4;color:#8a6a00}
+.msg{min-height:20px;font-size:13.5px;color:var(--accent-d);font-weight:700;margin:4px 4px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>증류 실험실</h1><span class="sub">끓는점 차를 이용한 분리 · 물과 에탄올 혼합물</span>
+  <span class="sp"></span><button id="resetBtn" type="button">↺ 초기화</button>
+</header>
+<main>
+  <div class="intro">① 에탄올 비율을 정하고 <b>[가열 시작]</b>을 누른다. ② 온도 변화 그래프를 보며, 기체가 냉각되어 모이는 시험관을 <b>[받는 시험관 바꾸기]</b>로 바꾸어 가며 모은다. ③ 표에서 각 시험관에 모인 액체의 에탄올 비율을 비교한다.</div>
+  <div class="grid">
+    <div>
+      <div class="card">
+        <canvas id="app" width="720" height="420" aria-label="물과 에탄올 혼합물을 가열하는 장치"></canvas>
+        <div class="row"><span class="lbl">혼합물 20 mL 중 에탄올 비율</span>
+          <input id="fr" type="range" min="10" max="90" step="10" value="50"><b id="frv" style="min-width:52px">50 %</b></div>
+        <div class="row">
+          <button class="btn pri" id="heatBtn" type="button">🔥 가열 시작</button>
+          <button class="btn blue" id="tubeBtn" type="button">🧪 받는 시험관 바꾸기</button>
+          <span class="lbl" style="margin-left:6px">속도</span>
+          <button class="btn sp" data-s="1" type="button">×1</button><button class="btn sp" data-s="10" type="button">×10</button><button class="btn sp on" data-s="30" type="button">×30</button><button class="btn sp" data-s="60" type="button">×60</button>
+        </div>
+        <div class="msg" id="msg"></div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="ro">
+          <div><div class="k">가열 시간</div><div class="v" id="vt">0:00<small>분:초</small></div></div>
+          <div><div class="k">혼합물의 온도</div><div class="v" id="vT">20.0<small>℃</small></div></div>
+          <div><div class="k">남은 혼합물</div><div class="v" id="vV">20.0<small>mL</small></div></div>
+          <div><div class="k">남은 혼합물의 에탄올 비율</div><div class="v" id="vX">50<small>%</small></div></div>
+        </div>
+        <div class="row" style="margin:0 2px 6px">상태 <span class="status" id="st">가열 전</span> <span class="lbl" id="boilAt"></span></div>
+        <canvas id="graph" width="460" height="250" aria-label="가열 시간에 따른 온도 그래프"></canvas>
+      </div>
+      <div class="card">
+        <h3>시험관에 모은 액체</h3>
+        <table><thead><tr><th>시험관</th><th>모은 부피(mL)</th><th>에탄올 비율(%)</th><th>모으는 동안 온도(℃)</th></tr></thead><tbody id="tb"></tbody></table>
+        <p class="note"><b>모델의 한계</b> · 1기압 물–에탄올 기체·액체 평형 자료로 계산한 단순 증류이다. 끓어 나온 기체는 모두 냉각되어 시험관에 모인다고 보았고, 열 손실과 섞일 때의 부피 변화는 무시하였다. 가열을 멈추면 시간과 온도도 그대로 멈춘다. 실제 실험에서는 온도계 위치와 가열 세기에 따라 값이 조금 다르다.</p>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+/* ================================================================
+   증류 모형 (단순 증류, 1기압)
+   - 액체 혼합물의 끓기 시작 온도 Tb(x)와 그때 나오는 기체의 에탄올 몰분율 y(x):
+     물–에탄올 기체·액체 평형 자료(Perry's Chemical Engineers' Handbook, 1 atm) 직선 보간
+     x: 액체 속 에탄올 몰분율, y: 기체 속 에탄올 몰분율, T(℃)
+   - 가열: 받은 열 Q = P·Δt (P = 20 W, 열 손실 무시)
+       끓기 전: ΔT = Q / C,  C = m(에탄올)·2.44 + m(물)·4.18 + 15(유리 장치) [J/K]
+       끓는 동안: 증발하는 양 Δn = Q / L,  L = x·38.6 + (1−x)·40.65 [kJ/mol] (기화열)
+                 기체 속 에탄올 = y·Δn, 물 = (1−y)·Δn → 냉각되어 받는 시험관에 모임
+   - 밀도: 에탄올 0.789 g/mL, 물 1.00 g/mL / 몰질량: 에탄올 46.07, 물 18.02 g/mol
+   - 검산(에탄올 50 %): 끓기 시작 82.7 ℃, 80 % → 79.5 ℃, 20 % → 89.1 ℃, 물만 남으면 100 ℃
+   ================================================================ */
+const VLE = [[0,0,100],[0.019,0.170,95.5],[0.0721,0.3891,89.0],[0.0966,0.4375,86.7],[0.1238,0.4704,85.3],[0.1661,0.5089,84.1],[0.2337,0.5445,82.7],[0.2608,0.5580,82.3],[0.3273,0.5826,81.5],[0.3965,0.6122,80.7],[0.5079,0.6564,79.8],[0.5732,0.6841,79.3],[0.6763,0.7385,78.74],[0.7472,0.7815,78.41],[0.8943,0.8943,78.15],[1,1,78.3]];
+function vle(x, c) {
+  x = Math.max(0, Math.min(1, x));
+  for (let i = 1; i < VLE.length; i++) if (x <= VLE[i][0]) { const a = VLE[i-1], b = VLE[i], k = (x - a[0]) / (b[0] - a[0]); return a[c] + (b[c] - a[c]) * k; }
+  return VLE[VLE.length-1][c];
+}
+const ME = 46.07, MW = 18.02, RE = 0.789, RW = 1.0, LE = 38600, LW = 40650, CE = 2.44, CW = 4.18, CAPP = 15, POWER = 20, V0 = 20, ROOM = 20;
+const MAX_TUBES = 5;
+const $ = s => document.querySelector(s);
+let S, speed = 30, lastTs = 0, running = false;
+
+function newState() {
+  const f = +$('#fr').value / 100;
+  return { f, nE: V0 * f * RE / ME, nW: V0 * (1 - f) * RW / MW, T: ROOM, t: 0, heating: false, boiling: false, boilT: null, done: false,
+    tubes: [{ e: 0, w: 0, tmin: null, tmax: null }], cur: 0, pts: [[0, ROOM]], bubbles: [], drops: [], flow: 0 };
+}
+const volE = n => n * ME / RE, volW = n => n * MW / RW;
+const liqVol = () => volE(S.nE) + volW(S.nW);
+const xNow = () => (S.nE + S.nW) > 0 ? S.nE / (S.nE + S.nW) : 0;
+function ethPct(e, w) { const ve = volE(e), vw = volW(w); return ve + vw > 0 ? 100 * ve / (ve + vw) : 0; }
+
+/* 한 단계 계산(dt초) */
+function step(dt) {
+  const x = xNow(), Tb = vle(x, 2), C = S.nE * ME * CE + S.nW * MW * CW + CAPP;
+  let Q = POWER * dt;
+  if (S.T < Tb) { const d = Q / C; if (S.T + d <= Tb) { S.T += d; Q = 0; } else { Q -= (Tb - S.T) * C; S.T = Tb; } }
+  S.boiling = Q > 0;
+  if (Q > 0) {
+    if (S.boilT === null) S.boilT = S.T;
+    const L = x * LE + (1 - x) * LW, dn = Q / L, y = vle(x, 1);
+    const de = Math.min(S.nE, y * dn), dw = Math.min(S.nW, dn - de);
+    S.nE -= de; S.nW -= dw;
+    const tb = S.tubes[S.cur]; tb.e += de; tb.w += dw;
+    tb.tmin = tb.tmin === null ? S.T : Math.min(tb.tmin, S.T); tb.tmax = tb.tmax === null ? S.T : Math.max(tb.tmax, S.T);
+  }
+  S.t += dt;
+  if (liqVol() < 1.5) { S.heating = false; S.boiling = false; S.done = true; say('남은 혼합물이 거의 없어 가열을 멈췄어요. (빈 시험관 가열은 위험해요)'); updateButtons(); }
+}
+
+function loop(ts) {
+  const real = Math.min(0.1, (ts - lastTs) / 1000 || 0); lastTs = ts;
+  if (S.heating) {   // 가열을 멈추면 시간과 온도도 그대로 멈춘다(관찰용)
+    let sim = real * speed; const h = 0.1;
+    while (sim > 0 && S.heating) { const d = Math.min(h, sim); step(d); sim -= d; }
+    const lp = S.pts[S.pts.length - 1];
+    if (S.heating && S.t - lp[0] >= 5) S.pts.push([S.t, S.T]);
+  }
+  animate(real);
+  drawApp(); drawGraph(); updateReadouts();
+  if (!S.heating) S.boiling = false;
+  running = S.heating || S.drops.length > 0 || S.bubbles.length > 0;
+  if (running) requestAnimationFrame(loop); else { drawApp(); }
+}
+function kick() { if (!running) { running = true; lastTs = performance.now(); requestAnimationFrame(loop); } }
+
+/* ---------- 그림 ---------- */
+const app = $('#app'), gx = app.getContext('2d');
+const graph = $('#graph'), gg = graph.getContext('2d');
+function fitCanvas(c, ctx, w, h) { const r = Math.min(2, window.devicePixelRatio || 1); c.width = w * r; c.height = h * r; ctx.setTransform(r, 0, 0, r, 0, 0); }
+fitCanvas(app, gx, 720, 420); fitCanvas(graph, gg, 460, 250);
+
+const TUBE = { cx: 440, top: 60, bot: 330, w: 36 };      // 가지 달린 시험관
+const RCV = { cx: 150, top: 205, bot: 372, w: 30 };      // 받는 시험관
+function liquidTop(vol, tube, cap) { const h = (tube.bot - tube.top - 40) * Math.min(1, vol / cap); return tube.bot - h; }
+
+function animate(dt) {
+  const k = Math.min(1, dt * 3);
+  // 끓을 때 기포
+  if (S.boiling && Math.random() < 0.9) for (let i = 0; i < 2; i++) S.bubbles.push({ x: TUBE.cx + (Math.random() - .5) * (TUBE.w - 12), y: TUBE.bot - 6, r: 1.5 + Math.random() * 3 });
+  const lt = liquidTop(liqVol(), TUBE, 30);
+  S.bubbles.forEach(b => { b.y -= 60 * dt * (1 + b.r / 3); b.r += dt * 1.2; });
+  S.bubbles = S.bubbles.filter(b => b.y > lt + 2);
+  if (S.bubbles.length > 60) S.bubbles.splice(0, S.bubbles.length - 60);
+  // 시험관으로 떨어지는 방울
+  if (S.boiling) { S.flow += dt * Math.min(4, speed / 10 + 1); if (S.flow > 0.6) { S.flow = 0; S.drops.push({ y: RCV.top + 4 }); } }
+  const rl = liquidTop(volE(S.tubes[S.cur].e) + volW(S.tubes[S.cur].w), RCV, 10);
+  S.drops.forEach(d => d.y += 120 * dt); S.drops = S.drops.filter(d => d.y < rl);
+}
+
+function drawApp() {
+  const c = gx; c.clearRect(0, 0, 720, 420);
+  c.fillStyle = '#f7fafb'; c.fillRect(0, 0, 720, 420);
+  c.fillStyle = '#d8dfe3'; c.fillRect(0, 392, 720, 28);            // 실험대
+  // 스탠드
+  c.fillStyle = '#4b555b'; c.fillRect(600, 30, 8, 362); c.fillRect(560, 384, 90, 10);
+  c.fillRect(TUBE.cx + 20, 134, 600 - TUBE.cx - 20, 6);
+  c.fillStyle = '#2f62b6'; c.fillRect(TUBE.cx - 24, 128, 48, 18);   // 집게
+  // 가열 장치
+  c.fillStyle = '#c9d0d4'; c.fillRect(330, 336, 220, 16); c.fillStyle = '#9aa5ab'; c.fillRect(340, 352, 200, 40);
+  c.fillStyle = S.heating ? '#ff7a2f' : '#7c878d'; c.beginPath(); c.arc(370, 372, 9, 0, 7); c.fill();
+  c.fillStyle = '#fff'; c.font = '12px sans-serif'; c.fillText(S.heating ? '가열 중' : '가열 장치', 392, 377);
+  if (S.heating) { c.fillStyle = 'rgba(255,120,40,.35)'; c.fillRect(TUBE.cx - 30, 326, 60, 10); }
+  // 가지 달린 시험관 속 액체
+  const x = xNow(), lt = liquidTop(liqVol(), TUBE, 30);
+  c.save(); tubePath(c, TUBE); c.clip();
+  c.fillStyle = `rgba(${Math.round(150 + 80 * x)},${Math.round(200 - 20 * x)},255,.55)`; c.fillRect(TUBE.cx - 30, lt, 60, TUBE.bot - lt + 20);
+  c.fillStyle = 'rgba(255,255,255,.8)'; S.bubbles.forEach(b => { c.beginPath(); c.arc(b.x, b.y, b.r, 0, 7); c.fill(); });
+  c.fillStyle = '#fff'; for (let i = 0; i < 4; i++) { c.beginPath(); c.arc(TUBE.cx - 10 + i * 7, TUBE.bot - 6 - (i % 2) * 3, 2.6, 0, 7); c.fill(); }   // 끓임쪽
+  if (S.boiling) { c.fillStyle = 'rgba(255,255,255,.35)'; c.fillRect(TUBE.cx - 20, TUBE.top, 40, lt - TUBE.top); }
+  c.restore();
+  c.strokeStyle = '#7f9aa6'; c.lineWidth = 2.2; tubePath(c, TUBE); c.stroke();
+  // 가지와 고무관
+  c.strokeStyle = '#7f9aa6'; c.lineWidth = 8; c.beginPath(); c.moveTo(TUBE.cx - TUBE.w / 2, 104); c.lineTo(TUBE.cx - 62, 118); c.stroke();
+  c.strokeStyle = '#e3b56a'; c.lineWidth = 9; c.lineCap = 'round'; c.beginPath(); c.moveTo(TUBE.cx - 60, 118); c.bezierCurveTo(260, 130, 200, 150, RCV.cx + 4, RCV.top - 30); c.lineTo(RCV.cx + 2, RCV.top + 30); c.stroke();
+  if (S.boiling) { c.strokeStyle = 'rgba(255,255,255,.95)'; c.lineWidth = 3; c.setLineDash([6, 10]); c.lineDashOffset = -performance.now() / 30; c.beginPath(); c.moveTo(TUBE.cx - 60, 118); c.bezierCurveTo(260, 130, 200, 150, RCV.cx + 4, RCV.top - 30); c.lineTo(RCV.cx + 2, RCV.top + 30); c.stroke(); c.setLineDash([]); }
+  c.lineCap = 'butt';
+  // 마개와 온도계
+  c.fillStyle = '#333'; c.fillRect(TUBE.cx - 15, TUBE.top - 12, 30, 16);
+  c.fillStyle = '#eef3f5'; c.strokeStyle = '#8aa'; c.lineWidth = 1.5; c.fillRect(TUBE.cx - 4, 22, 8, TUBE.bot - 30 - 22); c.strokeRect(TUBE.cx - 4, 22, 8, TUBE.bot - 30 - 22);
+  c.fillStyle = '#e8455a'; c.beginPath(); c.arc(TUBE.cx, TUBE.bot - 30, 5.5, 0, 7); c.fill();
+  const colH = 40 + (TUBE.bot - 30 - 62) * Math.min(1, (S.T - 0) / 110);
+  c.fillRect(TUBE.cx - 1.8, TUBE.bot - 30 - colH, 3.6, colH);
+  // 디지털 온도 표시
+  c.fillStyle = '#1d2a30'; roundRect(c, 476, 30, 112, 44, 8); c.fill();
+  c.fillStyle = '#ffd9a8'; c.font = 'bold 24px sans-serif'; c.textAlign = 'right'; c.fillText(S.T.toFixed(1) + ' ℃', 580, 61); c.textAlign = 'left';
+  c.strokeStyle = '#1d2a30'; c.lineWidth = 1; c.beginPath(); c.moveTo(476, 52); c.lineTo(TUBE.cx + 5, 52); c.stroke();
+  // 받는 시험관(찬물 비커 속)
+  c.fillStyle = 'rgba(160,210,240,.35)'; c.fillRect(70, 290, 160, 100); c.strokeStyle = '#8fb3c4'; c.lineWidth = 2; c.strokeRect(70, 250, 160, 140);
+  c.fillStyle = '#6b8794'; c.font = '12px sans-serif'; c.fillText('찬물', 78, 306);
+  const tb = S.tubes[S.cur], rv = volE(tb.e) + volW(tb.w), rl = liquidTop(rv, RCV, 10);
+  c.save(); tubePath(c, RCV); c.clip(); c.fillStyle = 'rgba(200,225,255,.95)'; c.fillRect(RCV.cx - 20, rl, 40, RCV.bot - rl + 20); c.restore();
+  c.strokeStyle = '#7f9aa6'; c.lineWidth = 2; tubePath(c, RCV); c.stroke();
+  c.fillStyle = 'rgba(120,170,230,.9)'; S.drops.forEach(d => { c.beginPath(); c.arc(RCV.cx + 2, d.y, 2.6, 0, 7); c.fill(); });
+  c.fillStyle = '#1f2a30'; c.font = 'bold 14px sans-serif'; c.fillText('시험관 ' + (S.cur + 1), RCV.cx - 26, 196);
+  c.font = '13px sans-serif'; c.fillText(rv.toFixed(1) + ' mL', RCV.cx + 22, rl + 4);
+  // 이름표
+  c.fillStyle = '#5f6f76'; c.font = '12.5px sans-serif';
+  c.fillText('가지 달린 시험관', TUBE.cx + 26, 112); c.fillText('물 + 에탄올 혼합물', TUBE.cx + 26, Math.min(TUBE.bot - 24, Math.max(lt + 14, 230))); c.fillText('끓임쪽', TUBE.cx + 26, TUBE.bot - 2);
+  c.fillText('고무관', 262, 150);
+}
+function tubePath(c, t) { const r = t.w / 2; c.beginPath(); c.moveTo(t.cx - r, t.top); c.lineTo(t.cx - r, t.bot - r); c.arc(t.cx, t.bot - r, r, Math.PI, 0, true); c.lineTo(t.cx + r, t.top); }
+function roundRect(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+
+function drawGraph() {
+  const c = gg, W = 460, H = 250, L = 44, R = 12, T = 14, B = 34;
+  c.clearRect(0, 0, W, H); c.fillStyle = '#fff'; c.fillRect(0, 0, W, H);
+  const tmax = Math.max(30, Math.ceil(S.t / 60 / 5) * 5), X = m => L + (W - L - R) * m / tmax, Y = v => H - B - (H - T - B) * v / 120;
+  c.strokeStyle = '#e8eef0'; c.lineWidth = 1; c.fillStyle = '#5f6f76'; c.font = '11px sans-serif';
+  for (let v = 0; v <= 120; v += 20) { c.beginPath(); c.moveTo(L, Y(v)); c.lineTo(W - R, Y(v)); c.stroke(); c.fillText(v, L - 26, Y(v) + 4); }
+  for (let m = 0; m <= tmax; m += 5) { c.beginPath(); c.moveTo(X(m), T); c.lineTo(X(m), H - B); c.stroke(); c.fillText(m, X(m) - 4, H - B + 15); }
+  c.setLineDash([4, 4]);
+  [[78, '에탄올의 끓는점 78 ℃', '#c77d2a'], [100, '물의 끓는점 100 ℃', '#2f7fd1']].forEach(([v, s, col]) => { c.strokeStyle = col; c.beginPath(); c.moveTo(L, Y(v)); c.lineTo(W - R, Y(v)); c.stroke(); c.fillStyle = col; c.fillText(s, W - R - c.measureText(s).width - 2, Y(v) - 4); });
+  c.setLineDash([]);
+  c.fillStyle = '#5f6f76'; c.fillText('온도(℃)', 4, 10); c.fillText('가열 시간(분)', W - R - 70, H - 4);
+  c.strokeStyle = '#e8455a'; c.lineWidth = 2.4; c.beginPath();
+  const pts = S.pts.concat([[S.t, S.T]]); pts.forEach((p, i) => { const px = X(p[0] / 60), py = Y(p[1]); i ? c.lineTo(px, py) : c.moveTo(px, py); }); c.stroke();
+  if (S.boilT !== null) { const bp = S.pts.find(p => p[1] >= S.boilT - 0.05); if (bp) { c.fillStyle = '#b9541a'; c.beginPath(); c.arc(X(bp[0] / 60), Y(bp[1]), 4, 0, 7); c.fill(); } }
+}
+
+/* ---------- 화면 갱신 ---------- */
+function mmss(s) { s = Math.floor(s); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
+let lastTable = '';
+function updateReadouts() {
+  $('#vt').innerHTML = mmss(S.t) + '<small>분:초</small>';
+  $('#vT').innerHTML = S.T.toFixed(1) + '<small>℃</small>';
+  $('#vV').innerHTML = liqVol().toFixed(1) + '<small>mL</small>';
+  $('#vX').innerHTML = ethPct(S.nE, S.nW).toFixed(0) + '<small>%</small>';
+  const st = $('#st');
+  if (S.boiling) { st.textContent = '끓는 중'; st.className = 'status boil'; }
+  else if (S.heating) { st.textContent = '가열 중'; st.className = 'status heat'; }
+  else { st.textContent = S.done ? '실험 끝' : (S.t > 0 ? '가열 멈춤' : '가열 전'); st.className = 'status'; }
+  $('#boilAt').textContent = S.boilT !== null ? '끓기 시작한 온도 ' + S.boilT.toFixed(1) + ' ℃' : '';
+  const rows = S.tubes.map((tb, i) => {
+    const v = volE(tb.e) + volW(tb.w);
+    return `<tr class="${i === S.cur ? 'cur' : ''}"><td>${i + 1}${i === S.cur ? ' (받는 중)' : ''}</td><td>${v.toFixed(1)}</td><td>${v > 0.05 ? ethPct(tb.e, tb.w).toFixed(0) : '–'}</td><td>${tb.tmin === null ? '–' : tb.tmin.toFixed(1) + ' ~ ' + tb.tmax.toFixed(1)}</td></tr>`;
+  }).join('');
+  if (rows !== lastTable) { $('#tb').innerHTML = rows; lastTable = rows; }
+}
+function updateButtons() {
+  $('#heatBtn').textContent = S.heating ? '⏸ 가열 멈추기' : (S.t > 0 && !S.done ? '🔥 가열 계속' : '🔥 가열 시작');
+  $('#heatBtn').disabled = S.done;
+  $('#tubeBtn').disabled = S.done || S.tubes.length >= MAX_TUBES;
+  $('#fr').disabled = S.t > 0;
+}
+let msgTimer = null;
+function say(s) { $('#msg').textContent = s; clearTimeout(msgTimer); msgTimer = setTimeout(() => $('#msg').textContent = '', 5000); }
+
+$('#fr').addEventListener('input', () => { $('#frv').textContent = $('#fr').value + ' %'; S = newState(); lastTable = ''; drawApp(); drawGraph(); updateReadouts(); });
+$('#heatBtn').addEventListener('click', () => { S.heating = !S.heating; updateButtons(); kick(); });
+$('#tubeBtn').addEventListener('click', () => {
+  const tb = S.tubes[S.cur]; if (volE(tb.e) + volW(tb.w) < 0.05) { say('지금 시험관에 아직 모인 액체가 없어요.'); return; }
+  S.tubes.push({ e: 0, w: 0, tmin: null, tmax: null }); S.cur = S.tubes.length - 1; S.drops = [];
+  say('시험관 ' + (S.cur + 1) + '에 받기 시작해요.'); updateButtons(); updateReadouts(); drawApp();
+});
+document.querySelectorAll('.btn.sp').forEach(b => b.addEventListener('click', () => { speed = +b.dataset.s; document.querySelectorAll('.btn.sp').forEach(o => o.classList.toggle('on', o === b)); }));
+$('#resetBtn').addEventListener('click', () => { S = newState(); lastTable = ''; updateButtons(); drawApp(); drawGraph(); updateReadouts(); say('처음 상태로 돌렸어요.'); });
+
+S = newState(); updateButtons(); drawApp(); drawGraph(); updateReadouts();
+</script>
+</body>
+</html>

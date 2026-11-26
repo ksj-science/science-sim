@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<!-- 단원ID: induction · 중2 Ⅶ. 전기와 자기 > 1. 전기의 발생 > 02 정전기 유도(232~233쪽) · 활동 1개: 마찰하지 않고 금속 구(깡통)를 대전하기 -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>정전기 유도 실험실</title>
+<style>
+:root{--bg:#eff7f5;--card:#fff;--ink:#17292a;--muted:#587072;--line:#d3e5e2;--accent:#1a9a8b;--accent-d:#116e63;--accent-l:#dff4f0;--pos:#e0453f;--neg:#2f73d9}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+header{background:linear-gradient(120deg,#1a9a8b,#2f73d9 60%,#7a55c0);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:20px;margin:0;font-weight:900}
+header .sub{font-size:13px;opacity:.95}
+header .sp{flex:1}
+header button{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+main{padding:10px 12px 24px;max-width:1320px;margin:0 auto}
+.intro{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:10px;padding:8px 14px;margin-bottom:10px;font-size:14px;line-height:1.55}
+.intro b{color:var(--accent-d)}
+.grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(320px,1fr);gap:10px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:10px}
+.card h3{margin:0 2px 8px;font-size:15px;color:var(--accent-d)}
+canvas{width:100%;display:block;border-radius:10px;touch-action:none}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0}
+.lbl{font-size:13px;color:var(--muted)}
+.btn{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:9px;padding:7px 11px;cursor:pointer;min-height:38px}
+.btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent-d)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.on{background:var(--accent-l);border-color:var(--accent);color:var(--accent-d)}
+input[type=range]{flex:1;min-width:160px;accent-color:var(--accent)}
+.ro{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px}
+.ro div{background:#132a2b;color:#d3efea;border-radius:10px;padding:6px 8px}
+.ro .k{font-size:11.5px;color:#9cc2bd}
+.ro .v{font-size:17px;font-weight:900;line-height:1.3}
+.msg{background:#f5fbfa;border:1px dashed #9fd2c9;border-radius:10px;padding:8px 11px;font-size:14.5px;line-height:1.55;margin-top:8px;min-height:64px}
+.pred{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pred .side{border:1px solid var(--line);border-radius:10px;padding:8px;text-align:center}
+.pred .side b{display:block;margin-bottom:6px;font-size:13.5px}
+.pred .btn{min-width:64px}
+.pred .btn.ok{background:#e6f6ee;border-color:#9fd8bb;color:#14653f}
+.pred .btn.no{background:#fdeceb;border-color:#f0aaa3;color:#b3312a}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{border:1px solid var(--line);padding:4px 6px;text-align:center}
+th{background:#eaf6f3;color:var(--accent-d)}
+.p{color:var(--pos);font-weight:900}.n{color:var(--neg);font-weight:900}
+.note{font-size:12.5px;color:var(--muted);line-height:1.55;margin:6px 2px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>정전기 유도 실험실</h1><span class="sub">마찰하지 않고 금속을 대전하기 · 자유 전자의 이동 · 전기력</span>
+  <span class="sp"></span><button id="resetBtn" type="button">↺ 초기화</button>
+</header>
+<main>
+  <div class="intro">대전체를 고르고, 막대를 <b>끌거나 아래 막대로 움직여</b> 금속에 가까이 가져가 보세요. 금속 속에서 <b>무엇이</b>, <b>어느 쪽으로</b> 움직이는지 관찰하세요. 막대와 금속이 서로 닿지 않게 해요. 먼저 오른쪽에서 결과를 <b>예상</b>해 보면 더 재미있어요!</div>
+  <div class="grid">
+    <div class="card">
+      <div class="row" style="margin-top:0"><span class="lbl">금속</span><button class="btn" data-m="ball" type="button">⚪ 실에 매단 금속 구</button><button class="btn" data-m="can" type="button">🥫 눕혀 놓은 알루미늄 깡통</button></div>
+      <div class="row"><span class="lbl">대전체</span>
+        <button class="btn" data-r="straw" type="button">빨대 (털가죽으로 문지름)</button>
+        <button class="btn" data-r="glass" type="button">유리 막대 (명주로 문지름)</button>
+        <button class="btn" data-r="plain" type="button">문지르지 않은 빨대</button>
+      </div>
+      <canvas id="app" width="760" height="380" aria-label="금속 구 또는 깡통과 대전체 막대. 금속 속 전자의 이동을 보여 준다."></canvas>
+      <div class="row"><span class="lbl">막대까지의 거리</span><span class="lbl">가까이 3 cm</span><input id="dist" type="range" min="3" max="10" step="0.5" value="10" aria-label="대전체와 금속 사이의 거리"><span class="lbl">10 cm 멀리</span>
+        <button class="btn" id="showBtn" type="button">전자만 보기</button></div>
+      <div class="ro">
+        <div><div class="k">대전체와 금속 사이 거리</div><div class="v" id="vD">–</div></div>
+        <div><div class="k">이동한 전자 수</div><div class="v" id="vN">0개</div></div>
+        <div><div class="k">가까운 쪽 / 먼 쪽</div><div class="v" id="vSide">중성 / 중성</div></div>
+        <div><div class="k" id="vAngK">실이 기울어진 각도</div><div class="v" id="vAng">0°</div></div>
+      </div>
+      <div class="msg" id="msg"></div>
+    </div>
+    <div>
+      <div class="card">
+        <h3>예상하기: 대전체에 가까운 쪽과 먼 쪽은 무슨 전하를 띨까?</h3>
+        <div class="lbl" id="predQ" style="margin-bottom:6px"></div>
+        <div class="pred">
+          <div class="side"><b>대전체에 가까운 쪽</b><button class="btn" data-pn="near" data-v="1" type="button">(+)</button> <button class="btn" data-pn="near" data-v="-1" type="button">(−)</button> <button class="btn" data-pn="near" data-v="0" type="button">중성</button></div>
+          <div class="side"><b>대전체에서 먼 쪽</b><button class="btn" data-pn="far" data-v="1" type="button">(+)</button> <button class="btn" data-pn="far" data-v="-1" type="button">(−)</button> <button class="btn" data-pn="far" data-v="0" type="button">중성</button></div>
+        </div>
+        <div class="lbl" id="predR" style="margin-top:6px">예상을 고른 뒤 막대를 3 cm까지 가까이 가져가면 정답이 표시돼요.</div>
+      </div>
+      <div class="card">
+        <h3>관찰 기록 (막대를 3 cm까지 가져가면 자동 기록)</h3>
+        <table><thead><tr><th>대전체</th><th>전자의 이동</th><th>가까운 쪽</th><th>먼 쪽</th><th>금속의 움직임</th></tr></thead><tbody id="log"></tbody></table>
+      </div>
+      <div class="card">
+        <h3>거리에 따른 변화 그래프</h3>
+        <canvas id="graph" width="420" height="170" aria-label="거리에 따른 이동한 전자 수 그래프"></canvas>
+        <p class="note"><b>모델의 한계</b> · 금속 구 속 원자핵(+) 16개와 자유 전자 16개만 그렸다. 이동하는 전자 수는 n = 48 ÷ (거리 cm)² 을 반올림한 값(최대 8개)으로, 실 각도는 tan θ = n² ÷ 250 으로 단순화했다. 금속이 끌려와 거리가 조금 줄어드는 효과는 무시했다. 실제로는 아주 가까이 가져가면 금속 구가 막대에 달라붙거나 닿을 수 있다. 금속 전체의 전하는 변하지 않는다(전자가 금속 안에서 자리만 옮긴다).</p>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+/* ================================================================
+   정전기 유도 모형
+   - 금속 속 자유 전자는 움직일 수 있고, 원자핵((+)전하)은 움직이지 않는다
+   - (−)대전체를 가까이: 전자가 대전체에서 먼 쪽으로 이동 → 가까운 쪽 (+), 먼 쪽 (−)
+     (+)대전체를 가까이: 전자가 대전체에 가까운 쪽으로 이동 → 가까운 쪽 (−), 먼 쪽 (+)
+     두 경우 모두 가까운 쪽이 대전체와 다른 종류의 전하를 띠어 금속이 대전체 쪽으로 끌려온다
+   - 이동한 전자 수 n = min(8, round(48 / d²)),  d: 대전체와 금속 사이 거리(cm, 3~10)
+       d = 3 → 5개, 4 → 3개, 5 → 2개, 6~9 → 1개, 10 이상 → 0개
+   - 실에 매단 금속 구: 실이 연직선과 이루는 각 θ, tan θ = n² / 250
+   - 깡통: n ≥ 1이면 대전체 쪽으로 굴러옴 (거리 1 cm에서 멈춤, 닿기 전)
+   - 문지르지 않은 빨대: 전하가 없어 정전기 유도가 일어나지 않음
+   ================================================================ */
+const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
+function fit(cv, w, h) { const r = Math.min(2, window.devicePixelRatio || 1); cv.width = w * r; cv.height = h * r; const x = cv.getContext('2d'); x.setTransform(r, 0, 0, r, 0, 0); return x; }
+const W = 760, H = 380, c = fit($('#app'), W, H), g = fit($('#graph'), 420, 170);
+const PXCM = 22, BX = 300, BY = 210, BR = 72, PIVY = 30, RODQ = { straw: -1, glass: 1, plain: 0 }, RNAME = { straw: '빨대', glass: '유리 막대', plain: '문지르지 않은 빨대' };
+let S;
+function newState() { return { mode: 'ball', rod: 'straw', d: 10, onlyE: false, t: 0, ang: 0, shift: 0, canX: 0, canV: 0, pred: {}, log: {}, drag: null }; }
+const nOf = d => Math.min(8, Math.round(48 / (d * d)));
+const nNow = () => RODQ[S.rod] ? nOf(S.mode === 'can' ? Math.max(1, S.d - S.canX) : S.d) : 0;
+const angTarget = () => Math.atan(nNow() ** 2 / 250);
+// 금속 속 입자 위치(구 기준, 반지름 1 단위)
+const IONS = []; for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) IONS.push([-0.6 + i * 0.4, -0.6 + j * 0.4]);
+const ELS = IONS.map(([x, y], i) => ({ x: x + 0.2 * ((i % 2) ? 1 : -1), y: y + 0.2, ph: i * 1.7 }));
+/* ---------------- 그림 ---------------- */
+function rr(x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+function chg(x, y, sign, s) { s = s || 1; c.fillStyle = sign > 0 ? '#e0453f' : '#2f73d9'; c.strokeStyle = '#fff'; c.lineWidth = 1.4; c.beginPath(); c.arc(x, y, (sign > 0 ? 9 : 6.5) * s, 0, 7); c.fill(); c.stroke(); c.strokeStyle = '#fff'; c.lineWidth = 2 * s; c.beginPath(); c.moveTo(x - 4 * s, y); c.lineTo(x + 4 * s, y); if (sign > 0) { c.moveTo(x, y - 4 * s); c.lineTo(x, y + 4 * s); } c.stroke(); }
+function metalPos() {   // 금속 중심 좌표
+  if (S.mode === 'ball') { const L = BY - PIVY; return [BX + L * Math.sin(S.ang), PIVY + L * Math.cos(S.ang)]; }
+  return [BX + S.canX * PXCM, 270];
+}
+function rodTipX() { return BX + BR + (S.mode === 'can' ? 20 : 0) + S.d * PXCM; }
+function drawMetalBody(cx, cy) {
+  if (S.mode === 'ball') { const gr = c.createRadialGradient(cx - 25, cy - 25, 10, cx, cy, BR); gr.addColorStop(0, '#ffffff'); gr.addColorStop(1, '#b8c2ca'); c.fillStyle = gr; c.beginPath(); c.arc(cx, cy, BR, 0, 7); c.fill(); c.strokeStyle = '#8d99a3'; c.lineWidth = 2; c.stroke(); }
+  else { const gr = c.createLinearGradient(0, cy - BR, 0, cy + BR); gr.addColorStop(0, '#e9eef2'); gr.addColorStop(.5, '#ffffff'); gr.addColorStop(1, '#a9b4bc'); c.fillStyle = gr; rr(cx - BR - 20, cy - BR * .8, (BR + 20) * 2, BR * 1.6, 14); c.fill(); c.strokeStyle = '#8d99a3'; c.lineWidth = 2; c.stroke();
+    c.strokeStyle = 'rgba(140,150,160,.5)'; c.lineWidth = 1; for (let k = -2; k <= 2; k++) { c.beginPath(); c.moveTo(cx - BR - 20, cy + k * 22); c.lineTo(cx + BR + 20, cy + k * 22); c.stroke(); } }
+}
+function draw() {
+  c.clearRect(0, 0, W, H); c.fillStyle = '#f9fcfb'; c.fillRect(0, 0, W, H);
+  const q = RODQ[S.rod], [cx, cy] = metalPos(), sx = S.mode === 'can' ? 1.15 : 1;
+  if (S.mode === 'ball') { // 스탠드와 실
+    c.fillStyle = '#9aa7b0'; c.fillRect(40, 20, 8, 340); c.fillRect(40, 20, 270, 7); c.fillRect(20, 352, 60, 10);
+    c.strokeStyle = '#777'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(BX, PIVY); c.lineTo(cx, cy); c.stroke();
+    c.setLineDash([4, 4]); c.strokeStyle = '#c9d3d1'; c.beginPath(); c.moveTo(BX, PIVY); c.lineTo(BX, BY + BR + 20); c.stroke(); c.setLineDash([]);
+  } else { c.fillStyle = '#d9cbb2'; c.fillRect(0, 270 + BR * .8, W, 60); }
+  drawMetalBody(cx, cy);
+  // 입자
+  const sh = S.shift;   // −1~1: 전자 쏠림(+면 오른쪽=막대 쪽)
+  if (!S.onlyE) IONS.forEach(([x, y]) => chg(cx + x * BR * sx, cy + y * BR * .82, 1, .95));
+  ELS.forEach((e, i) => { const jx = Math.sin(S.t * 2.2 + e.ph) * .06, jy = Math.cos(S.t * 1.9 + e.ph) * .06;
+    // 전자 i의 목표: 정렬 순서(왼→오)로 몇 개를 반대쪽 끝으로 보냄
+    const k = S.order[i], moveN = Math.round(Math.abs(sh) * 8), goes = sh > 0 ? (k < moveN) : (k >= 16 - moveN);   // 반대쪽 끝에 있던 전자부터 옮겨 감
+    const slot = sh > 0 ? k : 15 - k, ty = goes ? (-0.55 + (slot % 4) * 0.37) : e.y, tx = goes ? (sh > 0 ? 1 : -1) * (0.92 * Math.sqrt(1 - ty * ty) - 0.1 - Math.floor(slot / 4) * 0.13) : e.x;
+    e.cx = e.cx ?? e.x; e.cy = e.cy ?? e.y; e.cx += (tx - e.cx) * 0.08; e.cy += (ty - e.cy) * 0.08;
+    chg(cx + (e.cx + jx) * BR * sx, cy + (e.cy + jy) * BR * .82, -1, S.onlyE ? 1.25 : 1); });
+  // 막대(대전체)
+  const tx = rodTipX(), ry = S.mode === 'ball' ? BY : cy;
+  c.save(); c.translate(tx, ry); c.rotate(-0.12);
+  const col = S.rod === 'glass' ? ['#d6e6ee', '#7a9fb3'] : S.rod === 'straw' ? ['#7fd6c2', '#3fa892'] : ['#d9d5e6', '#a29fb8'];
+  c.fillStyle = col[0]; rr(0, -14, 330, 28, 14); c.fill(); c.strokeStyle = col[1]; c.lineWidth = 2; c.stroke();
+  c.fillStyle = 'rgba(255,255,255,.45)'; rr(10, -10, 300, 5, 3); c.fill();
+  if (q) for (let k = 0; k < 6; k++) chg(22 + k * 36, 0, q, .9);
+  c.restore();
+  c.fillStyle = '#f2c9a5'; c.beginPath(); c.ellipse(tx + 316, ry - 40, 26, 20, -.12, 0, 7); c.fill();
+  c.fillStyle = '#17292a'; c.font = 'bold 14px sans-serif'; c.textAlign = 'center'; c.fillText(RNAME[S.rod] + (q > 0 ? ' (+)' : q < 0 ? ' (−)' : ' (중성)'), Math.min(680, tx + 150), ry - 34);
+  // 거리 자
+  const mx = S.mode === 'ball' ? BX + BR : cx + (BR + 20);
+  c.strokeStyle = '#1a9a8b'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(mx, 352); c.lineTo(tx, 352); c.stroke(); [mx, tx].forEach(x => { c.beginPath(); c.moveTo(x, 346); c.lineTo(x, 358); c.stroke(); });
+  c.fillStyle = '#116e63'; c.font = 'bold 13px sans-serif'; c.fillText((S.mode === 'can' ? Math.max(1, S.d - S.canX) : S.d).toFixed(1) + ' cm', (mx + tx) / 2, 372);
+  // 가까운 쪽/먼 쪽 표시
+  const n = nNow(); if (n > 0) { const near = q > 0 ? '(−)' : '(+)', far = q > 0 ? '(+)' : '(−)'; c.font = 'bold 15px sans-serif';
+    c.fillStyle = near === '(+)' ? '#e0453f' : '#2f73d9'; c.fillText(near, cx + BR * sx + 2, cy - BR - 6); c.fillStyle = far === '(+)' ? '#e0453f' : '#2f73d9'; c.fillText(far, cx - BR * sx - 2, cy - BR - 6);
+    c.fillStyle = '#587072'; c.font = '12px sans-serif'; c.fillText('가까운 쪽', cx + BR * sx + 2, cy - BR - 24); c.fillText('먼 쪽', cx - BR * sx - 2, cy - BR - 24); }
+  c.textAlign = 'left';
+  if (S.d >= 9.9 && !S.drag) { c.fillStyle = '#587072'; c.font = '13px sans-serif'; c.fillText('← 막대를 끌어서 금속에 가까이 가져가 보세요', 470, 120); }
+}
+/* ---------------- 그래프 ---------------- */
+function drawGraph() {
+  g.clearRect(0, 0, 420, 170); g.fillStyle = '#fbfdfd'; g.fillRect(0, 0, 420, 170);
+  const x0 = 40, x1 = 405, y0 = 140, y1 = 12, X = d => x0 + (d - 3) / 7 * (x1 - x0), Y = n => y0 - n / 8 * (y0 - y1);
+  g.strokeStyle = '#e2ecea'; for (let d = 3; d <= 10; d++) { g.beginPath(); g.moveTo(X(d), y1); g.lineTo(X(d), y0); g.stroke(); }
+  g.strokeStyle = '#7a8f8d'; g.beginPath(); g.moveTo(x0, y1); g.lineTo(x0, y0); g.lineTo(x1, y0); g.stroke();
+  g.fillStyle = '#587072'; g.font = '11px sans-serif'; g.textAlign = 'center'; for (let d = 3; d <= 10; d++) g.fillText(d, X(d), y0 + 13); g.fillText('대전체와 금속 사이 거리(cm)', (x0 + x1) / 2, y0 + 27);
+  g.textAlign = 'right'; [0, 2, 4, 6, 8].forEach(n => g.fillText(n, x0 - 5, Y(n) + 4)); g.save(); g.translate(11, 76); g.rotate(-Math.PI / 2); g.textAlign = 'center'; g.fillText('이동한 전자 수', 0, 0); g.restore();
+  g.fillStyle = '#1a9a8b'; for (let d = 3; d <= 10; d += 0.5) { const n = nOf(d); g.beginPath(); g.arc(X(d), Y(n), 3, 0, 7); g.fill(); }
+  if (RODQ[S.rod]) { const d = S.mode === 'can' ? Math.max(3, S.d - S.canX) : S.d; g.strokeStyle = '#e0453f'; g.lineWidth = 2; g.beginPath(); g.arc(X(d), Y(nOf(d)), 7, 0, 7); g.stroke(); g.lineWidth = 1; }
+  g.textAlign = 'left';
+}
+/* ---------------- 화면 글 ---------------- */
+let lastMsg = '';
+function readouts() {
+  const q = RODQ[S.rod], n = nNow(), d = S.mode === 'can' ? Math.max(1, S.d - S.canX) : S.d;
+  $('#vD').textContent = d.toFixed(1) + ' cm'; $('#vN').textContent = n + '개';
+  $('#vSide').innerHTML = n ? (q > 0 ? '<span style="color:#9cc4ff">(−)</span> / <span style="color:#ff9d97">(+)</span>' : '<span style="color:#ff9d97">(+)</span> / <span style="color:#9cc4ff">(−)</span>') : '중성 / 중성';
+  if (S.mode === 'ball') { $('#vAngK').textContent = '실이 기울어진 각도'; $('#vAng').textContent = (S.ang * 180 / Math.PI).toFixed(1) + '°'; }
+  else { $('#vAngK').textContent = '깡통의 움직임'; $('#vAng').textContent = S.canX > 0.05 ? (Math.abs(S.canV) > 0.05 ? '굴러오는 중' : '멈춤(닿기 전)') : '그대로'; }
+  let t;
+  if (!q) t = '<b>문지르지 않은 빨대</b>는 전하를 띠지 않아서 금속 속 전자가 이동하지 않는다. 금속도 움직이지 않는다.';
+  else if (!n) t = `${RNAME[S.rod]}가 아직 멀다. 더 가까이 가져가 보세요.`;
+  else { const obj = S.mode === 'ball' ? '금속 구' : '깡통';
+    t = q < 0 ? `(−)전하를 띤 빨대가 전자를 밀어내어 ${obj}의 <b>전자가 빨대에서 먼 쪽으로</b> 이동했다. 가까운 쪽은 <span class="p">(+)전하</span>, 먼 쪽은 <span class="n">(−)전하</span>를 띠어 ${obj}가 빨대 쪽으로 <b>끌려온다</b>.`
+      : `(+)전하를 띤 유리 막대가 전자를 끌어당겨 ${obj}의 <b>전자가 유리 막대에 가까운 쪽으로</b> 이동했다. 가까운 쪽은 <span class="n">(−)전하</span>, 먼 쪽은 <span class="p">(+)전하</span>를 띠어 ${obj}가 유리 막대 쪽으로 <b>끌려온다</b>.`;
+    if (n >= 5) t += ' 이처럼 대전체 때문에 금속에 전하가 나뉘는 현상이 <b>정전기 유도</b>이다.'; }
+  if (t !== lastMsg) { lastMsg = t; $('#msg').innerHTML = t; }
+  $$('[data-m]').forEach(b => b.classList.toggle('on', b.dataset.m === S.mode)); $$('[data-r]').forEach(b => b.classList.toggle('on', b.dataset.r === S.rod));
+  $('#showBtn').textContent = S.onlyE ? '원자핵도 보기' : '전자만 보기'; $('#showBtn').classList.toggle('on', S.onlyE);
+  $('#dist').value = S.d;
+  // 기록·예상 판정
+  if (d <= 3.01 && S.mode === 'ball' || S.mode === 'can' && S.d <= 3.01) { const key = S.rod; if (!S.log[key]) { S.log[key] = q ? [RNAME[S.rod] + (q > 0 ? ' (+)' : ' (−)'), q > 0 ? '가까운 쪽으로' : '먼 쪽으로', q > 0 ? '(−)' : '(+)', q > 0 ? '(+)' : '(−)', '끌려온다'] : [RNAME[S.rod] + ' (중성)', '이동하지 않음', '중성', '중성', '움직이지 않음']; logUI(); } judge(); }
+}
+function logUI() { const L = Object.values(S.log); $('#log').innerHTML = L.length ? L.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td class="${r[2] === '(+)' ? 'p' : r[2] === '(−)' ? 'n' : ''}">${r[2]}</td><td class="${r[3] === '(+)' ? 'p' : r[3] === '(−)' ? 'n' : ''}">${r[3]}</td><td>${r[4]}</td></tr>`).join('') : '<tr><td colspan="5" style="color:#9cb3b0">아직 기록이 없어요.</td></tr>'; }
+function predUI() {
+  $('#predQ').innerHTML = `지금 대전체: <b>${RNAME[S.rod]}${RODQ[S.rod] > 0 ? ' (+)' : RODQ[S.rod] < 0 ? ' (−)' : ' (중성)'}</b>`;
+  const p = S.pred[S.rod] || {}; $$('[data-pn]').forEach(b => { b.classList.remove('on', 'ok', 'no'); if (+b.dataset.v === p[b.dataset.pn]) b.classList.add(p.done ? (p.res[b.dataset.pn] ? 'ok' : 'no') : 'on'); });
+  $('#predR').innerHTML = p.done ? (p.res.near && p.res.far ? '🎉 예상이 모두 맞았어요!' : '❌ 다시 생각해 보세요. 금속 속 <b>전자</b>가 대전체의 전하에 밀리거나 끌려서 이동한다.') : '예상을 고른 뒤 막대를 3 cm까지 가까이 가져가면 정답이 표시돼요.';
+}
+function judge() { const p = S.pred[S.rod]; if (!p || p.done || p.near === undefined || p.far === undefined) return; const q = RODQ[S.rod], near = q ? -q : 0, far = q; p.res = { near: p.near === near, far: p.far === far }; p.done = true; predUI(); }
+/* ---------------- 조작 ---------------- */
+function shuffleOrder() { const xs = ELS.map((e, i) => [e.x + e.y * 0.01, i]).sort((a, b) => a[0] - b[0]); S.order = []; xs.forEach(([, i], k) => S.order[i] = k); }
+$$('[data-m]').forEach(b => b.onclick = () => { S.mode = b.dataset.m; S.d = 10; S.ang = 0; S.canX = 0; S.canV = 0; lastMsg = ''; readouts(); });
+$$('[data-r]').forEach(b => b.onclick = () => { S.rod = b.dataset.r; S.d = 10; S.canX = 0; S.canV = 0; lastMsg = ''; predUI(); readouts(); });
+$$('[data-pn]').forEach(b => b.onclick = () => { const p = S.pred[S.rod] = S.pred[S.rod] || {}; if (p.done) return; p[b.dataset.pn] = +b.dataset.v; predUI(); });
+$('#dist').addEventListener('input', e => { S.d = +e.target.value; if (S.mode === 'can') { S.canX = Math.min(S.canX, Math.max(0, S.d - 1)); } });
+$('#showBtn').onclick = () => { S.onlyE = !S.onlyE; readouts(); };
+const cv = $('#app');
+function ptr(e) { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height]; }
+cv.addEventListener('pointerdown', e => { const [x, y] = ptr(e), tx = rodTipX(), ry = S.mode === 'ball' ? BY : 270; if (x > tx - 20 && Math.abs(y - ry) < 70) { S.drag = { dx: x - tx }; cv.setPointerCapture(e.pointerId); } });
+cv.addEventListener('pointermove', e => { if (!S.drag) return; const [x] = ptr(e); let d = (x - S.drag.dx - BX - BR - (S.mode === 'can' ? 20 : 0)) / PXCM; d = Math.round(Math.max(3, Math.min(10, d)) * 2) / 2; S.d = d; if (S.mode === 'can') S.canX = Math.min(S.canX, Math.max(0, S.d - 1)); });
+['pointerup', 'pointercancel'].forEach(ev => cv.addEventListener(ev, () => { S.drag = null; }));
+function start() { S = newState(); shuffleOrder(); ELS.forEach(e => { e.cx = e.x; e.cy = e.y; }); lastMsg = ''; logUI(); predUI(); readouts(); }
+$('#resetBtn').onclick = start;
+function step(dt) {
+  const q = RODQ[S.rod], n = nNow();   // 전자 쏠림: (−)대전체면 먼 쪽(왼쪽, −), (+)대전체면 가까운 쪽(오른쪽, +)
+  const want = q < 0 ? -n / 8 : q > 0 ? n / 8 : 0; S.shift += (want - S.shift) * Math.min(1, dt * 6);
+  if (S.mode === 'ball') S.ang += (angTarget() - S.ang) * Math.min(1, dt * 3);
+  else { const gap = S.d - S.canX; if (n > 0 && gap > 1.01) { S.canV += n * 0.6 * dt; S.canV *= (1 - dt * 0.8); S.canX = Math.min(S.d - 1, S.canX + S.canV * dt); if (S.canX >= S.d - 1) S.canV = 0; } else { S.canV *= (1 - dt * 3); } }
+}
+let last = performance.now();
+function loop(ts) { let dt = Math.min(0.1, (ts - last) / 1000); last = ts; S.t += dt; step(dt); draw(); drawGraph(); readouts(); requestAnimationFrame(loop); }
+start(); requestAnimationFrame(loop);
+// 테스트용
+window.__at = (rod, d, sec) => { S.rod = rod; S.mode = 'ball'; S.d = d; for (let k = 0; k < (sec || 3) / 0.02; k++) step(0.02); readouts(); return { n: nNow(), ang: +(S.ang * 180 / Math.PI).toFixed(1), side: $('#vSide').innerText }; };
+window.__table = () => [3, 4, 5, 6, 8, 10, 14].map(d => d + ':' + nOf(d) + '/' + (Math.atan(nOf(d) ** 2 / 250) * 180 / Math.PI).toFixed(1));
+</script>
+</body>
+</html>

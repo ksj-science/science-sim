@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<!-- 단원ID: photo_need · 중2 Ⅴ. 식물과 에너지 > 1. 광합성 > 02 광합성에 필요한 물질(164~165쪽) · 활동 1개: 산소·이산화 탄소 센서로 광합성에 필요한 물질 확인하기 -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>광합성에 필요한 물질 확인하기</title>
+<style>
+:root{--bg:#f1f7f3;--card:#fff;--ink:#1c2a22;--muted:#5b6b62;--line:#d6e4dc;--accent:#2e9a6a;--accent-d:#1d6e4a;--accent-l:#e1f5ea;--o2:#2f7fd0;--co2:#d0632f}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+header{background:linear-gradient(120deg,#2e9a6a,#3bb6a0);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:20px;margin:0;font-weight:900}
+header .sub{font-size:13px;opacity:.95}
+header .sp{flex:1}
+header button{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+main{padding:10px 12px 24px;max-width:1300px;margin:0 auto}
+.intro{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:10px;padding:8px 14px;margin-bottom:10px;font-size:14px;line-height:1.55}
+.intro b{color:var(--accent-d)}
+.grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(300px,1fr);gap:10px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}
+.card h3{margin:0 4px 8px;font-size:15px;color:var(--accent-d)}
+canvas{width:100%;display:block;border-radius:8px}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0}
+.btn{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;padding:7px 11px;cursor:pointer;min-height:38px}
+.btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent-d)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.on{background:var(--accent-l);border-color:var(--accent);color:var(--accent-d)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.ro{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:6px}
+.ro div{background:#14281f;color:#c8f0dc;border-radius:9px;padding:6px 8px}
+.ro .k{font-size:11.5px;color:#9fc0b0}
+.ro .v{font-size:20px;font-weight:900}
+.ro .v small{font-size:12px;font-weight:500;margin-left:2px}
+.ro .d{font-size:12px;color:#ffe08a}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{border:1px solid var(--line);padding:4px 6px;text-align:center}
+th{background:#eaf6ef;color:var(--accent-d)}
+.eq{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;font-size:15px;font-weight:700;padding:8px;background:#f6fbf8;border-radius:10px;border:1px solid var(--line)}
+.eq .slot{min-width:84px;text-align:center;border:2px dashed #9cc8b2;border-radius:8px;padding:4px 8px;color:#9aaba2}
+.eq .slot.open{border-style:solid;border-color:var(--accent);color:var(--accent-d);background:#e9f7ef}
+.eq .arr{font-size:12px;color:var(--muted);text-align:center;line-height:1.2}
+.msg{background:#f6faf8;border:1px dashed #a3cdb8;border-radius:8px;padding:7px 10px;font-size:14px;line-height:1.5;margin-top:8px}
+.note{font-size:12.5px;color:var(--muted);line-height:1.55;margin:6px 4px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>광합성에 필요한 물질 확인하기</h1><span class="sub">밀폐 용기 · 시금칫잎 · 무선 산소 센서 · 무선 이산화 탄소 센서</span>
+  <span class="sp"></span><button id="resetBtn" type="button">↺ 초기화</button>
+</header>
+<main>
+  <div class="intro">① <b>숨 불어 넣기</b> → ② <b>전등 켜기</b> → ③ <b>측정 시작</b>(10분) 순서로 실험하고, 산소와 이산화 탄소 농도가 어떻게 바뀌는지 보세요. 잎을 빼거나 전등을 끄고도 비교해 보세요.</div>
+  <div class="grid">
+    <div class="card">
+      <canvas id="app" width="760" height="300" aria-label="밀폐 용기 속 시금칫잎과 두 센서, LED 전등"></canvas>
+      <div class="row">
+        <button class="btn" id="breathBtn" type="button">😮‍💨 숨 불어 넣기</button>
+        <button class="btn" id="lightBtn" type="button">💡 전등 켜기</button>
+        <button class="btn on" id="leafBtn" type="button">🌿 시금칫잎 넣음</button>
+        <span style="flex:1"></span>
+        <button class="btn pri" id="runBtn" type="button">▶ 측정 시작 (10분)</button>
+        <button class="btn" id="ffBtn" type="button">⏩ 빨리 감기</button>
+      </div>
+      <canvas id="graph" width="760" height="230" aria-label="시간에 따른 산소·이산화 탄소 농도 그래프"></canvas>
+      <div class="msg" id="msg">숨을 불어 넣으면 용기 속 이산화 탄소가 많아져요.</div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="ro">
+          <div><div class="k">측정 시간</div><div class="v" id="vT">0.0<small>분</small></div></div>
+          <div><div class="k">산소 농도</div><div class="v" id="vO">20.90<small>%</small></div><div class="d" id="dO"></div></div>
+          <div><div class="k">이산화 탄소 농도</div><div class="v" id="vC">450<small>ppm</small></div><div class="d" id="dC"></div></div>
+        </div>
+        <table><thead><tr><th>조건</th><th>산소 변화</th><th>이산화 탄소 변화</th></tr></thead><tbody id="tb"><tr><td colspan="3" style="color:#9aaba2">10분 측정이 끝나면 결과가 여기에 쌓여요.</td></tr></tbody></table>
+      </div>
+      <div class="card">
+        <h3>물질은 어디로 드나들까?</h3>
+        <canvas id="plant" width="420" height="250" aria-label="식물의 뿌리, 줄기, 잎과 잎 뒷면의 기공"></canvas>
+        <div class="row"><button class="btn" id="stomaBtn" type="button">기공 보기</button><button class="btn" id="xylemBtn" type="button">물관 보기</button></div>
+        <div class="eq" id="eq">
+          <span class="slot" id="q1">?</span>+<span class="slot" id="q2">?</span>
+          <span class="arr">빛에너지<br>━━━━▶<br>엽록체</span>
+          <span class="slot" id="q3">?</span>+<span class="slot" id="q4">?</span>
+        </div>
+        <p class="note"><b>모델의 한계</b> · 측정 시간은 실제보다 빠르게(10분을 약 20초에) 보여 준다. 잎의 흡수 속도는 이산화 탄소 농도에 따라 서서히 줄어들게 단순화했고, 빛이 없을 때는 호흡만 조금 일어나는 것으로 나타냈다(호흡은 다음 시간에 배운다). 용기 크기, 잎 수, 온도는 일정하다고 보았다.</p>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+/* ================================================================
+   밀폐 용기(약 2 L) 속 시금칫잎 3~4장 — 센서 측정 모형 (시간 단위: 분, 계산 간격 0.01분)
+   - 광합성(빛이 있을 때): 이산화 탄소 흡수 속도 U = 220 × C ÷ (C + 1500)  [ppm/분], C는 이산화 탄소 농도(ppm)
+   - 호흡(잎이 있으면 항상): 이산화 탄소 10 ppm/분 배출
+   - 이산화 탄소 1 ppm이 줄 때 산소는 1 ppm(=0.0001 %) 늚 (흡수한 이산화 탄소와 같은 양의 산소를 내놓는다고 봄)
+   - 숨 불어 넣기: 이산화 탄소 +2000 ppm, 산소 −0.20 % (내쉰 숨은 이산화 탄소가 많고 산소가 적다)
+   - 예: 숨 1번(2450 ppm, 20.70 %) 뒤 빛 10분 → 이산화 탄소 약 1340 ppm(약 1110 ppm 감소), 산소 약 20.81 %(약 0.11 %p 증가)
+   ================================================================ */
+const $ = s => document.querySelector(s);
+function fit(cv, w, h) { const r = Math.min(2, window.devicePixelRatio || 1); cv.width = w * r; cv.height = h * r; const x = cv.getContext('2d'); x.setTransform(r, 0, 0, r, 0, 0); return x; }
+const W = 760, H = 300, GW = 760, GH = 230, PW = 420, PH = 250, DT = 0.01, DUR = 10, SPEED = 0.5;   // 0.5분/초 → 10분 = 20초
+const c = fit($('#app'), W, H), g = fit($('#graph'), GW, GH), p = fit($('#plant'), PW, PH);
+let S;
+function newState() { return { C: 450, O: 20.90, light: false, leaves: true, t: 0, running: false, done: false, trace: [], start: null, rows: [], show: { stoma: false, xylem: false }, ever: { co2: false, o2: false }, anim: 0 }; }
+function rate() { if (!S.leaves) return 0; return (S.light ? -220 * S.C / (S.C + 1500) : 0) + 10; }   // dC/dt (ppm/분)
+function stepOnce() { const d = rate(); S.C = Math.max(0, S.C + d * DT); S.O -= d * DT / 10000; S.t += DT; }
+function rec() { S.trace.push([S.t, S.O, S.C]); }
+function finish() {
+  S.running = false; S.done = true;
+  const dO = S.O - S.start.O, dC = S.C - S.start.C;
+  S.rows.unshift({ cond: (S.leaves ? '잎 있음' : '잎 없음') + ' · ' + (S.light ? '빛 있음' : '빛 없음'), dO, dC }); S.rows = S.rows.slice(0, 5);
+  if (S.leaves && S.light && dC < -100) { S.ever.co2 = true; S.ever.o2 = true; }
+  let t;
+  if (!S.leaves) t = '잎이 없으면 빛을 비추어도 농도가 거의 변하지 않는다. → 농도 변화는 <b>잎</b> 때문임을 알 수 있다(대조 실험).';
+  else if (S.light) t = `빛을 비춘 10분 동안 <b>이산화 탄소는 ${Math.round(-dC)} ppm 줄고</b>, <b>산소는 ${(dO).toFixed(2)} %p 늘었다</b>. 잎이 이산화 탄소를 흡수하고 산소를 내놓았다.`;
+  else t = '빛이 없으면 광합성이 일어나지 않아 이산화 탄소가 줄지 않는다(호흡으로 오히려 조금 늘었다).';
+  $('#msg').innerHTML = t + ' <br>다른 조건으로 다시 하려면 조건을 바꾸고 ▶ 측정 시작을 누르세요.';
+}
+/* ---------------- 실험 장치 그림 ---------------- */
+function rr(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+function sensor(x, label, val, col) {
+  c.fillStyle = '#1f2a33'; rr(c, x - 16, 30, 32, 110, 8); c.fill();
+  c.fillStyle = col; rr(c, x - 18, 70, 36, 46, 6); c.fill();
+  c.fillStyle = '#3bd16f'; c.beginPath(); c.arc(x, 44, 4, 0, 7); c.fill();
+  c.fillStyle = '#596770'; c.fillRect(x - 6, 140, 12, 50);
+  c.fillStyle = '#1c2a22'; c.font = 'bold 13px sans-serif'; c.textAlign = 'center'; c.fillText(label, x, 20);
+  c.textAlign = 'left';
+}
+function drawApp() {
+  c.clearRect(0, 0, W, H); c.fillStyle = S.light ? '#fffbe6' : '#eef2f4'; c.fillRect(0, 0, W, H);
+  c.fillStyle = '#d9cfbf'; c.fillRect(0, 268, W, 32);
+  // LED 전등
+  c.fillStyle = '#2f6fb5'; c.fillRect(640, 250, 90, 18); c.fillRect(678, 90, 10, 160);
+  c.save(); c.translate(640, 80); c.rotate(-0.5); c.fillStyle = '#3a82cf'; c.beginPath(); c.moveTo(-30, 0); c.lineTo(30, 0); c.lineTo(22, -40); c.lineTo(-22, -40); c.closePath(); c.fill(); c.restore();
+  if (S.light) { const gr = c.createLinearGradient(610, 100, 380, 250); gr.addColorStop(0, 'rgba(255,240,150,.8)'); gr.addColorStop(1, 'rgba(255,240,150,0)');
+    c.fillStyle = gr; c.beginPath(); c.moveTo(600, 90); c.lineTo(630, 120); c.lineTo(470, 270); c.lineTo(260, 270); c.closePath(); c.fill(); }
+  // 밀폐 용기
+  c.fillStyle = 'rgba(210,235,250,.45)'; c.strokeStyle = '#8aa3b5'; c.lineWidth = 3; rr(c, 200, 150, 300, 118, 14); c.fill(); c.stroke();
+  c.fillStyle = 'rgba(150,175,190,.6)'; rr(c, 192, 138, 316, 16, 6); c.fill();
+  // 잎
+  if (S.leaves) [[260, 248, .2], [320, 252, -.25], [380, 246, .1], [440, 250, -.15]].forEach(([x, y, a]) => {
+    c.save(); c.translate(x, y); c.rotate(a); c.fillStyle = '#3f8f3a'; c.beginPath(); c.ellipse(0, 0, 38, 14, 0, 0, 7); c.fill();
+    c.strokeStyle = '#2c6b2a'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(-34, 0); c.lineTo(34, 0); c.stroke(); c.restore(); });
+  // 기체 입자(이산화 탄소 = 주황, 산소 = 파랑) — 농도에 따라 개수
+  const nC = Math.min(40, Math.round(S.C / 110)), nO = 26;
+  for (let i = 0; i < nC; i++) { const x = 215 + ((i * 97 + S.anim * 13 * (1 + i % 3)) % 270), y = 168 + ((i * 53 + S.anim * 7 * (1 + i % 2)) % 60);
+    c.fillStyle = '#d0632f'; c.beginPath(); c.arc(x, y, 3.2, 0, 7); c.fill(); }
+  for (let i = 0; i < nO; i++) { const x = 215 + ((i * 61 + S.anim * 9 * (1 + i % 2) + 40) % 270), y = 168 + ((i * 37 + S.anim * 11 * (1 + i % 3)) % 60);
+    c.fillStyle = '#2f7fd0'; c.beginPath(); c.arc(x, y, 3.2, 0, 7); c.fill(); }
+  sensor(300, '이산화 탄소 센서', S.C, '#2aa39c'); sensor(400, '산소 센서', S.O, '#2aa39c');
+  // 범례
+  c.font = '12px sans-serif'; c.fillStyle = '#d0632f'; c.beginPath(); c.arc(30, 30, 5, 0, 7); c.fill(); c.fillStyle = '#1c2a22'; c.fillText('이산화 탄소', 40, 34);
+  c.fillStyle = '#2f7fd0'; c.beginPath(); c.arc(30, 52, 5, 0, 7); c.fill(); c.fillStyle = '#1c2a22'; c.fillText('산소 (입자 수는 상대적인 양)', 40, 56);
+  c.fillStyle = '#5b6b62'; c.fillText('밀폐 용기', 210, 288);
+  // 태블릿 화면(분석 앱)
+  c.fillStyle = '#20262c'; rr(c, 30, 150, 140, 100, 10); c.fill(); c.fillStyle = '#eaf3f8'; rr(c, 38, 158, 124, 84, 6); c.fill();
+  c.fillStyle = '#1c2a22'; c.font = 'bold 12px sans-serif'; c.fillText('분석 앱', 46, 174);
+  c.font = '12px sans-serif'; c.fillStyle = '#2f7fd0'; c.fillText('O₂ ' + S.O.toFixed(2) + ' %', 46, 196); c.fillStyle = '#d0632f'; c.fillText('CO₂ ' + Math.round(S.C) + ' ppm', 46, 216);
+  c.fillStyle = '#5b6b62'; c.fillText(S.t.toFixed(1) + '분', 46, 236);
+}
+/* ---------------- 그래프 ---------------- */
+function drawGraph() {
+  g.clearRect(0, 0, GW, GH); g.fillStyle = '#fbfdfc'; g.fillRect(0, 0, GW, GH);
+  const x0 = 70, x1 = GW - 70, y0 = 200, y1 = 20, tx = t => x0 + t / DUR * (x1 - x0);
+  const cMax = Math.max(3000, Math.ceil(Math.max(...S.trace.map(r => r[2]), S.C) / 500) * 500);
+  const oLo = 20.4, oHi = 21.2, cy = v => y0 - v / cMax * (y0 - y1), oy = v => y0 - (v - oLo) / (oHi - oLo) * (y0 - y1);
+  g.strokeStyle = '#e1ebe5'; g.lineWidth = 1;
+  for (let k = 0; k <= 10; k++) { g.beginPath(); g.moveTo(tx(k), y1); g.lineTo(tx(k), y0); g.stroke(); }
+  for (let k = 0; k <= 4; k++) { const y = y0 - k * (y0 - y1) / 4; g.beginPath(); g.moveTo(x0, y); g.lineTo(x1, y); g.stroke(); }
+  g.strokeStyle = '#7d8f86'; g.beginPath(); g.moveTo(x0, y1); g.lineTo(x0, y0); g.lineTo(x1, y0); g.lineTo(x1, y1); g.stroke();
+  g.font = '11px sans-serif'; g.fillStyle = '#5b6b62'; g.textAlign = 'center';
+  for (let k = 0; k <= 10; k += 2) g.fillText(k + '', tx(k), y0 + 14); g.fillText('시간(분)', (x0 + x1) / 2, y0 + 28);
+  g.textAlign = 'right'; g.fillStyle = '#d0632f';
+  for (let k = 0; k <= 4; k++) g.fillText(Math.round(cMax * k / 4) + '', x0 - 6, y0 - k * (y0 - y1) / 4 + 4);
+  g.save(); g.translate(16, 110); g.rotate(-Math.PI / 2); g.textAlign = 'center'; g.fillText('이산화 탄소(ppm)', 0, 0); g.restore();
+  g.textAlign = 'left'; g.fillStyle = '#2f7fd0';
+  for (let k = 0; k <= 4; k++) g.fillText((oLo + (oHi - oLo) * k / 4).toFixed(1), x1 + 6, y0 - k * (y0 - y1) / 4 + 4);
+  g.save(); g.translate(GW - 12, 110); g.rotate(Math.PI / 2); g.textAlign = 'center'; g.fillText('산소(%)', 0, 0); g.restore();
+  if (!S.trace.length) { g.fillStyle = '#9aaba2'; g.font = '14px sans-serif'; g.textAlign = 'center'; g.fillText('▶ 측정 시작을 누르면 그래프가 그려져요', (x0 + x1) / 2, 110); g.textAlign = 'left'; return; }
+  [[2, cy, '#d0632f'], [1, oy, '#2f7fd0']].forEach(([i, f, col]) => { g.strokeStyle = col; g.lineWidth = 2.5; g.beginPath();
+    S.trace.forEach((r, k) => { const X = tx(r[0]), Y = Math.max(y1, Math.min(y0, f(r[i]))); k ? g.lineTo(X, Y) : g.moveTo(X, Y); }); g.stroke(); });
+}
+/* ---------------- 식물 그림 ---------------- */
+function drawPlant() {
+  p.clearRect(0, 0, PW, PH); p.fillStyle = '#f7fbf8'; p.fillRect(0, 0, PW, PH);
+  // 화분, 뿌리, 줄기, 잎
+  p.fillStyle = '#b97a4a'; p.beginPath(); p.moveTo(60, 190); p.lineTo(160, 190); p.lineTo(150, 245); p.lineTo(70, 245); p.closePath(); p.fill();
+  p.strokeStyle = '#9b7b55'; p.lineWidth = 2; [[110, 195, 80, 235], [110, 195, 140, 238], [110, 195, 108, 242]].forEach(([a, b2, c2, d]) => { p.beginPath(); p.moveTo(a, b2); p.lineTo(c2, d); p.stroke(); });
+  p.strokeStyle = '#4c8f3e'; p.lineWidth = 6; p.beginPath(); p.moveTo(110, 195); p.lineTo(110, 70); p.stroke();
+  const leaf = (x, y, a) => { p.save(); p.translate(x, y); p.rotate(a); p.fillStyle = '#4fa344'; p.beginPath(); p.ellipse(32, 0, 34, 13, 0, 0, 7); p.fill(); p.restore(); };
+  leaf(110, 90, -0.5); leaf(110, 130, 0.3); leaf(110, 110, Math.PI + 0.4); leaf(110, 160, Math.PI - 0.3);
+  if (S.show.xylem) {   // 물관: 뿌리 → 줄기 → 잎
+    p.strokeStyle = '#2f7fd0'; p.lineWidth = 2.5; p.setLineDash([6, 6]); p.lineDashOffset = -S.anim * 20;
+    p.beginPath(); p.moveTo(108, 240); p.lineTo(108, 92); p.lineTo(150, 72); p.stroke(); p.setLineDash([]);
+    p.fillStyle = '#2f7fd0'; p.font = 'bold 13px sans-serif'; p.fillText('물관: 뿌리에서 흡수한 물', 8, 20); p.fillText('→ 줄기 → 잎으로 이동', 8, 38);
+  }
+  // 잎 뒷면 확대(기공)
+  p.strokeStyle = '#7d8f86'; p.lineWidth = 1; p.setLineDash([3, 3]); p.beginPath(); p.moveTo(160, 120); p.lineTo(250, 40); p.moveTo(160, 120); p.lineTo(250, 190); p.stroke(); p.setLineDash([]);
+  p.save(); p.beginPath(); p.arc(320, 115, 78, 0, 7); p.clip(); p.fillStyle = '#e4efd8'; p.fillRect(240, 35, 160, 160);
+  p.strokeStyle = '#b4c99a'; p.lineWidth = 1.5;
+  for (let i = 0; i < 6; i++) for (let j = 0; j < 6; j++) { p.beginPath(); p.ellipse(250 + i * 28 + (j % 2) * 14, 45 + j * 28, 14, 12, 0, 0, 7); p.stroke(); }
+  const st = (x, y) => { p.fillStyle = '#7fbf55'; p.beginPath(); p.ellipse(x - 7, y, 6, 14, 0, 0, 7); p.ellipse(x + 7, y, 6, 14, 0, 0, 7); p.fill();
+    p.fillStyle = '#2c4b2a'; p.beginPath(); p.ellipse(x, y, 2.5, 9, 0, 0, 7); p.fill(); };
+  st(300, 90); st(345, 140);
+  p.restore(); p.strokeStyle = '#2e9a6a'; p.lineWidth = 2.5; p.beginPath(); p.arc(320, 115, 78, 0, 7); p.stroke();
+  p.fillStyle = '#1c2a22'; p.font = 'bold 12px sans-serif'; p.fillText('잎의 뒷면 (확대)', 268, 208);
+  if (S.show.stoma) {
+    p.fillStyle = '#1d6e4a'; p.font = 'bold 13px sans-serif'; p.fillText('기공', 355, 82); p.strokeStyle = '#1d6e4a'; p.lineWidth = 1.5; p.beginPath(); p.moveTo(352, 80); p.lineTo(308, 88); p.stroke();
+    const on = S.light && S.leaves; const ph = (S.anim * .8) % 1;
+    p.font = 'bold 12px sans-serif';
+    p.fillStyle = '#d0632f'; p.fillText('이산화 탄소 들어옴', 222, 236); p.beginPath(); p.arc(300 - 30 * (on ? 1 - ph : 1), 90 + 40 * (on ? 1 - ph : 1), 4, 0, 7); p.fill();
+    p.fillStyle = '#2f7fd0'; p.fillText('산소 나감', 350, 236); p.beginPath(); p.arc(345 + 30 * (on ? ph : 0), 140 + 40 * (on ? ph : 0), 4, 0, 7); p.fill();
+  }
+}
+/* ---------------- 화면 갱신 ---------------- */
+function readouts() {
+  $('#vT').innerHTML = S.t.toFixed(1) + '<small>분</small>'; $('#vO').innerHTML = S.O.toFixed(2) + '<small>%</small>'; $('#vC').innerHTML = Math.round(S.C) + '<small>ppm</small>';
+  if (S.start) { const dO = S.O - S.start.O, dC = S.C - S.start.C;
+    $('#dO').textContent = '처음보다 ' + (dO >= 0 ? '+' : '') + dO.toFixed(2) + ' %p'; $('#dC').textContent = '처음보다 ' + (dC >= 0 ? '+' : '') + Math.round(dC) + ' ppm'; }
+  else { $('#dO').textContent = ''; $('#dC').textContent = ''; }
+  $('#lightBtn').textContent = S.light ? '💡 전등 끄기' : '💡 전등 켜기'; $('#lightBtn').classList.toggle('on', S.light);
+  $('#leafBtn').textContent = S.leaves ? '🌿 시금칫잎 넣음' : '🌿 시금칫잎 뺌'; $('#leafBtn').classList.toggle('on', S.leaves);
+  $('#runBtn').disabled = S.running; $('#ffBtn').disabled = !S.running; $('#breathBtn').disabled = S.running; $('#leafBtn').disabled = S.running;
+  $('#stomaBtn').classList.toggle('on', S.show.stoma); $('#xylemBtn').classList.toggle('on', S.show.xylem);
+  $('#tb').innerHTML = S.rows.length ? S.rows.map(r => `<tr><td>${r.cond}</td><td>${r.dO >= 0 ? '+' : ''}${r.dO.toFixed(2)} %p</td><td>${r.dC >= 0 ? '+' : ''}${Math.round(r.dC)} ppm</td></tr>`).join('')
+    : '<tr><td colspan="3" style="color:#9aaba2">10분 측정이 끝나면 결과가 여기에 쌓여요.</td></tr>';
+  const open = [S.show.xylem, S.ever.co2, S.ever.co2 && S.show.xylem && S.show.stoma, S.ever.o2], txt = ['물', '이산화 탄소', '포도당', '산소'];
+  ['#q1', '#q2', '#q3', '#q4'].forEach((id, i) => { $(id).classList.toggle('open', open[i]); $(id).textContent = open[i] ? txt[i] : '?'; });
+}
+$('#breathBtn').onclick = () => { S.C = Math.min(8000, S.C + 2000); S.O -= 0.20; S.trace = []; S.start = null; S.t = 0; S.done = false;
+  $('#msg').innerHTML = '숨을 불어 넣었다. 이산화 탄소 농도가 높아지고 산소 농도는 조금 낮아졌다. 이제 전등을 켜고 측정을 시작해 보세요.'; readouts(); };
+$('#lightBtn').onclick = () => { S.light = !S.light; readouts(); };
+$('#leafBtn').onclick = () => { S.leaves = !S.leaves; readouts(); };
+$('#runBtn').onclick = () => { S.t = 0; S.trace = []; S.start = { O: S.O, C: S.C }; S.running = true; S.done = false; rec();
+  $('#msg').innerHTML = '측정 중… 실험하는 동안 장치를 움직이지 않아요. (' + (S.leaves ? '잎 있음' : '잎 없음') + ', ' + (S.light ? '빛 있음' : '빛 없음') + ')'; readouts(); };
+$('#ffBtn').onclick = () => { while (S.running && S.t < DUR - 1e-9) { stepOnce(); if (Math.round(S.t / DT) % 10 === 0) rec(); } if (S.running) finish(); readouts(); };
+$('#stomaBtn').onclick = () => { S.show.stoma = !S.show.stoma; readouts(); };
+$('#xylemBtn').onclick = () => { S.show.xylem = !S.show.xylem; readouts(); };
+$('#resetBtn').onclick = () => { S = newState(); $('#msg').innerHTML = '숨을 불어 넣으면 용기 속 이산화 탄소가 많아져요.'; readouts(); };
+let last = performance.now(), acc = 0;
+function loop(ts) {
+  const dt = Math.min(0.1, (ts - last) / 1000); last = ts; S.anim += dt;
+  if (S.running) { acc += dt * SPEED; while (acc >= DT && S.running) { stepOnce(); acc -= DT; if (Math.round(S.t / DT) % 10 === 0) rec(); if (S.t >= DUR - 1e-9) finish(); } readouts(); }
+  drawApp(); drawGraph(); drawPlant(); requestAnimationFrame(loop);
+}
+S = newState(); readouts(); requestAnimationFrame(loop);
+window.__S = () => S;
+</script>
+</body>
+</html>

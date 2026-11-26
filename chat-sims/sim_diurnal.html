@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<!-- 단원: 천구와 별의 일주 운동 (Ⅶ. 태양계). 업로드 원본에서 정답이 화면 코드에 있던 카드의 답 공개 버튼·확인 문제 2개·방향별 설명 표시를 빼고, 확인문제는 웹앱 문제 패널에서 서버 채점한다.
+     모형: 천구가 천구의 북극을 축으로 1시간에 15°(항성시 기준) 회전, 지평 좌표 변환으로 고도·방위 계산, 대기 굴절·세차 무시. 관측 시작 오후 8시. -->
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>천구와 별의 일주 운동 시뮬레이터</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1c2333;--muted:#5d6678;--line:#dde3ec;--panel:#f5f7fb;--accent:#ff7a2f;--blue:#2f6fed;--sky:#0a1224}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;font-family:'Noto Sans KR','Malgun Gothic','Apple SD Gothic Neo',sans-serif;color:var(--ink);background:#e8ecf2}
+button,select,input{font:inherit}
+#app{display:flex;flex-direction:column;height:100vh}
+header{display:flex;align-items:center;gap:14px;padding:8px 14px;background:#fff;border-bottom:1px solid var(--line);flex-wrap:wrap}
+h1{font-size:19px;margin:0;font-weight:900;white-space:nowrap;letter-spacing:-.3px}
+h1 b{color:var(--accent)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tab{border:1px solid var(--line);background:#f2f4f8;border-radius:999px;padding:7px 15px;font-weight:700;font-size:15px;cursor:pointer;color:var(--muted)}
+.tab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.spacer{flex:1}
+.hbtn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:7px 12px;cursor:pointer;font-weight:600;font-size:14px;color:var(--ink)}
+.hbtn:hover{background:#f2f4f8}
+main{flex:1;display:flex;min-height:0}
+#stage{flex:1;position:relative;min-width:0;background:var(--sky);display:flex;flex-direction:column}
+#cvwrap{flex:1;position:relative;min-height:0}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+canvas:active{cursor:grabbing}
+#note{position:absolute;left:12px;top:10px;right:12px;pointer-events:none;color:#e9f0ff;font-size:14px;line-height:1.5;text-shadow:0 1px 3px #000}
+#note .chip{display:inline-block;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:3px 9px;backdrop-filter:blur(3px)}
+#timebar{display:flex;align-items:center;gap:12px;padding:10px 14px;background:#121b30;color:#e8eefc;flex-wrap:wrap;border-top:1px solid #22304f}
+#play{width:48px;height:48px;border-radius:50%;border:0;background:var(--accent);color:#fff;font-size:20px;cursor:pointer;flex:none;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+#play:hover{filter:brightness(1.08)}
+.tbtn{border:1px solid #33456d;background:#1a2643;color:#dfe7fb;border-radius:9px;padding:7px 11px;cursor:pointer;font-weight:600;font-size:14px}
+.tbtn:hover{background:#22325a}
+#tslider{flex:1;min-width:160px;accent-color:var(--accent);height:28px}
+#readout{font-size:15px;font-weight:500;white-space:nowrap}
+#readout b{color:#ffb27c;font-weight:700}
+#speed{background:#1a2643;color:#dfe7fb;border:1px solid #33456d;border-radius:9px;padding:6px 8px}
+aside{width:340px;flex:none;overflow:auto;background:var(--panel);border-left:1px solid var(--line);padding:12px 14px 30px}
+.sec{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 13px;margin-bottom:11px}
+.sec h3{margin:0 0 9px;font-size:15px;font-weight:800;display:flex;align-items:center;gap:6px}
+.sec h3 .dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;width:100%}
+.seg button{flex:1;border:0;background:#fff;padding:8px 4px;cursor:pointer;font-weight:700;font-size:14px;color:var(--muted);border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button.on{background:var(--blue);color:#fff}
+.pbtn{border:1px solid var(--line);background:#f4f6fa;border-radius:9px;padding:6px 10px;cursor:pointer;font-weight:600;font-size:13.5px;color:var(--ink)}
+.pbtn:hover{background:#e9eef6}
+.pbtn.on{background:#fff1e8;border-color:#ffb98f;color:#c8541a}
+label.ck{display:flex;align-items:center;gap:8px;font-size:14px;padding:4px 0;cursor:pointer}
+label.ck input{width:18px;height:18px;accent-color:var(--blue)}
+.small{font-size:12.5px;color:var(--muted);line-height:1.5}
+input[type=range]{width:100%;accent-color:var(--blue)}
+.kv{display:flex;justify-content:space-between;font-size:14px;padding:2px 0}
+.kv span:first-child{color:var(--muted)}
+#starinfo .name{font-size:17px;font-weight:800;margin-bottom:4px}
+.tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12.5px;font-weight:700;margin-top:6px}
+.card{border:1px solid var(--line);border-radius:12px;padding:10px 11px;margin-bottom:8px;background:#fbfcfe}
+.card .q{font-weight:700;font-size:14px;margin-bottom:7px;line-height:1.45}
+.card .a{display:none;margin-top:8px;font-size:13.5px;line-height:1.55;background:#fff6ee;border-left:3px solid var(--accent);padding:7px 9px;border-radius:6px}
+.card.open .a{display:block}
+.card .btns{display:flex;gap:6px;flex-wrap:wrap}
+.go{background:var(--blue);color:#fff;border:0;border-radius:8px;padding:6px 10px;font-weight:700;font-size:13px;cursor:pointer}
+.ans{background:#fff;border:1px solid #ffb98f;color:#c8541a;border-radius:8px;padding:6px 10px;font-weight:700;font-size:13px;cursor:pointer}
+select.full{width:100%;padding:7px;border:1px solid var(--line);border-radius:9px;background:#fff}
+.only{display:none}
+body[data-tab=sphere] .only.sphere,body[data-tab=sky] .only.sky,body[data-tab=quad] .only.quad{display:block}
+@media (max-width:920px){
+  #app{height:auto;min-height:100vh}
+  main{flex-direction:column}
+  #stage{height:72vh;flex:none}
+  aside{width:auto;border-left:0;border-top:1px solid var(--line)}
+  h1{font-size:17px}
+}
+</style>
+</head>
+<body data-tab="sphere">
+<div id="app">
+<header>
+  <h1>🌌 천구와 <b>별의 일주 운동</b> 시뮬레이터</h1>
+  <div class="tabs">
+    <button class="tab on" data-tab="sphere">① 천구 모형</button>
+    <button class="tab" data-tab="sky">② 관측자 시점</button>
+    <button class="tab" data-tab="quad">③ 방향별 별 궤적</button>
+  </div>
+  <div class="spacer"></div>
+  <button class="hbtn" id="btnPanel" title="오른쪽 패널 숨기기/보이기">☰ 패널</button>
+  <button class="hbtn" id="btnFull" title="전체 화면">⛶ 전체 화면</button>
+</header>
+<main>
+  <div id="stage">
+    <div id="cvwrap">
+      <canvas id="cv"></canvas>
+      <div id="note"></div>
+    </div>
+    <div id="timebar">
+      <button id="play" title="재생/일시정지 (스페이스바)">▶</button>
+      <button class="tbtn" id="btnReset" title="처음(관측 시작)으로">⏮ 처음</button>
+      <input type="range" id="tslider" min="0" max="24" step="0.01" value="0" aria-label="경과 시간">
+      <div id="readout"></div>
+      <select id="speed" title="재생 속도">
+        <option value="0.25">느리게 (15분/초)</option>
+        <option value="0.5">조금 느리게 (30분/초)</option>
+        <option value="1" selected>보통 (1시간/초)</option>
+        <option value="2">빠르게 (2시간/초)</option>
+        <option value="4">매우 빠르게 (4시간/초)</option>
+      </select>
+    </div>
+  </div>
+  <aside id="panel">
+    <div class="sec only sphere">
+      <h3><span class="dot"></span>무엇을 기준으로 볼까?</h3>
+      <div class="seg" id="refSeg">
+        <button data-ref="ground" class="on">관측자 기준</button>
+        <button data-ref="space">우주 기준</button>
+        <button data-ref="both">나란히</button>
+      </div>
+      <p class="small" style="margin:8px 0 0">관측자 기준: 땅(관측자)은 멈춰 있고 천구가 돕니다.<br>우주 기준: 천구는 고정, 지구가 시계 반대 방향으로 자전합니다.</p>
+      <div class="row" style="margin-top:8px"><button class="pbtn" id="btnCam">시점 초기화</button><button class="pbtn" id="btnTop">북극 위에서 내려다보기</button></div>
+    </div>
+
+    <div class="sec only sky">
+      <h3><span class="dot"></span>바라보는 방향</h3>
+      <div class="seg" id="dirSeg">
+        <button data-az="0" class="on">북</button>
+        <button data-az="90">동</button>
+        <button data-az="180">남</button>
+        <button data-az="270">서</button>
+        <button data-az="zen">머리 위</button>
+      </div>
+      <div style="margin-top:9px" class="small">시야각 <b id="fovv">100°</b></div>
+      <input type="range" id="fov" min="40" max="150" value="100">
+      <p class="small" style="margin:4px 0 0">화면을 끌면 고개를 돌리고, 휠·두 손가락으로 확대/축소합니다.</p>
+    </div>
+
+    <div class="sec only quad">
+      <h3><span class="dot"></span>동·서·남·북 하늘 비교</h3>
+      <p class="small" style="margin:0 0 8px">교과서 그림처럼 네 방향의 별 궤적을 한 번에 봅니다. 먼저 예상한 뒤 재생해 보세요.</p>
+    </div>
+
+    <div class="sec">
+      <h3><span class="dot"></span>별의 궤적 (장노출 사진)</h3>
+      <label class="ck"><input type="checkbox" id="ckTrail" checked>지나간 길(궤적) 남기기</label>
+      <label class="ck"><input type="checkbox" id="ckArrow" checked>이동 방향 화살표</label>
+      <div class="row"><button class="pbtn" id="btnClear">궤적 지우기 (지금부터 다시)</button></div>
+    </div>
+
+    <div class="sec">
+      <h3><span class="dot"></span>관측 위치 (위도)</h3>
+      <div class="row" id="latBtns">
+        <button class="pbtn" data-lat="37.6">서울</button>
+        <button class="pbtn on" data-lat="35.2">부산</button>
+        <button class="pbtn" data-lat="90">북극</button>
+        <button class="pbtn" data-lat="0">적도</button>
+        <button class="pbtn" data-lat="-33.9">시드니(남반구)</button>
+      </div>
+      <div style="margin-top:9px" class="small">위도 <b id="latv">북위 35.2°</b> · 북극성 고도 ≈ 위도</div>
+      <input type="range" id="lat" min="-90" max="90" step="0.1" value="35.2">
+    </div>
+
+    <div class="sec">
+      <h3><span class="dot"></span>보기 설정</h3>
+      <label class="ck"><input type="checkbox" id="ckConst" checked>별자리 선</label>
+      <label class="ck"><input type="checkbox" id="ckNames" checked>별·별자리 이름</label>
+      <label class="ck only sphere" style="display:none" id="lbEq"><input type="checkbox" id="ckEq" checked>천구의 적도</label>
+      <label class="ck"><input type="checkbox" id="ckGrid">좌표선</label>
+      <label class="ck"><input type="checkbox" id="ckBelow">지평선 아래 별도 보기</label>
+      <label class="ck"><input type="checkbox" id="ckFaint" checked>어두운 별 표시</label>
+    </div>
+
+    <div class="sec">
+      <h3><span class="dot"></span>별 하나 따라가기</h3>
+      <select class="full" id="starSel"><option value="">— 별을 고르거나 화면에서 별을 누르세요 —</option></select>
+      <div id="starinfo" style="margin-top:9px"></div>
+    </div>
+
+    <div class="sec">
+      <h3><span class="dot"></span>교과서로 확인해 보기</h3>
+      <p class="small" style="margin:0 0 8px">버튼을 눌러 시뮬레이션으로 확인한 뒤, 답은 오른쪽 문제 패널에 적어 제출하세요.</p>
+      <div id="cards"></div>
+    </div>
+    <p class="small" style="text-align:center">지구 자전 → 천체가 1시간에 15°씩 도는 겉보기 운동<br>중학교 과학 Ⅶ. 태양계 · 지구 자전과 겉보기 운동</p>
+  </aside>
+</main>
+</div>
+
+<script>
+(()=>{
+'use strict';
+const D = Math.PI/180, TAU = Math.PI*2;
+const cvs = document.getElementById('cv');
+const ctx = cvs.getContext('2d');
+const $ = id => document.getElementById(id);
+
+/* ---------------- 상태 ---------------- */
+const S = {
+  tab:'sphere', ref:'ground',
+  phi:35.2,             // 관측 위도(도)
+  lst0:22.8,            // 관측 시작(오후 8시)의 항성시(시) — 11월 저녁 하늘
+  clock0:20,            // 관측 시작 시각
+  t:0, playing:false, speed:1,
+  trail:true, trailStart:0, arrows:true,
+  showConst:true, showNames:true, showEq:true, showGrid:false, seeBelow:false, faint:true,
+  caption:false,
+  view:{A:0, a:35, fov:100},
+  cams:{ground:{yaw:62,pitch:16,zoom:1}, space:{yaw:62,pitch:16,zoom:1}},
+  selected:null
+};
+let dirty = true;
+
+/* ---------------- 별 목록 (적경 h, 적위 °, 등급, 색) ---------------- */
+const SD = [
+['polaris','북극성',2.530,89.264,2.0,'y'],['yildun','',17.537,86.586,4.4,'w'],['epsUMi','',16.766,82.037,4.2,'y'],
+['zetUMi','',15.734,77.794,4.3,'w'],['kochab','',14.845,74.155,2.1,'o'],['pherkad','',15.345,71.834,3.0,'w'],['etaUMi','',16.292,75.755,4.9,'w'],
+['dubhe','',11.062,61.751,1.8,'o'],['merak','',11.031,56.382,2.3,'w'],['phecda','',11.897,53.695,2.4,'w'],['megrez','',12.257,57.033,3.3,'w'],
+['alioth','',12.900,55.960,1.8,'w'],['mizar','',13.399,54.925,2.2,'w'],['alkaid','',13.792,49.313,1.9,'b'],
+['caph','',0.153,59.150,2.3,'w'],['schedar','',0.675,56.537,2.2,'o'],['gamCas','',0.945,60.717,2.4,'b'],['ruchbah','',1.430,60.235,2.7,'w'],['segin','',1.907,63.670,3.4,'b'],
+['betelgeuse','베텔게우스',5.919,7.407,0.5,'r'],['rigel','리겔',5.242,-8.202,0.1,'b'],['bellatrix','',5.419,6.350,1.6,'b'],['mintaka','',5.533,-0.299,2.2,'b'],
+['alnilam','',5.604,-1.202,1.7,'b'],['alnitak','',5.679,-1.943,1.8,'b'],['saiph','',5.796,-9.670,2.1,'b'],['meissa','',5.585,9.934,3.4,'b'],
+['sirius','시리우스',6.752,-16.716,-1.46,'b'],['procyon','프로키온',7.655,5.225,0.4,'w'],['aldebaran','알데바란',4.599,16.509,0.9,'r'],
+['capella','카펠라',5.278,45.998,0.1,'y'],['pollux','폴룩스',7.755,28.026,1.1,'o'],['castor','카스토르',7.577,31.888,1.6,'w'],
+['regulus','레굴루스',10.140,11.967,1.4,'b'],['algieba','',10.333,19.842,2.0,'o'],['zosma','',11.235,20.524,2.6,'w'],['denebola','',11.818,14.572,2.1,'w'],['chertan','',11.237,15.430,3.3,'w'],
+['arcturus','아크투루스',14.261,19.182,-0.05,'o'],['spica','스피카',13.420,-11.161,1.0,'b'],
+['antares','안타레스',16.490,-26.432,1.0,'r'],['graffias','',16.091,-19.806,2.6,'b'],['dschubba','',16.006,-22.622,2.3,'b'],['piSco','',15.981,-26.114,2.9,'b'],
+['tauSco','',16.598,-28.216,2.8,'b'],['epsSco','',16.836,-34.293,2.3,'o'],['muSco','',16.864,-38.047,3.0,'b'],['zetSco','',16.910,-42.362,3.6,'o'],
+['etaSco','',17.203,-43.239,3.3,'w'],['thetaSco','',17.622,-42.998,1.9,'w'],['iotaSco','',17.793,-40.127,3.0,'w'],['kapSco','',17.708,-39.030,2.4,'b'],['shaula','',17.560,-37.104,1.6,'b'],
+['vega','베가(직녀성)',18.616,38.784,0.03,'b'],['altair','알타이르(견우성)',19.846,8.868,0.8,'w'],['deneb','데네브',20.690,45.280,1.25,'w'],
+['sadr','',20.370,40.257,2.2,'y'],['albireo','',19.512,27.960,3.1,'o'],['gienah','',20.770,33.970,2.5,'o'],['delCyg','',19.750,45.131,2.9,'b'],
+['fomalhaut','포말하우트',22.961,-29.622,1.2,'w'],['alcyone','플레이아데스',3.791,24.105,2.9,'b'],
+['canopus','카노푸스',6.399,-52.696,-0.74,'w'],['achernar','아케르나르',1.629,-57.237,0.46,'b'],
+['acrux','',12.443,-63.099,0.8,'b'],['mimosa','',12.795,-59.689,1.3,'b'],['gacrux','',12.519,-57.113,1.6,'r'],['delCru','',12.252,-58.749,2.8,'b'],
+['rigilk','센타우루스 α',14.660,-60.834,-0.27,'y'],['hadar','',14.064,-60.373,0.6,'b'],['sigOct','',21.146,-88.956,5.4,'y'],
+['mirfak','',3.405,49.861,1.8,'y'],['algol','',3.136,40.956,2.1,'b'],['alpheratz','',0.140,29.091,2.1,'b'],['markab','',23.079,15.205,2.5,'b'],
+['scheat','',23.063,28.083,2.4,'r'],['algenib','',0.221,15.184,2.8,'b'],['hamal','',2.120,23.463,2.0,'o'],['alphard','',9.460,-8.659,2.0,'o'],
+['rasalhague','',17.582,12.560,2.1,'w'],['eltanin','',17.943,51.489,2.2,'o'],['rastaban','',17.507,52.301,2.8,'y'],['thuban','',14.073,64.376,3.7,'w'],
+['menkalinan','',5.992,44.947,1.9,'w'],['elnath','',5.438,28.608,1.65,'b'],['adhara','',6.977,-28.972,1.5,'b'],['wezen','',7.140,-26.393,1.8,'y'],['mirzam','',6.378,-17.956,2.0,'b']
+];
+const CONST = [
+ {name:'북두칠성', lines:[['dubhe','merak'],['merak','phecda'],['phecda','megrez'],['megrez','dubhe'],['megrez','alioth'],['alioth','mizar'],['mizar','alkaid']]},
+ {name:'작은곰자리', lines:[['polaris','yildun'],['yildun','epsUMi'],['epsUMi','zetUMi'],['zetUMi','kochab'],['kochab','pherkad'],['pherkad','etaUMi'],['etaUMi','zetUMi']], label:['kochab','pherkad','zetUMi']},
+ {name:'카시오페이아자리', lines:[['caph','schedar'],['schedar','gamCas'],['gamCas','ruchbah'],['ruchbah','segin']]},
+ {name:'오리온자리', lines:[['meissa','betelgeuse'],['meissa','bellatrix'],['betelgeuse','alnitak'],['bellatrix','mintaka'],['mintaka','alnilam'],['alnilam','alnitak'],['alnitak','saiph'],['mintaka','rigel']]},
+ {name:'전갈자리', lines:[['graffias','dschubba'],['dschubba','piSco'],['dschubba','antares'],['antares','tauSco'],['tauSco','epsSco'],['epsSco','muSco'],['muSco','zetSco'],['zetSco','etaSco'],['etaSco','thetaSco'],['thetaSco','iotaSco'],['iotaSco','kapSco'],['kapSco','shaula']]},
+ {name:'백조자리', lines:[['deneb','sadr'],['sadr','albireo'],['delCyg','sadr'],['sadr','gienah']]},
+ {name:'사자자리', lines:[['regulus','algieba'],['algieba','zosma'],['zosma','denebola'],['denebola','chertan'],['chertan','regulus'],['zosma','chertan']]},
+ {name:'남십자자리', lines:[['acrux','gacrux'],['mimosa','delCru']]},
+ {name:'페가수스 사각형', lines:[['alpheratz','scheat'],['scheat','markab'],['markab','algenib'],['algenib','alpheratz']], dash:true},
+ {name:'여름철 대삼각형', lines:[['vega','deneb'],['deneb','altair'],['altair','vega']], dash:true},
+ {name:'겨울철 대삼각형', lines:[['betelgeuse','sirius'],['sirius','procyon'],['procyon','betelgeuse']], dash:true},
+ {name:'용자리', lines:[['eltanin','rastaban'],['thuban','kochab']], hidden:true}
+];
+const COL = {w:[236,241,255], b:[188,210,255], y:[255,238,196], o:[255,206,150], r:[255,158,118]};
+const stars = [], byId = {};
+SD.forEach(s=>{ const o={id:s[0],name:s[1],ra:s[2]*15*D,de:s[3]*D,m:s[4],c:COL[s[5]],main:true}; stars.push(o); byId[o.id]=o; });
+let seed = 20261110;
+const rnd = ()=>{ seed = (seed*16807)%2147483647; return (seed-1)/2147483646; };
+const keys = ['w','w','w','b','b','y','o','r'];
+for(let i=0;i<340;i++){
+  const ra=rnd()*TAU, de=Math.asin(2*rnd()-1), m=3.6+Math.pow(rnd(),0.6)*2.0;
+  stars.push({id:'bg'+i,name:'',ra,de,m,c:COL[keys[(rnd()*keys.length)|0]],main:false});
+}
+stars.forEach(s=>{ s.cd=Math.cos(s.de); s.sd=Math.sin(s.de); s.v=[s.cd*Math.cos(s.ra), s.cd*Math.sin(s.ra), s.sd]; });
+const mainStars = stars.filter(s=>s.main);
+
+/* ---------------- 대륙 윤곽 (위도, 경도) — 지구본 표시용 대략값 ---------------- */
+const LAND = [
+ [[70,30],[72,60],[76,100],[72,140],[66,180],[60,165],[52,157],[46,142],[42,131],[38,129],[35,129],[34.5,126.5],[37.5,126.5],[39.5,125],[40,122],[37,122],[31,122],[22,114],[21,108],[10,106],[8,100],[1,104],[10,98],[16,95],[22,90],[20,86],[15,80],[8,77],[20,73],[25,67],[25,57],[22,59],[13,44],[12,43],[20,40],[30,33],[36,36],[37,27],[41,29],[41,41],[46,37],[46,30],[40,20],[45,13],[38,16],[44,8],[43,4],[43,-2],[37,-9],[43,-9],[48,-4],[51,2],[54,8],[57,9],[59,6],[63,6],[70,20]],
+ [[31,131],[34,136],[35,140],[41,141],[45,142],[43,145],[40,140],[36,136],[33,130]],
+ [[50,-5],[53,1],[58,-3],[57,-6]],
+ [[37,10],[32,32],[30,33],[12,44],[11,51],[-2,41],[-11,40],[-25,35],[-34,26],[-35,19],[-17,12],[-6,12],[4,9],[5,-5],[4,-8],[10,-15],[21,-17],[28,-13],[36,-6]],
+ [[70,-160],[71,-156],[70,-140],[69,-115],[68,-95],[62,-85],[55,-82],[58,-65],[52,-56],[47,-53],[45,-64],[41,-70],[35,-76],[31,-81],[25,-80],[30,-84],[29,-95],[22,-97],[19,-96],[21,-87],[15,-88],[9,-79],[8,-83],[16,-95],[23,-110],[32,-117],[40,-124],[48,-125],[58,-136],[60,-147],[57,-157],[60,-165],[65,-168]],
+ [[60,-44],[70,-22],[82,-30],[82,-60],[76,-70],[68,-53]],
+ [[12,-72],[10,-62],[5,-52],[-5,-35],[-13,-38],[-23,-42],[-33,-52],[-39,-58],[-42,-64],[-52,-68],[-55,-68],[-50,-75],[-40,-73],[-30,-71],[-18,-70],[-14,-76],[-5,-81],[2,-79],[8,-77]],
+ [[-11,131],[-12,137],[-17,140],[-11,142],[-19,147],[-28,153],[-38,149],[-38,141],[-32,134],[-34,123],[-31,115],[-22,114],[-14,127]],
+ [[1,109],[7,117],[1,119],[-4,114],[-3,110]],
+ [[-12,49],[-25,47],[-24,44],[-16,44]]
+];
+const KOREA_LON = 127;
+
+/* ---------------- 수학 ---------------- */
+const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+const theta = t => (S.lst0 + t)*15*D;   // 항성시(라디안) — 1시간에 15°
+function basis(th, phi){
+  const cp=Math.cos(phi), sp=Math.sin(phi), ct=Math.cos(th), st=Math.sin(th);
+  return { U:[cp*ct,cp*st,sp], E:[-st,ct,0], N:[-sp*ct,-sp*st,cp] };
+}
+// 시간각 H, 적위(cos,sin) → 지평 좌표 [북, 동, 위]
+function horCD(H, cd, sd, phi){
+  const cH=Math.cos(H), sH=Math.sin(H), sp=Math.sin(phi), cp=Math.cos(phi);
+  const a=cd*cH, b=cd*sH;
+  return [-sp*a+cp*sd, -b, cp*a+sp*sd];
+}
+const hor = (H,s,phi)=>horCD(H,s.cd,s.sd,phi);
+function altaz(h){ return {alt:Math.asin(Math.max(-1,Math.min(1,h[2])))/D, az:((Math.atan2(h[1],h[0])/D)+360)%360}; }
+// 지평 좌표 → (시간각, 적위)
+function horToHD(n,e,u,phi){
+  const sp=Math.sin(phi), cp=Math.cos(phi);
+  const a=cp*u-sp*n, c=sp*u+cp*n, b=-e;
+  return {H:Math.atan2(b,a), de:Math.asin(Math.max(-1,Math.min(1,c)))};
+}
+const rotZ=(v,ang)=>{const c=Math.cos(ang),s=Math.sin(ang);return [v[0]*c-v[1]*s, v[0]*s+v[1]*c, v[2]];};
+const AZNAME = az => ['북','북동','동','남동','남','남서','서','북서'][Math.round(((az%360)+360)%360/45)%8];
+
+/* ---------------- 캔버스 ---------------- */
+let W=0, Hh=0, DPR=1;
+function resize(){
+  const r=cvs.getBoundingClientRect();
+  DPR=Math.min(2, window.devicePixelRatio||1);
+  W=r.width; Hh=r.height;
+  cvs.width=Math.max(1,Math.round(W*DPR)); cvs.height=Math.max(1,Math.round(Hh*DPR));
+  ctx.setTransform(DPR,0,0,DPR,0,0); dirty=true;
+}
+new ResizeObserver(resize).observe($('cvwrap'));
+const rgba=(c,a)=>`rgba(${c[0]},${c[1]},${c[2]},${a})`;
+function label(txt,x,y,opt={}){
+  ctx.font=`${opt.w||700} ${opt.size||14}px 'Noto Sans KR','Malgun Gothic',sans-serif`;
+  ctx.textAlign=opt.align||'left'; ctx.textBaseline=opt.base||'middle';
+  ctx.lineWidth=opt.stroke||3.5; ctx.strokeStyle=opt.halo||'rgba(5,10,25,0.85)'; ctx.lineJoin='round';
+  ctx.strokeText(txt,x,y); ctx.fillStyle=opt.color||'#fff'; ctx.fillText(txt,x,y);
+}
+function arrowHead(x1,y1,x2,y2,size,color){
+  const ang=Math.atan2(y2-y1,x2-x1);
+  ctx.fillStyle=color; ctx.beginPath();
+  ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-size*Math.cos(ang-0.45), y2-size*Math.sin(ang-0.45));
+  ctx.lineTo(x2-size*Math.cos(ang+0.45), y2-size*Math.sin(ang+0.45));
+  ctx.closePath(); ctx.fill();
+}
+let viewports=[], pickList=[];
+
+/* =========================================================
+   ① 천구 모형 (3D)
+   ========================================================= */
+function render3D(vx,vy,vw,vh,mode){
+  const ground = mode==='ground';
+  const cam = S.cams[mode];
+  const th = theta(S.t), phi = S.phi*D;
+  const B = basis(th,phi);
+  const R = v => ground ? [dot(v,B.E), dot(v,B.N), dot(v,B.U)] : v;
+  const cy_=Math.cos(cam.yaw*D), sy_=Math.sin(cam.yaw*D), cp_=Math.cos(cam.pitch*D), sp_=Math.sin(cam.pitch*D);
+  const Dc=3.6, Rs=Math.min(vw,vh)*0.41*cam.zoom, f=Rs*Math.sqrt(Dc*Dc-1);
+  const ox=vx+vw/2, oy=vy+vh/2+vh*0.02;
+  const F=[-sy_*cp_, cy_*cp_, -sp_];  // 카메라 앞 방향(참조 좌표)
+  const P = p => { const x1=p[0]*cy_+p[1]*sy_, y1=-p[0]*sy_+p[1]*cy_;
+    const sy=y1*sp_+p[2]*cp_, d=y1*cp_-p[2]*sp_, k=f/(Dc+d); return {x:ox+x1*k, y:oy-sy*k, d, k}; };
+  viewports.push({x:vx,y:vy,w:vw,h:vh,kind:'3d',mode});
+
+  ctx.save(); ctx.beginPath(); ctx.rect(vx,vy,vw,vh); ctx.clip();
+  const bg=ctx.createRadialGradient(ox,oy,Rs*0.2,ox,oy,Math.max(vw,vh)*0.8);
+  bg.addColorStop(0,'#13213f'); bg.addColorStop(1,'#050913');
+  ctx.fillStyle=bg; ctx.fillRect(vx,vy,vw,vh);
+
+  // 천구 외곽
+  const c0=P([0,0,0]), Rsil=f/Math.sqrt(Dc*Dc-1);
+  const sg=ctx.createRadialGradient(c0.x-Rsil*0.3,c0.y-Rsil*0.35,Rsil*0.1,c0.x,c0.y,Rsil);
+  sg.addColorStop(0,'rgba(90,150,215,0.20)'); sg.addColorStop(0.8,'rgba(40,90,160,0.20)'); sg.addColorStop(1,'rgba(120,180,255,0.35)');
+  ctx.fillStyle=sg; ctx.beginPath(); ctx.arc(c0.x,c0.y,Rsil,0,TAU); ctx.fill();
+  ctx.strokeStyle='rgba(150,200,255,0.45)'; ctx.lineWidth=1.5; ctx.stroke();
+
+  const lines=[];  // {pts:[proj], color, width, dash, backAlpha}
+  const L=(refPts,o)=>lines.push(Object.assign({pts:refPts.map(P)},o));
+  const circleIn=(fn,n=120)=>{const a=[];for(let i=0;i<=n;i++)a.push(fn(i/n*TAU));return a;};
+
+  // 좌표선
+  if(S.showGrid){
+    for(let dd=-60;dd<=60;dd+=30){ if(dd===0)continue; const cd=Math.cos(dd*D),sd=Math.sin(dd*D);
+      L(circleIn(s=>R([cd*Math.cos(s),cd*Math.sin(s),sd])),{color:'rgba(170,200,255,0.28)',width:1}); }
+    for(let h=0;h<12;h++){ const a=h*15*D*2;
+      L(circleIn(s=>R([Math.cos(s)*Math.cos(a),Math.cos(s)*Math.sin(a),Math.sin(s)])),{color:'rgba(170,200,255,0.2)',width:1}); }
+  }
+  // 천구의 적도
+  if(S.showEq) L(circleIn(s=>R([Math.cos(s),Math.sin(s),0])),{color:'#ffc94a',width:2.2,dash:[7,5],backAlpha:0.45});
+  // 자전축
+  L([R([0,0,-1.2]),R([0,0,1.2])],{color:'rgba(255,255,255,0.8)',width:1.6,dash:[5,5],backAlpha:0.5});
+  // 선택한 별의 일주 경로
+  const sel=S.selected;
+  if(sel){ L(circleIn(s=>R([sel.cd*Math.cos(s),sel.cd*Math.sin(s),sel.sd]),160),{color:'#ff8c42',width:2.6,backAlpha:0.45}); }
+  // 별자리 선
+  if(S.showConst){
+    for(const c of CONST){ if(c.hidden)continue;
+      for(const [a,b] of c.lines){ L([R(byId[a].v),R(byId[b].v)],{color:c.dash?'rgba(255,220,140,0.55)':'rgba(140,195,255,0.65)',width:1.3,dash:c.dash?[4,4]:null,backAlpha:0.35}); }
+    }
+  }
+  // 별의 궤적 (관측자 기준에서만 — 우주 기준에서는 별이 움직이지 않음)
+  const trailLines=[];
+  if(ground && S.trail){
+    const span=Math.min(TAU,(S.t-S.trailStart)*15*D);
+    if(span>0.002){
+      const step=2*D, n=Math.max(1,Math.ceil(span/step));
+      for(const s of mainStars){
+        const pts=[]; for(let i=0;i<=n;i++){ const back=span*(1-i/n); pts.push(P(R(rotZ(s.v,back)))); }
+        trailLines.push({pts,color:rgba(s.c,0.5),width:s.m<1.5?2:1.3,backAlpha:0.4});
+      }
+    }
+  }
+  // 별
+  const starP=[];
+  for(const s of stars){
+    if(!s.main && !S.faint) continue;
+    const r=R(s.v), p=P(r), alt=dot(s.v,B.U);
+    starP.push({s,p,below:alt<0});
+  }
+
+  const drawLines=(arr,front)=>{
+    for(const ln of arr){
+      const pts=ln.pts; ctx.strokeStyle=ln.color; ctx.lineWidth=ln.width; ctx.setLineDash(ln.dash||[]);
+      ctx.globalAlpha=front?1:(ln.backAlpha??0.3);
+      ctx.beginPath(); let pen=false;
+      for(let i=1;i<pts.length;i++){
+        const a=pts[i-1], b=pts[i], isFront=(a.d+b.d)<0;
+        if(isFront===front){ if(!pen){ctx.moveTo(a.x,a.y);pen=true;} ctx.lineTo(b.x,b.y); } else pen=false;
+      }
+      ctx.stroke();
+    }
+    ctx.globalAlpha=1; ctx.setLineDash([]);
+  };
+  const drawStars=front=>{
+    for(const o of starP){
+      const isFront=o.p.d<0; if(isFront!==front) continue;
+      let a = front?1:0.45; if(o.below && !S.seeBelow) a*=0.3;
+      const r=Math.max(0.7,(3.4-0.55*o.s.m))*(o.p.k/(f/Dc))*0.9*Math.sqrt(cam.zoom);
+      ctx.fillStyle=rgba(o.s.c,a*(o.s.main?1:0.75));
+      ctx.beginPath(); ctx.arc(o.p.x,o.p.y,r,0,TAU); ctx.fill();
+      if(o.s.main && o.s.m<1.3 && front){ ctx.fillStyle=rgba(o.s.c,0.18*a); ctx.beginPath(); ctx.arc(o.p.x,o.p.y,r*2.6,0,TAU); ctx.fill(); }
+      if(o.s.main) pickList.push({x:o.p.x,y:o.p.y,s:o.s});
+    }
+  };
+
+  // ---- 뒤쪽 그리기
+  drawLines(lines,false); drawLines(trailLines,false); drawStars(false);
+
+  // ---- 지평면
+  // 관측자 기준: 지구 중심에 큰 지평면(교과서 그림과 같은 모형)
+  // 우주 기준: 관측자 발밑에 작은 지평면만 그려 '관측자가 지구와 함께 돈다'는 것을 보여 줌
+  const hz=ground?circleIn(s=>R([Math.cos(s)*B.N[0]+Math.sin(s)*B.E[0], Math.cos(s)*B.N[1]+Math.sin(s)*B.E[1], Math.cos(s)*B.N[2]+Math.sin(s)*B.E[2]]),120).map(P):[];
+  if(ground){
+    ctx.fillStyle='rgba(110,190,235,0.30)'; ctx.beginPath(); hz.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y)); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle='rgba(170,225,255,0.85)'; ctx.lineWidth=1.8; ctx.stroke();
+  }
+
+  // ---- 지구
+  const re=ground?0.15:0.21;
+  const earthPt=(lat,lon)=>{ // lon: 관측자 기준 상대 경도(°)
+    const b=lat*D, l=th+lon*D; return R([re*Math.cos(b)*Math.cos(l), re*Math.cos(b)*Math.sin(l), re*Math.sin(b)]); };
+  const limb=r=>{ const d=dot(r,F); if(d<=0) return r; const q=[r[0]-d*F[0],r[1]-d*F[1],r[2]-d*F[2]]; const m=Math.hypot(...q)||1; return [q[0]/m*re,q[1]/m*re,q[2]/m*re]; };
+  const ec=P([0,0,0]), er=re*ec.k;
+  const eg=ctx.createRadialGradient(ec.x-er*0.35,ec.y-er*0.4,er*0.1,ec.x,ec.y,er);
+  eg.addColorStop(0,'#5fb0ff'); eg.addColorStop(0.7,'#1b5fb8'); eg.addColorStop(1,'#0b2a5a');
+  ctx.fillStyle=eg; ctx.beginPath(); ctx.arc(ec.x,ec.y,er,0,TAU); ctx.fill();
+  ctx.save(); ctx.beginPath(); ctx.arc(ec.x,ec.y,er,0,TAU); ctx.clip();
+  ctx.fillStyle='#4f9a4a'; ctx.strokeStyle='rgba(30,70,30,0.6)'; ctx.lineWidth=0.8;
+  for(const poly of LAND){
+    const rs=poly.map(([la,lo])=>earthPt(la,lo-KOREA_LON)), ds=rs.map(r=>dot(r,F)), n=rs.length;
+    const anyFront=ds.some(d=>d<0); if(!anyFront) continue;
+    const out=[]; let exitAng=null;
+    const ang=p=>Math.atan2(p.y-ec.y,p.x-ec.x);
+    const cross=(a,b,da,db)=>{ const t=da/(da-db); return P(limb([a[0]+t*(b[0]-a[0]),a[1]+t*(b[1]-a[1]),a[2]+t*(b[2]-a[2])])); };
+    let start=ds.findIndex(d=>d<0);
+    for(let k=0;k<n;k++){
+      const i=(start+k)%n, j=(i+1)%n, a=rs[i], b=rs[j], da=ds[i], db=ds[j];
+      if(da<0) out.push(P(a));
+      if(da<0 && db>=0){ const c=cross(a,b,da,db); out.push(c); exitAng=ang(c); }
+      else if(da>=0 && db<0){ const c=cross(a,b,da,db); let a1=exitAng, a2=ang(c);
+        if(a1!==null){ let dA=a2-a1; while(dA>Math.PI)dA-=TAU; while(dA<-Math.PI)dA+=TAU;
+          const m=Math.ceil(Math.abs(dA)/0.08); for(let q=1;q<m;q++){ const t=a1+dA*q/m; out.push({x:ec.x+er*Math.cos(t),y:ec.y+er*Math.sin(t)}); } }
+        out.push(c); }
+    }
+    ctx.beginPath(); out.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y)); ctx.closePath(); ctx.fill();
+  }
+  ctx.strokeStyle='rgba(255,255,255,0.25)'; ctx.lineWidth=0.8;
+  for(let lon=0;lon<360;lon+=30){ ctx.beginPath(); let pen=false; for(let la=-90;la<=90;la+=6){ const r=earthPt(la,lon), p=P(r); if(dot(r,F)<0){ pen?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y); pen=true;} else pen=false; } ctx.stroke(); }
+  for(let la=-60;la<=60;la+=30){ ctx.beginPath(); let pen=false; for(let lon=0;lon<=360;lon+=6){ const r=earthPt(la,lon), p=P(r); if(dot(r,F)<0){ pen?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y); pen=true;} else pen=false; } ctx.stroke(); }
+  const sh=ctx.createRadialGradient(ec.x-er*0.3,ec.y-er*0.3,er*0.2,ec.x,ec.y,er*1.05);
+  sh.addColorStop(0,'rgba(255,255,255,0.12)'); sh.addColorStop(0.7,'rgba(0,0,0,0)'); sh.addColorStop(1,'rgba(0,0,20,0.45)');
+  ctx.fillStyle=sh; ctx.fillRect(ec.x-er,ec.y-er,er*2,er*2);
+  ctx.restore();
+  // 관측자
+  const Ur=R(B.U), obsV=dot(Ur,F)<0.05;
+  const o1=P([Ur[0]*re,Ur[1]*re,Ur[2]*re]), o2=P([Ur[0]*re*1.75,Ur[1]*re*1.75,Ur[2]*re*1.75]);
+  ctx.globalAlpha=obsV?1:0.45;
+  ctx.strokeStyle='#ffe066'; ctx.lineWidth=2.5; ctx.beginPath(); ctx.moveTo(o1.x,o1.y); ctx.lineTo(o2.x,o2.y); ctx.stroke();
+  ctx.fillStyle='#ffe066'; ctx.beginPath(); ctx.arc(o2.x,o2.y,4,0,TAU); ctx.fill();
+  ctx.fillStyle='#ff4d4d'; ctx.beginPath(); ctx.arc(o1.x,o1.y,3.2,0,TAU); ctx.fill();
+  ctx.globalAlpha=1;
+  // 지구 자전축 (지구를 꿰뚫는 굵은 축 — 방향이 항상 천구의 북극을 향함)
+  { const a1=P(R([0,0,re*1.0])), a2=P(R([0,0,re*2.1])), b1=P(R([0,0,-re*1.0])), b2=P(R([0,0,-re*2.1]));
+    ctx.strokeStyle='#ff6b8a'; ctx.lineWidth=3.2; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(a1.x,a1.y); ctx.lineTo(a2.x,a2.y); ctx.moveTo(b1.x,b1.y); ctx.lineTo(b2.x,b2.y); ctx.stroke(); ctx.lineCap='butt';
+    ctx.fillStyle='#ff6b8a'; ctx.beginPath(); ctx.arc(a2.x,a2.y,3.5,0,TAU); ctx.fill();
+    if(S.showNames) label('지구 자전축', a2.x+8, a2.y-6, {size:12,color:'#ffb3c4'}); }
+  // 우주 기준: 관측자 발밑의 작은 지평면
+  if(!ground){
+    const c=Ur.map(x=>x*re*1.01), rh=re*0.75, Nr=R(B.N), Er=R(B.E);
+    const pts=[]; for(let i=0;i<=48;i++){ const s=i/48*TAU; pts.push(P([c[0]+rh*(Math.cos(s)*Nr[0]+Math.sin(s)*Er[0]), c[1]+rh*(Math.cos(s)*Nr[1]+Math.sin(s)*Er[1]), c[2]+rh*(Math.cos(s)*Nr[2]+Math.sin(s)*Er[2])])); }
+    ctx.globalAlpha=obsV?1:0.4;
+    ctx.fillStyle='rgba(110,190,235,0.45)'; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y)); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle='rgba(190,235,255,0.95)'; ctx.lineWidth=1.5; ctx.stroke();
+    if(S.showNames) for(const [t,v] of [['북',Nr],['동',Er],['남',Nr.map(x=>-x)],['서',Er.map(x=>-x)]]){
+      const q=P([c[0]+v[0]*rh*1.45, c[1]+v[1]*rh*1.45, c[2]+v[2]*rh*1.45]); label(t,q.x,q.y,{size:12,w:900,align:'center',color:t==='북'?'#ffd36b':'#fff',stroke:3}); }
+    ctx.strokeStyle='#ffe066'; ctx.lineWidth=2.5; ctx.beginPath(); ctx.moveTo(o1.x,o1.y); ctx.lineTo(o2.x,o2.y); ctx.stroke();
+    ctx.fillStyle='#ffe066'; ctx.beginPath(); ctx.arc(o2.x,o2.y,4,0,TAU); ctx.fill();
+    if(S.showNames) label('관측자', o2.x+7, o2.y-6, {size:11.5,color:'#ffe9a0'});
+    ctx.globalAlpha=1;
+  }
+  // 지구 자전 화살표
+  { const pts=[]; for(let a=0;a<=100;a+=4){ const s=th+(150+a)*D; pts.push(P(R([re*1.45*Math.cos(s),re*1.45*Math.sin(s),0]))); }
+    ctx.strokeStyle='#ff5a5a'; ctx.lineWidth=2.6; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y)); ctx.stroke();
+    const a=pts[pts.length-2], b=pts[pts.length-1]; arrowHead(a.x,a.y,b.x,b.y,10,'#ff5a5a');
+    if(S.showNames){ const m=pts[Math.floor(pts.length/2)]; label('지구의 자전', m.x, m.y+16, {size:12.5,color:'#ffb3b3',align:'center'}); } }
+
+  // ---- 앞쪽 그리기
+  drawLines(lines,true); drawLines(trailLines,true); drawStars(true);
+
+  // 별의 일주 운동 화살표 (관측자 기준)
+  if(ground && S.arrows){
+    const de=25*D, cd=Math.cos(de), sd=Math.sin(de), pts=[];
+    for(let H=-55;H<=55;H+=3){ const al=th-H*D; pts.push(P(R([cd*Math.cos(al)*1.02,cd*Math.sin(al)*1.02,sd*1.02]))); }
+    ctx.strokeStyle='#ff9a3c'; ctx.lineWidth=3.2; ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y)); ctx.stroke();
+    const a=pts[pts.length-2], b=pts[pts.length-1]; arrowHead(a.x,a.y,b.x,b.y,13,'#ff9a3c');
+    if(S.showNames){ const m=pts[Math.floor(pts.length*0.5)]; label('별의 일주 운동', m.x, m.y-15, {size:13,color:'#ffc48a',align:'center'}); }
+  }
+  // 라벨
+  const lab=(v,txt,o)=>{ const p=P(R(v)); label(txt,p.x+(o&&o.dx||0),p.y+(o&&o.dy||0),o); return p; };
+  const np=P(R([0,0,1])), spp=P(R([0,0,-1]));
+  ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(np.x,np.y,3.5,0,TAU); ctx.fill();
+  if(S.showNames){
+    label('천구의 북극', np.x-10, np.y-12, {size:13,color:'#dfe9ff',align:'right'});
+    label('천구의 남극', spp.x+8, spp.y+14, {size:12,color:'#9fb0d0'});
+    if(S.showEq){ const e=P(R([Math.cos(th+200*D),Math.sin(th+200*D),0])); }
+  }
+  // 천정
+  if(ground){
+  const zp=P(R(B.U).map(x=>x*1.0));
+  ctx.strokeStyle='rgba(255,230,120,0.45)'; ctx.setLineDash([2,4]); ctx.lineWidth=1.2; ctx.beginPath(); ctx.moveTo(o2.x,o2.y); ctx.lineTo(zp.x,zp.y); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle='#ffe066'; ctx.beginPath(); ctx.arc(zp.x,zp.y,3,0,TAU); ctx.fill();
+  if(S.showNames) label('천정', zp.x+7, zp.y-8, {size:12.5,color:'#ffe9a0'});
+  // 방위
+  const dirs=[['북',B.N],['동',B.E],['남',B.N.map(x=>-x)],['서',B.E.map(x=>-x)]];
+  for(const [t,v] of dirs){ const p=P(R(v.map(x=>x*1.12))); label(t,p.x,p.y,{size:18,w:900,align:'center',color:t==='북'?'#ffd36b':'#ffffff'}); }
+  for(const [t,v] of dirs){ const a=P(R(v.map(x=>x*0.24))), b=P(R(v.map(x=>x*0.36)));
+    ctx.strokeStyle='#ff5a5a'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke(); arrowHead(a.x,a.y,b.x,b.y,7,'#ff5a5a'); }
+  }
+  if(S.showNames){
+    if(S.showEq){ let best=null; for(let s=0;s<TAU;s+=0.1){ const p=P(R([Math.cos(s),Math.sin(s),0])); if(p.d<0 && (!best||p.y>best.y)) best=p; } if(best) label('천구의 적도', best.x, best.y+14, {size:12.5,color:'#ffd77a',align:'center'}); }
+    { let best=null; for(const p of hz) if(p.d<0 && (!best||p.x>best.x)) best=p; if(best) label('지평선', best.x-6, best.y+14, {size:12.5,color:'#bfe7ff',align:'right'}); }
+    for(const o of starP){ const s=o.s; if(!s.name||o.p.d>0.2) continue; if(o.below&&!S.seeBelow) continue;
+      if(s.m>1.6 && s.id!=='polaris') continue;
+      label(s.name,o.p.x+6,o.p.y-9,{size:s.id==='polaris'?14:12,color:s.id==='polaris'?'#ffe58a':'#e2eaff',w:s.id==='polaris'?800:600}); }
+    if(S.showConst) for(const c of CONST){ if(c.hidden||c.dash) continue;
+      const ids=c.label||[...new Set(c.lines.flat())]; let v=[0,0,0]; ids.forEach(id=>{v[0]+=byId[id].v[0];v[1]+=byId[id].v[1];v[2]+=byId[id].v[2];});
+      const m=Math.hypot(...v); v=v.map(x=>x/m); const p=P(R(v)); if(p.d>0.1) continue; if(dot(v,B.U)<0&&!S.seeBelow) continue;
+      label(c.name,p.x,p.y+16,{size:12,color:'#9cc8ff',align:'center',w:500}); }
+  }
+  if(sel){ const p=P(R(sel.v)); ctx.strokeStyle='#ff8c42'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(p.x,p.y,10,0,TAU); ctx.stroke(); }
+
+  // 패널 제목 (나란히 보기)
+  if(S.ref==='both'){
+    label(ground?'관측자 기준 : 천구가 돈다':'우주 기준 : 지구가 돈다', vx+14, vy+20, {size:16,w:800,color:ground?'#ffd36b':'#8fd0ff'});
+  }
+  ctx.restore();
+}
+
+/* =========================================================
+   ②③ 관측자 시점 (땅에서 하늘 보기, 입체사영)
+   ========================================================= */
+const hill = az => { const a=az*D; return Math.max(0.2, 1.4+1.3*Math.sin(3*a+1)+0.9*Math.sin(7*a+2)+0.5*Math.sin(13*a)); };
+let trailCache={key:'',data:null};
+function trailData(){
+  const key=[S.t.toFixed(4),S.trailStart.toFixed(4),S.phi,S.faint].join('|');
+  if(trailCache.key===key) return trailCache.data;
+  const phi=S.phi*D, thE=theta(S.t), span=Math.min(TAU,(S.t-S.trailStart)*15*D);
+  const out=[];
+  if(span>0.001){
+    for(const s of stars){
+      if(!s.main && !S.faint) continue;
+      if(Math.sin(S.phi*D)*s.sd < -Math.cos(S.phi*D)*0.999 && !S.seeBelow) {} // 계산은 하되 그리기에서 처리
+      const step=(s.main?1.2:2.4)*D, n=Math.max(1,Math.ceil(span/step)), H1=thE-s.ra, arr=new Float32Array((n+1)*3);
+      for(let i=0;i<=n;i++){ const h=hor(H1-span*(1-i/n),s,phi); arr[i*3]=h[0]; arr[i*3+1]=h[1]; arr[i*3+2]=h[2]; }
+      out.push({s,arr,n});
+    }
+  }
+  trailCache={key,data:out}; return out;
+}
+
+function renderSky(vx,vy,vw,vh,A,a,fov,opt={}){
+  const phi=S.phi*D, th=theta(S.t);
+  const cA=Math.cos(A*D), sA=Math.sin(A*D), ca=Math.cos(a*D), sa=Math.sin(a*D);
+  const Fw=[ca*cA,ca*sA,sa], Rr=[-sA,cA,0], Uu=[-sa*cA,-sa*sA,ca];
+  const S0=(vw/2)/(2*Math.tan(fov*D/4));
+  const cx=vx+vw/2, cy=vy+vh/2;
+  const pj=(n,e,u)=>{ const z=n*Fw[0]+e*Fw[1]+u*Fw[2]; if(z<-0.4) return null;
+    const x=n*Rr[0]+e*Rr[1], y=n*Uu[0]+e*Uu[1]+u*Uu[2], k=2/(1+z); return [cx+S0*k*x, cy-S0*k*y]; };
+  const pjAA=(alt,az)=>{ const al=alt*D, zz=az*D; return pj(Math.cos(al)*Math.cos(zz),Math.cos(al)*Math.sin(zz),Math.sin(al)); };
+  viewports.push({x:vx,y:vy,w:vw,h:vh,kind:'sky',fixed:!!opt.fixed,fov});
+  ctx.save(); ctx.beginPath(); ctx.rect(vx,vy,vw,vh); ctx.clip();
+  // 하늘
+  const hp=pjAA(0,A); const hy=hp?hp[1]:vy+vh;
+  const g=ctx.createLinearGradient(0,hy-vh*1.1,0,hy);
+  g.addColorStop(0,'#03060f'); g.addColorStop(0.65,'#0b1834'); g.addColorStop(1,'#20375f');
+  ctx.fillStyle=g; ctx.fillRect(vx,vy,vw,vh);
+  const below=S.seeBelow;
+  // 좌표선
+  if(S.showGrid){
+    ctx.strokeStyle='rgba(160,190,255,0.22)'; ctx.lineWidth=1;
+    for(let al=15;al<90;al+=15){ ctx.beginPath(); let pen=false; for(let z=0;z<=360;z+=3){ const p=pjAA(al,z); if(p){pen?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]);pen=true;} else pen=false; } ctx.stroke(); }
+    for(let z=0;z<360;z+=30){ ctx.beginPath(); let pen=false; for(let al=0;al<=88;al+=3){ const p=pjAA(al,z); if(p){pen?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]);pen=true;} else pen=false; } ctx.stroke(); }
+  }
+  // 궤적
+  if(S.trail){
+    const td=trailData();
+    const groups=[[],[],[]];
+    for(const t of td){ groups[t.s.m<1.5?0:t.s.m<3.2?1:2].push(t); }
+    const styles=[['rgba(255,236,200,0.95)',opt.compact?1.7:2.3],['rgba(205,222,255,0.8)',opt.compact?1.1:1.5],['rgba(170,195,255,0.45)',opt.compact?0.7:1]];
+    groups.forEach((gr,gi)=>{
+      ctx.strokeStyle=styles[gi][0]; ctx.lineWidth=styles[gi][1]; ctx.beginPath();
+      for(const t of gr){ const a=t.arr; let pen=false;
+        for(let i=0;i<=t.n;i++){ const u=a[i*3+2]; if(u<-0.01&&!below){pen=false;continue;}
+          const p=pj(a[i*3],a[i*3+1],u); if(!p){pen=false;continue;}
+          if(pen) ctx.lineTo(p[0],p[1]); else { ctx.moveTo(p[0],p[1]); pen=true; } }
+      }
+      ctx.stroke();
+    });
+    // 밝은 별 궤적 끝 화살촉
+    if(S.arrows && !opt.compact){
+      for(const t of groups[0].concat(groups[1].filter(x=>x.s.m<2.3))){ const a=t.arr,n=t.n; if(n<2) continue;
+        const i0=Math.max(0,n-2); if(a[n*3+2]<0&&!below) continue;
+        const p1=pj(a[i0*3],a[i0*3+1],a[i0*3+2]), p2=pj(a[n*3],a[n*3+1],a[n*3+2]);
+        if(p1&&p2&&Math.hypot(p2[0]-p1[0],p2[1]-p1[1])>0.5) arrowHead(p1[0],p1[1],p2[0],p2[1],7,'rgba(255,170,90,0.95)'); }
+    }
+  }
+  // 선택한 별 경로
+  const sel=S.selected;
+  if(sel){ ctx.strokeStyle='rgba(255,140,66,0.9)'; ctx.setLineDash([6,5]); ctx.lineWidth=2; ctx.beginPath(); let pen=false;
+    for(let H=0;H<=361;H+=1.5){ const h=hor(H*D,sel,phi); const p=(h[2]>=-0.01||below)?pj(...h):null; if(p){pen?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]);pen=true;} else pen=false; }
+    ctx.stroke(); ctx.setLineDash([]); }
+  // 별자리
+  const hcache=new Map();
+  const H_=s=>{ let h=hcache.get(s); if(!h){ h=hor(th-s.ra,s,phi); hcache.set(s,h);} return h; };
+  if(S.showConst){
+    for(const c of CONST){ if(c.hidden) continue;
+      ctx.strokeStyle=c.dash?'rgba(255,220,140,0.5)':'rgba(130,185,255,0.6)'; ctx.lineWidth=opt.compact?1:1.4; ctx.setLineDash(c.dash?[4,4]:[]);
+      ctx.beginPath();
+      for(const [a,b] of c.lines){ const ha=H_(byId[a]), hb=H_(byId[b]); if((ha[2]<0||hb[2]<0)&&!below) continue;
+        const p=pj(...ha), q=pj(...hb); if(p&&q){ ctx.moveTo(p[0],p[1]); ctx.lineTo(q[0],q[1]); } }
+      ctx.stroke(); }
+    ctx.setLineDash([]);
+  }
+  // 별
+  const scale=Math.min(1.35,Math.max(0.7,100/fov))*(opt.compact?0.8:1);
+  for(const s of stars){
+    if(!s.main && !S.faint) continue;
+    const h=H_(s); if(h[2]<0&&!below) continue;
+    const p=pj(...h); if(!p) continue;
+    if(p[0]<vx-10||p[0]>vx+vw+10||p[1]<vy-10||p[1]>vy+vh+10) continue;
+    const r=Math.max(0.6,(3.6-0.6*s.m))*scale, al=h[2]<0?0.45:1;
+    if(s.m<1.2){ ctx.fillStyle=rgba(s.c,0.2*al); ctx.beginPath(); ctx.arc(p[0],p[1],r*2.8,0,TAU); ctx.fill(); }
+    ctx.fillStyle=rgba(s.c,al*(s.main?1:0.8)); ctx.beginPath(); ctx.arc(p[0],p[1],r,0,TAU); ctx.fill();
+    if(s.main && !opt.fixed) pickList.push({x:p[0],y:p[1],s});
+    if(S.showNames && s.name && (s.m<1.7||s.id==='polaris') && !opt.compact) label(s.name,p[0]+7,p[1]-9,{size:13,color:s.id==='polaris'?'#ffe58a':'#e2eaff',w:s.id==='polaris'?800:600});
+    if(S.showNames && opt.compact && s.id==='polaris') label('북극성',p[0]+6,p[1]-8,{size:11.5,color:'#ffe58a'});
+  }
+  if(S.showNames && S.showConst && !opt.compact){
+    for(const c of CONST){ if(c.hidden||c.dash) continue;
+      const ids=c.label||[...new Set(c.lines.flat())]; let v=[0,0,0]; ids.forEach(id=>{const h=H_(byId[id]);v[0]+=h[0];v[1]+=h[1];v[2]+=h[2];});
+      const m=Math.hypot(...v); v=v.map(x=>x/m); if(v[2]<0.02&&!below) continue; const p=pj(...v); if(!p) continue;
+      label(c.name,p[0],p[1]+18,{size:12.5,color:'#9cc8ff',align:'center',w:500}); }
+  }
+  if(sel){ const h=H_(sel), p=pj(...h); if(p&&(h[2]>=0||below)){ ctx.strokeStyle='#ff8c42'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(p[0],p[1],11,0,TAU); ctx.stroke(); } }
+  // 천구의 북극/남극 표시
+  const poles=[[ [Math.cos(phi),0,Math.sin(phi)],'천구의 북극'],[ [-Math.cos(phi),0,-Math.sin(phi)],'천구의 남극']];
+  for(const [v,t] of poles){ if(v[2]<-0.001&&!below) continue; const p=pj(...v); if(!p) continue;
+    ctx.strokeStyle='rgba(255,230,140,0.85)'; ctx.lineWidth=1.4; ctx.beginPath(); ctx.moveTo(p[0]-8,p[1]); ctx.lineTo(p[0]+8,p[1]); ctx.moveTo(p[0],p[1]-8); ctx.lineTo(p[0],p[1]+8); ctx.stroke();
+    if(S.showNames && !opt.compact) label(t,p[0]+10,p[1]+14,{size:12,color:'#ffe9a8',w:500}); }
+  // 대표 이동 방향 화살표 (교과서 그림의 주황 화살표)
+  if(S.arrows){
+    const cN=Fw, hd=horToHD(cN[0],cN[1],Math.max(cN[2],0.17),phi);
+    const big=(H0,de,len)=>{ const cd=Math.cos(de), sd=Math.sin(de), pts=[];
+      for(let i=0;i<=24;i++){ const H=H0+(i/24-0.5)*len; const h=horCD(H,cd,sd,phi); const p=pj(...h); if(p) pts.push(p); }
+      if(pts.length<3) return; ctx.strokeStyle='rgba(255,120,50,0.95)'; ctx.lineWidth=opt.compact?3:4; ctx.lineCap='round';
+      ctx.beginPath(); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.lineCap='butt';
+      const a=pts[pts.length-3], b=pts[pts.length-1]; arrowHead(a[0],a[1],b[0],b[1],opt.compact?12:15,'rgba(255,120,50,0.95)'); };
+    const polar=Math.abs(hd.de)>62*D;
+    if(polar){ const de=Math.sign(hd.de)*Math.max(Math.abs(hd.de)-0*D,70*D); const dd=Math.sign(hd.de)*72*D;
+      big(hd.H+Math.PI*0.5,dd,70*D); big(hd.H-Math.PI*0.5,dd,70*D); }
+    else big(hd.H, hd.de, Math.min(60, fov*0.45)*D/Math.max(0.4,Math.cos(hd.de)));
+  }
+  // 땅
+  const pts=[]; let ring=true;
+  for(let z=0;z<=360;z+=2){ const p=pjAA(hill(z),z); if(!p){ring=false;break;} pts.push(p); }
+  ctx.fillStyle=below?'rgba(8,12,18,0.55)':'#070a0f';
+  if(ring && a>45){
+    ctx.beginPath(); ctx.rect(vx-10,vy-10,vw+20,vh+20); pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.closePath(); ctx.fill('evenodd');
+  } else {
+    const run=[]; for(let dz=-118;dz<=118;dz+=2){ const z=A+dz; const p=pjAA(hill(((z%360)+360)%360),z); if(p) run.push(p); }
+    if(run.length>1){ ctx.beginPath(); run.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));
+      ctx.lineTo(run[run.length-1][0],vy+vh+4000); ctx.lineTo(run[0][0],vy+vh+4000); ctx.closePath(); ctx.fill(); }
+  }
+  // 지평선 은은한 빛
+  // 방위 표시
+  for(let z=0;z<360;z+=45){ const p=pjAA(-4.5,z); if(!p) continue; const main=z%90===0;
+    if(opt.title && Math.abs(((z-A+540)%360)-180)<1) continue;
+    if(p[0]<vx||p[0]>vx+vw) continue; p[1]=Math.min(p[1],vy+vh-16);
+    label(AZNAME(z), p[0], p[1], {size:main?(opt.compact?15:18):13, w:main?900:600, align:'center', color:main?'#ffd36b':'#b9c4da'}); }
+  // 패널 라벨 (4분할)
+  if(opt.title){
+    ctx.fillStyle='rgba(0,0,0,0.0)';
+    label(opt.title, cx, vy+vh-22, {size:22,w:900,align:'center',color:'#ffffff',stroke:5});
+    if(opt.caption){ const tw=Math.min(vw-24, 330); ctx.font="600 13.5px 'Noto Sans KR',sans-serif";
+      const w=ctx.measureText(opt.caption).width+20; ctx.fillStyle='rgba(255,255,255,0.92)'; const bx=cx-w/2, by=vy+10;
+      ctx.beginPath(); ctx.roundRect?ctx.roundRect(bx,by,w,28,8):ctx.rect(bx,by,w,28); ctx.fill();
+      ctx.fillStyle='#c4471a'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(opt.caption,cx,by+14); }
+  }
+  if(opt.border){ ctx.strokeStyle='rgba(255,255,255,0.18)'; ctx.lineWidth=2; ctx.strokeRect(vx+1,vy+1,vw-2,vh-2); }
+  ctx.restore();
+}
+
+/* ---------------- 방향별 설명 ---------------- */
+function captionFor(dir){
+  const p=S.phi;
+  if(p>=89) return '지평선과 나란히 시계 반대 방향으로 돎';
+  if(p<=-89) return '지평선과 나란히 시계 방향으로 돎';
+  if(Math.abs(p)<1){ return {N:'천구의 북극 중심으로 돎(지평선 근처)',S:'천구의 남극 중심으로 돎(지평선 근처)',E:'지평선에서 수직으로 떠오름',W:'지평선으로 수직으로 짐'}[dir]; }
+  if(p>0) return {N:'북극성 중심, 시계 반대 방향 회전',S:'동쪽 → 서쪽 (왼쪽 → 오른쪽) 이동',E:'오른쪽 위로 비스듬히 떠오름',W:'오른쪽 아래로 비스듬히 짐'}[dir];
+  return {N:'동쪽 → 서쪽 (오른쪽 → 왼쪽) 이동',S:'천구의 남극 중심, 시계 방향 회전',E:'왼쪽 위로 비스듬히 떠오름',W:'왼쪽 아래로 비스듬히 짐'}[dir];
+}
+
+/* ---------------- 메인 그리기 ---------------- */
+function render(){
+  viewports=[]; pickList=[];
+  ctx.clearRect(0,0,W,Hh);
+  if(S.tab==='sphere'){
+    if(S.ref==='both'){ const w2=W/2; render3D(0,0,w2,Hh,'space'); render3D(w2,0,W-w2,Hh,'ground');
+      ctx.fillStyle='rgba(255,255,255,0.25)'; ctx.fillRect(w2-1,0,2,Hh); }
+    else render3D(0,0,W,Hh,S.ref);
+  } else if(S.tab==='sky'){
+    renderSky(0,0,W,Hh,S.view.A,S.view.a,S.view.fov,{});
+  } else {
+    const w2=W/2, h2=Hh/2, nAlt=Math.min(70,Math.max(18,Math.abs(S.phi))), pAlt=28, fv=112;
+    const north = S.phi>=0;
+    renderSky(0,0,w2,h2,180,north?pAlt:nAlt,fv,{compact:true,fixed:true,title:'남',caption:S.caption?captionFor('S'):'',border:true});
+    renderSky(w2,0,W-w2,h2,270,pAlt,fv,{compact:true,fixed:true,title:'서',caption:S.caption?captionFor('W'):'',border:true});
+    renderSky(0,h2,w2,Hh-h2,90,pAlt,fv,{compact:true,fixed:true,title:'동',caption:S.caption?captionFor('E'):'',border:true});
+    renderSky(w2,h2,W-w2,Hh-h2,0,north?nAlt:pAlt,fv,{compact:true,fixed:true,title:'북',caption:S.caption?captionFor('N'):'',border:true});
+  }
+  updateNote(); updateReadout(); updateStarInfo();
+}
+
+/* ---------------- 상단 안내문 / 하단 시각 ---------------- */
+function fmtClock(h){ h=((h%24)+24)%24; let H=Math.floor(h), M=Math.round((h-H)*60); if(M===60){M=0;H=(H+1)%24;}
+  const ap=H<12?'오전':'오후', h12=H%12===0?12:H%12; return `${ap} ${h12}:${String(M).padStart(2,'0')}`; }
+function updateReadout(){
+  const t=S.t, hh=Math.floor(t+1e-6), mm=Math.round((t-hh)*60)%60;
+  $('readout').innerHTML=`관측 시각 <b>${fmtClock(S.clock0+t)}</b> · 경과 <b>${hh}시간 ${mm}분</b> · 회전한 각도 <b>${Math.round(t*15)}°</b>`;
+  $('tslider').value=t;
+}
+function updateNote(){
+  let s='';
+  if(S.tab==='sphere'){
+    if(S.ref==='ground') s='<span class="chip">관측자 기준 — 지구(관측자)는 멈춰 있는 것처럼 보이고, <b>천구가 동→서(시계 방향)</b>로 돕니다.</span>';
+    else if(S.ref==='space') s='<span class="chip">우주 기준 — 별(천구)과 자전축은 고정, <b>지구가 서→동(시계 반대 방향)</b>으로 자전합니다. 관측자와 발밑의 지평면이 지구와 함께 돌아가는 것을 보세요.</span>';
+    else s='';
+  } else if(S.tab==='sky'){
+    const az=((S.view.A%360)+360)%360;
+    s=`<span class="chip">바라보는 방향 <b>${S.view.a>80?'머리 위(천정)':AZNAME(az)+'쪽 하늘'}</b> · 방위각 ${Math.round(az)}° · 고도 ${Math.round(S.view.a)}°</span>`;
+  }
+  const el=$('note'); if(el._s!==s){ el.innerHTML=s; el._s=s; }
+}
+function updateStarInfo(){
+  const s=S.selected, el=$('starinfo');
+  if(!s){ if(el._k!=='none'){ el.innerHTML='<p class="small" style="margin:0">별을 고르면 하루 동안 그 별이 지나가는 길(일주 경로)이 주황색 점선으로 표시됩니다.</p>'; el._k='none'; } return; }
+  const phi=S.phi*D, h=hor(theta(S.t)-s.ra,s,phi), aa=altaz(h);
+  const dec=s.de/D, lim=90-Math.abs(S.phi);
+  let type, col;
+  if(S.phi>=0 ? dec>lim : dec<-lim){ type='항상 지평선 위 — 지지 않는 별(주극성)'; col='#2e9d5b'; }
+  else if(S.phi>=0 ? dec<-lim : dec>lim){ type='항상 지평선 아래 — 볼 수 없는 별'; col='#7a8394'; }
+  else { type='동쪽에서 떠서 서쪽으로 지는 별'; col='#2f6fed'; }
+  const html=`<div class="name">${s.name||'별'}</div>
+   <div class="kv"><span>적위</span><span>${dec>=0?'+':''}${dec.toFixed(1)}°</span></div>
+   <div class="kv"><span>지금 고도</span><span>${aa.alt>=0?aa.alt.toFixed(0)+'°':'지평선 아래 ('+aa.alt.toFixed(0)+'°)'}</span></div>
+   <div class="kv"><span>지금 방위</span><span>${AZNAME(aa.az)} (${aa.az.toFixed(0)}°)</span></div>
+   <span class="tag" style="background:${col}1a;color:${col}">${type}</span>`;
+  if(el._k!==html){ el.innerHTML=html; el._k=html; }
+}
+
+/* ---------------- 애니메이션 ---------------- */
+let last=performance.now();
+function loop(now){
+  const dt=Math.min(0.1,(now-last)/1000); last=now;
+  if(S.playing){ S.t+=dt*S.speed; if(S.t>=24){ S.t=24; setPlaying(false); } dirty=true; }
+  if(dirty){ dirty=false; render(); }
+  requestAnimationFrame(loop);
+}
+function setPlaying(p){ if(p && S.t>=24){ S.t=0; S.trailStart=0; } S.playing=p; $('play').textContent=p?'❚❚':'▶'; dirty=true; }
+
+/* ---------------- 입력: 드래그·휠·핀치·선택 ---------------- */
+const ptrs=new Map(); let drag=null, pinch=null;
+function hitVP(x,y){ for(const v of viewports) if(x>=v.x&&x<=v.x+v.w&&y>=v.y&&y<=v.y+v.h) return v; return null; }
+const rel=e=>{ const r=cvs.getBoundingClientRect(); return [e.clientX-r.left, e.clientY-r.top]; };
+cvs.addEventListener('pointerdown',e=>{
+  const [x,y]=rel(e); ptrs.set(e.pointerId,[x,y]); cvs.setPointerCapture(e.pointerId);
+  if(ptrs.size===2){ const [a,b]=[...ptrs.values()]; pinch={d:Math.hypot(a[0]-b[0],a[1]-b[1]),vp:drag&&drag.vp}; drag&&(drag.moved=true); return; }
+  drag={vp:hitVP(x,y),x,y,sx:x,sy:y,moved:false};
+});
+cvs.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId)) return; const [x,y]=rel(e); ptrs.set(e.pointerId,[x,y]);
+  if(pinch && ptrs.size===2){ const [a,b]=[...ptrs.values()]; const d=Math.hypot(a[0]-b[0],a[1]-b[1]); zoomBy(pinch.vp, pinch.d/d); pinch.d=d; return; }
+  if(!drag||!drag.vp) return;
+  const dx=x-drag.x, dy=y-drag.y; drag.x=x; drag.y=y;
+  if(Math.hypot(x-drag.sx,y-drag.sy)>5) drag.moved=true;
+  const vp=drag.vp;
+  if(vp.kind==='3d'){ const c=S.cams[vp.mode]; c.yaw-=dx*0.45; c.pitch=Math.max(-88,Math.min(88,c.pitch+dy*0.35)); dirty=true; }
+  else if(vp.kind==='sky' && !vp.fixed){ const k=S.view.fov/vp.w; S.view.A=(S.view.A-dx*k+360)%360; S.view.a=Math.max(-5,Math.min(85,S.view.a+dy*k)); syncDirSeg(); dirty=true; }
+});
+const endPtr=e=>{
+  if(!ptrs.has(e.pointerId)) return; ptrs.delete(e.pointerId);
+  if(ptrs.size<2) pinch=null;
+  if(drag && !drag.moved && ptrs.size===0){ const [x,y]=rel(e); pick(x,y); }
+  if(ptrs.size===0) drag=null;
+};
+cvs.addEventListener('pointerup',endPtr); cvs.addEventListener('pointercancel',endPtr);
+cvs.addEventListener('wheel',e=>{ e.preventDefault(); const [x,y]=rel(e); zoomBy(hitVP(x,y), Math.exp(e.deltaY*0.0012)); },{passive:false});
+function zoomBy(vp,f){
+  if(!vp) return;
+  if(vp.kind==='3d'){ const c=S.cams[vp.mode]; c.zoom=Math.max(0.5,Math.min(3.5,c.zoom/f)); }
+  else if(!vp.fixed){ S.view.fov=Math.max(40,Math.min(150,S.view.fov*f)); $('fov').value=S.view.fov; $('fovv').textContent=Math.round(S.view.fov)+'°'; }
+  dirty=true;
+}
+function pick(x,y){
+  let best=null, bd=22;
+  for(const p of pickList){ const d=Math.hypot(p.x-x,p.y-y); if(d<bd){bd=d;best=p.s;} }
+  S.selected=best; $('starSel').value=best&&best.name?best.id:''; dirty=true;
+}
+
+/* ---------------- UI 연결 ---------------- */
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
+function setTab(t){ S.tab=t; document.body.dataset.tab=t; document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+  $('lbEq').style.display=t==='sphere'?'flex':'none'; try{location.hash=t;}catch(e){} dirty=true; }
+$('play').onclick=()=>setPlaying(!S.playing);
+$('btnReset').onclick=()=>{ S.t=0; S.trailStart=0; setPlaying(false); dirty=true; };
+$('tslider').oninput=e=>{ S.t=+e.target.value; if(S.t<S.trailStart) S.trailStart=S.t; dirty=true; };
+$('speed').onchange=e=>{ S.speed=+e.target.value; };
+document.querySelectorAll('#refSeg button').forEach(b=>b.onclick=()=>{ S.ref=b.dataset.ref; document.querySelectorAll('#refSeg button').forEach(x=>x.classList.toggle('on',x===b)); dirty=true; });
+$('btnCam').onclick=()=>{ S.cams={ground:{yaw:62,pitch:16,zoom:1},space:{yaw:62,pitch:16,zoom:1}}; dirty=true; };
+$('btnTop').onclick=()=>{ S.cams.space={yaw:0,pitch:88,zoom:1}; if(S.ref==='ground'){ S.ref='space'; document.querySelectorAll('#refSeg button').forEach(x=>x.classList.toggle('on',x.dataset.ref==='space')); } dirty=true; };
+function syncDirSeg(){ const az=((S.view.A%360)+360)%360; document.querySelectorAll('#dirSeg button').forEach(b=>{ const v=b.dataset.az;
+  b.classList.toggle('on', v==='zen' ? S.view.a>80 : (S.view.a<=80 && Math.abs(((az-+v+540)%360)-180)<1)); }); }
+document.querySelectorAll('#dirSeg button').forEach(b=>b.onclick=()=>{ const v=b.dataset.az;
+  if(v==='zen'){ S.view.a=85; } else { S.view.A=+v; S.view.a = (+v===0&&S.phi>0)||(+v===180&&S.phi<0) ? Math.min(60,Math.max(25,Math.abs(S.phi))) : 30; }
+  syncDirSeg(); dirty=true; });
+$('fov').oninput=e=>{ S.view.fov=+e.target.value; $('fovv').textContent=e.target.value+'°'; dirty=true; };
+const ck=(id,key)=>{ $(id).onchange=e=>{ S[key]=e.target.checked; trailCache.key=''; dirty=true; }; };
+ck('ckTrail','trail'); ck('ckArrow','arrows'); ck('ckConst','showConst'); ck('ckNames','showNames'); ck('ckEq','showEq'); ck('ckGrid','showGrid'); ck('ckBelow','seeBelow'); ck('ckFaint','faint');
+$('btnClear').onclick=()=>{ S.trailStart=S.t; dirty=true; };
+function setLat(v){ S.phi=Math.max(-90,Math.min(90,v)); $('lat').value=S.phi;
+  $('latv').textContent=S.phi===0?'적도 (0°)':(S.phi>0?'북위 ':'남위 ')+Math.abs(S.phi).toFixed(1)+'°';
+  document.querySelectorAll('#latBtns button').forEach(b=>b.classList.toggle('on',Math.abs(+b.dataset.lat-S.phi)<0.05)); dirty=true; }
+document.querySelectorAll('#latBtns button').forEach(b=>b.onclick=()=>setLat(+b.dataset.lat));
+$('lat').oninput=e=>setLat(+e.target.value);
+const sel=$('starSel');
+mainStars.filter(s=>s.name).sort((a,b)=>a.name.localeCompare(b.name,'ko')).forEach(s=>{ const o=document.createElement('option'); o.value=s.id; o.textContent=s.name; sel.appendChild(o); });
+sel.onchange=()=>{ S.selected=sel.value?byId[sel.value]:null; dirty=true; };
+$('btnFull').onclick=async()=>{ try{ if(document.fullscreenElement) await document.exitFullscreen(); else await document.documentElement.requestFullscreen(); }catch(e){} };
+$('btnPanel').onclick=()=>{ const p=$('panel'); p.style.display=p.style.display==='none'?'':'none'; };
+window.addEventListener('keydown',e=>{ if(e.target.tagName==='INPUT'&&e.target.type!=='range'||e.target.tagName==='SELECT') return;
+  if(e.code==='Space'){ e.preventDefault(); setPlaying(!S.playing); } });
+
+/* ---------------- 교과서 확인 카드 ---------------- */
+const CARDS=[
+ {q:'① 지구가 시계 반대 방향으로 자전하면, 천구의 별들은 어느 방향으로 도는 것처럼 보일까?',
+  go:()=>{ setTab('sphere'); setRef('both'); resetRun(); }},
+ {q:'② 북쪽 하늘을 바라보면 별들은 어떻게 움직일까? 1시간 동안 몇 도 돌까?',
+  go:()=>{ setTab('sky'); setDir(0); resetRun(); }},
+ {q:'③ 남쪽 하늘을 바라보면 별들은 어느 쪽으로 움직일까?',
+  go:()=>{ setTab('sky'); setDir(180); resetRun(); }},
+ {q:'④ 동쪽 하늘과 서쪽 하늘에서 별은 각각 어떻게 움직일까?',
+  go:()=>{ setTab('quad'); resetRun(); }},
+ {q:'⑤ 북극성의 고도는 왜 지역마다 다를까? 북극·적도에서 별의 움직임은?',
+  go:()=>{ setTab('quad'); setLat(90); resetRun(); }}
+];
+function setRef(r){ S.ref=r; document.querySelectorAll('#refSeg button').forEach(x=>x.classList.toggle('on',x.dataset.ref===r)); dirty=true; }
+function setDir(az){ S.view.A=az; S.view.a=(az===0&&S.phi>0)||(az===180&&S.phi<0)?Math.min(60,Math.max(25,Math.abs(S.phi))):30; syncDirSeg(); dirty=true; }
+function resetRun(){ S.t=0; S.trailStart=0; S.trail=true; $('ckTrail').checked=true; setPlaying(true); }
+const cardsEl=$('cards');
+CARDS.forEach(c=>{ const d=document.createElement('div'); d.className='card';
+  d.innerHTML=`<div class="q">${c.q}</div><div class="btns">${c.go?'<button class="go">▶ 시뮬레이션으로 확인</button>':''}</div>`;
+  if(c.go) d.querySelector('.go').onclick=c.go;
+  cardsEl.appendChild(d); });
+
+/* ---------------- 시작 ---------------- */
+const h0=(location.hash||'').slice(1); if(['sphere','sky','quad'].includes(h0)) setTab(h0); else setTab('sphere');
+setLat(S.phi); syncDirSeg(); resize(); requestAnimationFrame(loop);
+window.__S=S; window.__render=()=>{dirty=true;render();};
+})();
+</script>
+</body>
+</html>

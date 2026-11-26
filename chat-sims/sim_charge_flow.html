@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<!-- 단원ID: charge_flow · 중2 Ⅶ. 전기와 자기 > 2. 전류와 전기 에너지 > 01 전하의 이동(237~239쪽) · 활동 1개: 전기 회로를 만들고 전류·전자의 이동과 물 흐름 모형 비교하기 -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>전기 회로 만들기 — 전하의 이동</title>
+<style>
+:root{--bg:#f2f6f4;--card:#fff;--ink:#1b2622;--muted:#5b6b65;--line:#d9e4df;--accent:#1f9a6e;--accent-d:#146b4c;--accent-l:#e2f5ec;--cur:#e0453f;--el:#2f73d9}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+header{background:linear-gradient(120deg,#1f9a6e,#2f73d9);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:20px;margin:0;font-weight:900}
+header .sub{font-size:13px;opacity:.95}
+header .sp{flex:1}
+header button{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+main{padding:10px 12px 24px;max-width:1320px;margin:0 auto}
+.intro{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:10px;padding:8px 14px;margin-bottom:10px;font-size:14px;line-height:1.55}
+.intro b{color:var(--accent-d)}
+.grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(320px,1fr);gap:10px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:10px}
+.card h3{margin:0 2px 8px;font-size:15px;color:var(--accent-d)}
+canvas{width:100%;display:block;border-radius:10px;touch-action:manipulation}
+#app{cursor:pointer}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0}
+.lbl{font-size:13px;color:var(--muted)}
+.btn{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:9px;padding:7px 11px;cursor:pointer;min-height:38px}
+.btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent-d)}
+.btn.on{background:var(--accent-l);border-color:var(--accent);color:var(--accent-d)}
+.pal .btn{min-width:78px}
+.msg{background:#f6faf8;border:1px dashed #a6d3c0;border-radius:10px;padding:8px 11px;font-size:14.5px;line-height:1.55;margin-top:8px;min-height:44px}
+.msg.warn{background:#fff3e6;border-color:#f0b878}
+.ro{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px}
+.ro div{background:#16241f;color:#d6efe5;border-radius:10px;padding:6px 8px}
+.ro .k{font-size:11.5px;color:#9cc0b2}
+.ro .v{font-size:17px;font-weight:900}
+.check{list-style:none;margin:0;padding:0;font-size:14px}
+.check li{padding:5px 8px;border:1px solid var(--line);border-radius:8px;margin-bottom:5px;display:flex;gap:8px;align-items:center}
+.check li.done{background:#e6f6ee;border-color:#9fd8bb;color:#14653f;font-weight:700}
+.check .box{width:20px;height:20px;border:2px solid #9aa9b8;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-weight:900;flex:none}
+.check li.done .box{border-color:#1f9a62;background:#1f9a62;color:#fff}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{border:1px solid var(--line);padding:4px 5px;text-align:center}
+th{background:#eaf5f0;color:var(--accent-d)}
+select{font:inherit;font-size:13px;padding:3px;border-radius:6px;border:1px solid var(--line);width:100%}
+td.ok{background:#e6f6ee;color:#14653f;font-weight:900}td.no{background:#fdeceb;color:#b3312a;font-weight:900}
+.note{font-size:12.5px;color:var(--muted);line-height:1.55;margin:6px 2px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>전기 회로 만들기</h1><span class="sub">전류 · 전자의 이동 · 전압 · 물 흐름 모형</span>
+  <span class="sp"></span><button id="resetBtn" type="button">↺ 초기화</button>
+</header>
+<main>
+  <div class="intro">아래에서 <b>부품을 고른 뒤 회로의 빈칸을 누르면</b> 그 자리에 놓여요. 전구에 불이 켜지도록 회로를 완성해 보세요. 이미 놓인 <b>스위치</b>를 누르면 열고 닫히고, <b>전지</b>를 누르면 방향이 바뀌어요.</div>
+  <div class="grid">
+    <div class="card">
+      <div class="row pal" style="margin-top:0" id="pal"><span class="lbl">부품</span></div>
+      <canvas id="app" width="760" height="400" aria-label="네 칸으로 된 전기 회로. 칸을 눌러 부품을 놓는다."></canvas>
+      <div class="row"><span class="lbl">보기</span><button class="btn" id="showE" type="button">🔵 전자의 이동</button><button class="btn" id="showI" type="button">🔴 전류의 방향</button></div>
+      <div class="ro">
+        <div><div class="k">회로</div><div class="v" id="vState">열림</div></div>
+        <div><div class="k">전지의 전압(합)</div><div class="v" id="vV">0 V</div></div>
+        <div><div class="k">전류계 (가)</div><div class="v" id="vA1">0.00 A</div></div>
+        <div><div class="k">전류계 (나)</div><div class="v" id="vA2">0.00 A</div></div>
+      </div>
+      <div class="msg" id="msg"></div>
+    </div>
+    <div>
+      <div class="card">
+        <h3>전선 속을 확대해 보면</h3>
+        <canvas id="zoom" width="420" height="150" aria-label="전선 속 원자와 전자"></canvas>
+        <div class="lbl" id="zoomTxt" style="margin-top:4px"></div>
+      </div>
+      <div class="card">
+        <h3>미션</h3>
+        <ul class="check" id="check">
+          <li data-c="lit"><span class="box"></span>전구에 불을 켠다</li>
+          <li data-c="sw"><span class="box"></span>스위치를 열어 전자의 움직임을 비교한다</li>
+          <li data-c="flip"><span class="box"></span>전지의 방향을 바꾸어 본다</li>
+          <li data-c="two"><span class="box"></span>전지 2개 또는 전구 2개로 회로를 만든다</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>물 흐름 모형과 비교하기</h3>
+        <canvas id="water" width="420" height="200" aria-label="펌프, 물레방아, 밸브가 있는 물 흐름 모형"></canvas>
+        <div class="row"><button class="btn" id="pumpBtn" type="button">펌프 켜기</button><button class="btn" id="valveBtn" type="button">밸브 열기</button><span class="lbl" id="wTxt"></span></div>
+        <table><thead><tr><th>물 흐름 모형</th><th>전기 회로</th><th></th></tr></thead><tbody id="match"></tbody></table>
+        <p class="note"><b>모델의 한계</b> · 전지 1개 1.5 V, 전구 1개의 저항 5 Ω으로 정했고 전선과 전지 안의 저항은 무시했다(전류 = 전압 ÷ 전구 저항의 합). 전자가 움직이는 빠르기는 실제(초당 1 mm 정도)보다 훨씬 빠르게 보여 주었다. 전구 없이 전지만 연결한 합선 회로는 위험하므로 실제로 만들지 않는다.</p>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+/* ================================================================
+   전기 회로 모형
+   - 회로 = 네 칸(위·오른쪽·아래·왼쪽)이 전선으로 이어진 고리. 칸: 전지, 전구, 스위치, 전선, 빈칸
+   - 회로가 닫힘: 빈칸이 없고 스위치가 모두 닫혔을 때
+   - 전지 1개 1.5 V, 방향 d(+1: 시계 방향으로 전류를 내보냄), 전체 전압 E = 1.5 × Σd
+   - 전구 1개 저항 5 Ω, 전류 I = |E| ÷ (5 × 전구 수)  예: 전지 1·전구 1 → 0.30 A, 전지 2·전구 1 → 0.60 A, 전지 1·전구 2 → 0.15 A
+   - 전구 밝기 ∝ 전구 하나에 걸리는 전력 = I² × 5
+   - 전류의 방향: 전지 (+)극 → 회로 → (−)극 / 전자의 이동 방향: 그 반대 ((−)극 → (+)극)
+   - 회로의 어느 지점에서나 전류의 세기는 같다(전류계 (가) = 전류계 (나))
+   - 물 흐름 모형: 물의 높이차 h, 펌프가 켜지면 h를 일정하게 유지, 꺼지면 물이 흐르며 h가 줄어듦. 흐름 ∝ h (밸브가 열렸을 때)
+   ================================================================ */
+const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
+function fit(cv, w, h) { const r = Math.min(2, window.devicePixelRatio || 1); cv.width = w * r; cv.height = h * r; const x = cv.getContext('2d'); x.setTransform(r, 0, 0, r, 0, 0); return x; }
+const W = 760, H = 400, c = fit($('#app'), W, H), z = fit($('#zoom'), 420, 150), wt = fit($('#water'), 420, 200);
+const L = 120, T = 70, R = 640, B = 330, PW = R - L, PH = B - T, PER = 2 * (PW + PH);
+const SLOTS = [{ name: '위', s: PW / 2, x: (L + R) / 2, y: T, a: 0 }, { name: '오른쪽', s: PW + PH / 2, x: R, y: (T + B) / 2, a: Math.PI / 2 }, { name: '아래', s: PW + PH + PW / 2, x: (L + R) / 2, y: B, a: Math.PI }, { name: '왼쪽', s: 2 * PW + PH + PH / 2, x: L, y: (T + B) / 2, a: -Math.PI / 2 }];
+const SL = 120;   // 칸의 길이(px)
+const PROBE = [{ s: PW + 40, lab: '(가)' }, { s: 2 * PW + PH + 40, lab: '(나)' }];   // 오른쪽 위 모서리 뒤, 왼쪽 아래 모서리 뒤
+const PARTS = [['battery', '🔋 전지'], ['bulb', '💡 전구'], ['switch', '🔘 스위치'], ['wire', '➖ 전선'], ['empty', '🧽 비우기']];
+let S;
+function newState() { return { slots: [{ t: 'empty' }, { t: 'empty' }, { t: 'empty' }, { t: 'battery', d: 1 }], pick: 'bulb', showE: true, showI: true, t: 0, off: 0, done: {}, sawOpen: false, flipT: 0, pump: true, valve: true, h: 1, wheel: 0 }; }
+function posAt(s) { s = ((s % PER) + PER) % PER; if (s < PW) return [L + s, T]; s -= PW; if (s < PH) return [R, T + s]; s -= PH; if (s < PW) return [R - s, B]; s -= PW; return [L, B - s]; }
+function circuit() {
+  const sl = S.slots, empty = sl.some(x => x.t === 'empty'), openSw = sl.some(x => x.t === 'switch' && !x.on);
+  const E = 1.5 * sl.filter(x => x.t === 'battery').reduce((a, x) => a + x.d, 0), nB = sl.filter(x => x.t === 'bulb').length, nBat = sl.filter(x => x.t === 'battery').length;
+  const closed = !empty && !openSw, short = closed && nB === 0 && Math.abs(E) > 0;
+  const I = closed && nB && E ? Math.abs(E) / (5 * nB) : 0;
+  return { empty, openSw, closed, short, E, nB, nBat, I, dir: Math.sign(E) };
+}
+/* ---------------- 그리기 ---------------- */
+function rr(x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+function drawPart(i, C) {
+  const p = S.slots[i], sl = SLOTS[i];
+  c.save(); c.translate(sl.x, sl.y); c.rotate(sl.a);
+  if (p.t === 'empty') { c.fillStyle = '#f2f6f4'; c.fillRect(-SL / 2, -14, SL, 28); c.strokeStyle = '#9ab7ab'; c.setLineDash([6, 5]); c.lineWidth = 2; c.strokeRect(-SL / 2 + 4, -18, SL - 8, 36); c.setLineDash([]);
+    c.rotate(-sl.a); c.fillStyle = '#7d978c'; c.font = 'bold 22px sans-serif'; c.textAlign = 'center'; c.fillText('＋', 0, 8); }
+  else if (p.t === 'battery') { c.fillStyle = '#f2f6f4'; c.fillRect(-SL / 2 + 4, -14, SL - 8, 28);
+    const d = p.d; c.fillStyle = '#3b3f45'; rr(-44, -18, 88, 36, 6); c.fill(); c.fillStyle = '#d98a2b'; if (d > 0) { rr(14, -18, 30, 36, 6); c.fill(); c.fillStyle = '#c9ced3'; c.fillRect(44, -7, 7, 14); } else { rr(-44, -18, 30, 36, 6); c.fill(); c.fillStyle = '#c9ced3'; c.fillRect(-51, -7, 7, 14); }
+    c.rotate(-sl.a); const px = Math.cos(sl.a) * 36 * d, py = Math.sin(sl.a) * 36 * d; c.font = 'bold 14px sans-serif'; c.textAlign = 'center';
+    c.fillStyle = '#e0453f'; c.fillText('(+)', px * 1.55 + (sl.a % Math.PI ? 34 : 0), py * 1.55 - (sl.a % Math.PI ? 0 : 26)); c.fillStyle = '#2f73d9'; c.fillText('(−)', -px * 1.55 + (sl.a % Math.PI ? 34 : 0), -py * 1.55 - (sl.a % Math.PI ? 0 : 26)); }
+  else if (p.t === 'bulb') { c.rotate(-sl.a); const b = C.I ? Math.min(1, (C.I * C.I * 5) / 0.45) : 0;
+    if (b > 0) { const g = c.createRadialGradient(0, 0, 4, 0, 0, 30 + 40 * b); g.addColorStop(0, `rgba(255,236,120,${0.5 + 0.5 * b})`); g.addColorStop(1, 'rgba(255,236,120,0)'); c.fillStyle = g; c.beginPath(); c.arc(0, 0, 30 + 40 * b, 0, 7); c.fill(); }
+    c.fillStyle = '#c9ced3'; rr(-14, 10, 28, 18, 4); c.fill(); c.fillStyle = b > 0 ? `rgb(255,${Math.round(230 + 20 * b)},${Math.round(150 - 80 * b)})` : '#eef1f3'; c.strokeStyle = '#9aa3aa'; c.lineWidth = 2; c.beginPath(); c.arc(0, -4, 20, 0, 7); c.fill(); c.stroke();
+    c.strokeStyle = b > 0 ? '#e07b00' : '#8d8d8d'; c.lineWidth = 2; c.beginPath(); c.moveTo(-8, 10); c.lineTo(-6, -6); c.lineTo(-2, 0); c.lineTo(2, -8); c.lineTo(6, -6); c.lineTo(8, 10); c.stroke(); }
+  else if (p.t === 'switch') { c.fillStyle = '#e9edf0'; rr(-46, -10, 92, 20, 6); c.fill(); c.strokeStyle = '#9aa3aa'; c.lineWidth = 1.5; c.stroke();
+    c.fillStyle = '#7a828a'; c.beginPath(); c.arc(-30, 0, 6, 0, 7); c.fill(); c.beginPath(); c.arc(30, 0, 6, 0, 7); c.fill();
+    c.strokeStyle = '#5b636b'; c.lineWidth = 6; c.lineCap = 'round'; c.beginPath(); c.moveTo(-30, 0); const ang = p.on ? 0 : -0.55; c.lineTo(-30 + 62 * Math.cos(ang), 62 * Math.sin(ang)); c.stroke();
+    c.rotate(-sl.a); c.fillStyle = p.on ? '#1f9a6e' : '#b3312a'; c.font = 'bold 12.5px sans-serif'; c.textAlign = 'center'; c.fillText(p.on ? '닫힘' : '열림', sl.a % Math.PI ? 44 : 0, sl.a % Math.PI ? 4 : 30); }
+  c.restore(); c.textAlign = 'left';
+}
+function inSlot(s) { for (let i = 0; i < 4; i++) { const d = ((s - SLOTS[i].s) % PER + PER * 1.5) % PER - PER / 2; if (Math.abs(d) < SL / 2 && S.slots[i].t !== 'wire') return i; } return -1; }
+function draw() {
+  const C = circuit();
+  c.clearRect(0, 0, W, H); c.fillStyle = '#fbfdfc'; c.fillRect(0, 0, W, H);
+  c.strokeStyle = '#c47a3a'; c.lineWidth = 9; c.lineJoin = 'round'; c.strokeRect(L, T, PW, PH); c.strokeStyle = '#e8a466'; c.lineWidth = 3; c.strokeRect(L, T, PW, PH);
+  // 전자
+  if (S.showE) for (let k = 0; k < 64; k++) { const base = k * PER / 64; let s = base + S.off, jx = 0, jy = 0;
+    if (!C.I) { jx = Math.sin(S.t * 3 + k * 1.7) * 4; jy = Math.cos(S.t * 2.6 + k * 2.3) * 4; }
+    if (inSlot(s) >= 0) continue; const [x, y] = posAt(s); c.fillStyle = '#2f73d9'; c.beginPath(); c.arc(x + jx, y + jy, 4, 0, 7); c.fill(); }
+  for (let i = 0; i < 4; i++) drawPart(i, C);
+  // 전류 방향 화살표
+  if (S.showI && C.I) [PW * 0.18, PW + PH * 0.82, PW + PH + PW * 0.82, 2 * PW + PH + PH * 0.18].forEach(s0 => { const s1 = s0 + 22 * C.dir, [x0, y0] = posAt(s0), [x1, y1] = posAt(s1), dx = x1 - x0, dy = y1 - y0, l = Math.hypot(dx, dy), ux = dx / l, uy = dy / l, ox = -uy * 22, oy = ux * 22 * -1;
+    const px = x0 - uy * 24 * (s0 < PW || (s0 > PW + PH && s0 < 2 * PW + PH) ? 1 : 1), py = y0 + ux * 24;
+    c.strokeStyle = '#e0453f'; c.fillStyle = '#e0453f'; c.lineWidth = 3; c.beginPath(); c.moveTo(px - ux * 16, py - uy * 16); c.lineTo(px + ux * 14, py + uy * 14); c.stroke(); c.beginPath(); c.moveTo(px + ux * 22, py + uy * 22); c.lineTo(px + ux * 10 - uy * 7, py + uy * 10 + ux * 7); c.lineTo(px + ux * 10 + uy * 7, py + uy * 10 - ux * 7); c.fill(); });
+  // 전류계 표시 지점
+  PROBE.forEach(p => { const [x, y] = posAt(p.s); c.fillStyle = '#fff'; c.strokeStyle = '#1b2622'; c.lineWidth = 2; c.beginPath(); c.arc(x, y, 9, 0, 7); c.fill(); c.stroke(); c.fillStyle = '#1b2622'; c.font = 'bold 11px sans-serif'; c.textAlign = 'center'; c.fillText('A', x, y + 4);
+    c.font = 'bold 13px sans-serif'; c.fillText(p.lab, x + (x > 400 ? 26 : -26), y + (y > 200 ? 24 : -14)); c.textAlign = 'left'; });
+  // 합선 경고
+  if (C.short) { c.fillStyle = 'rgba(224,69,63,.12)'; c.fillRect(L + 10, T + 10, PW - 20, PH - 20); c.fillStyle = '#b3312a'; c.font = 'bold 18px sans-serif'; c.textAlign = 'center'; c.fillText('⚠ 합선! 전구 없이 전지만 연결하면 위험해요', W / 2, H / 2 + 6); c.textAlign = 'left'; }
+  // 범례
+  c.font = '12.5px sans-serif'; c.fillStyle = '#2f73d9'; c.beginPath(); c.arc(20, 384, 4, 0, 7); c.fill(); c.fillStyle = '#1b2622'; c.fillText('전자', 30, 388); c.fillStyle = '#e0453f'; c.fillRect(70, 382, 18, 3); c.fillStyle = '#1b2622'; c.fillText('전류의 방향', 94, 388);
+}
+/* ---------------- 확대 그림 ---------------- */
+const ZE = Array.from({ length: 22 }, (_, i) => ({ x: (i * 97) % 400 + 10, y: 20 + (i * 53) % 110, vx: Math.cos(i * 2.1) * 60, vy: Math.sin(i * 2.1) * 60 }));
+function drawZoom(dt) {
+  const C = circuit(); z.clearRect(0, 0, 420, 150); z.fillStyle = '#f6e6d6'; z.fillRect(0, 0, 420, 150); z.strokeStyle = '#d9a46a'; z.lineWidth = 4; z.strokeRect(2, 2, 416, 146);
+  for (let i = 0; i < 6; i++) for (let j = 0; j < 3; j++) { const x = 40 + i * 68, y = 30 + j * 45; z.fillStyle = '#e0453f'; z.beginPath(); z.arc(x, y, 11, 0, 7); z.fill(); z.strokeStyle = '#fff'; z.lineWidth = 2.5; z.beginPath(); z.moveTo(x - 5, y); z.lineTo(x + 5, y); z.moveTo(x, y - 5); z.lineTo(x, y + 5); z.stroke(); }
+  // 전자: 위쪽 전선(시계 방향 = 오른쪽)을 확대했다고 보고, 전자는 전류와 반대 방향
+  const drift = C.I ? -C.dir * 140 * C.I / 0.3 : 0;
+  ZE.forEach(e => { e.x += (e.vx * (C.I ? .35 : 1) + drift) * dt; e.y += e.vy * (C.I ? .35 : 1) * dt; if (e.y < 10 || e.y > 140) e.vy *= -1; if (e.x < 0) e.x += 420; if (e.x > 420) e.x -= 420; if (Math.random() < dt * 1.5) { const a = Math.random() * 6.28; e.vx = Math.cos(a) * 60; e.vy = Math.sin(a) * 60; }
+    z.fillStyle = '#2f73d9'; z.beginPath(); z.arc(e.x, e.y, 5.5, 0, 7); z.fill(); z.strokeStyle = '#fff'; z.lineWidth = 2; z.beginPath(); z.moveTo(e.x - 3, e.y); z.lineTo(e.x + 3, e.y); z.stroke(); });
+  if (C.I) { z.fillStyle = 'rgba(255,255,255,.9)'; rrz(250, 116, 160, 26); z.fill(); z.fillStyle = '#2f73d9'; z.font = 'bold 13px sans-serif'; z.fillText(C.dir > 0 ? '← 전자의 이동' : '전자의 이동 →', 262, 134); z.fillStyle = '#e0453f'; z.fillText(C.dir > 0 ? '전류 →' : '← 전류', 360, 134); }
+  $('#zoomTxt').innerHTML = C.I ? '회로가 닫히면 전자들이 <b>한 방향으로</b> 움직인다. 전자는 전지의 (−)극 쪽에서 (+)극 쪽으로, 전류는 그 반대 방향으로 흐른다.' : '회로가 열려 있으면 전자들이 <b>여러 방향으로 불규칙하게</b> 움직여 전류가 흐르지 않는다.';
+}
+function rrz(x, y, w, h) { z.beginPath(); z.rect(x, y, w, h); }
+/* ---------------- 물 흐름 모형 ---------------- */
+function drawWater(dt) {
+  const flow = S.valve ? S.h : 0;
+  if (S.pump) S.h += (1 - S.h) * dt * 2; else S.h = Math.max(0, S.h - flow * dt * 0.5);
+  S.wheel += flow * dt * 5;
+  wt.clearRect(0, 0, 420, 200); wt.fillStyle = '#f7fbfd'; wt.fillRect(0, 0, 420, 200);
+  const hi = 40 + (1 - S.h) * 60, lo = 150 - S.h * 0;   // 위 물통 수면 높이
+  // 아래 물통
+  wt.fillStyle = '#cfe8f5'; wt.fillRect(20, 150, 380, 40); wt.fillStyle = '#5aaee0'; wt.fillRect(22, 164, 376, 24);
+  // 위 물통
+  wt.strokeStyle = '#7fa9bb'; wt.lineWidth = 2; wt.strokeRect(220, 30, 120, 80); wt.fillStyle = '#5aaee0'; wt.fillRect(222, hi, 116, 108 - hi);
+  // 펌프 관
+  wt.strokeStyle = S.pump ? '#2f73d9' : '#9ab'; wt.lineWidth = 8; wt.beginPath(); wt.moveTo(370, 175); wt.lineTo(370, 20); wt.lineTo(330, 20); wt.lineTo(330, 34); wt.stroke();
+  wt.fillStyle = S.pump ? '#1f9a6e' : '#9aa3aa'; wt.fillRect(356, 100, 28, 30); wt.fillStyle = '#fff'; wt.font = 'bold 11px sans-serif'; wt.fillText('펌프', 358, 120);
+  // 물이 흐르는 관과 밸브, 물레방아
+  wt.strokeStyle = '#5aaee0'; wt.lineWidth = 8; wt.beginPath(); wt.moveTo(222, 100); wt.lineTo(150, 100); wt.lineTo(150, 125); wt.stroke();
+  wt.fillStyle = S.valve ? '#1f9a6e' : '#b3312a'; wt.fillRect(180, 88, 16, 24); wt.fillStyle = '#1b2622'; wt.font = '11px sans-serif'; wt.fillText('밸브', 176, 82);
+  if (flow > 0.05) { wt.fillStyle = 'rgba(90,174,224,.8)'; for (let k = 0; k < 6; k++) { const ph = (S.t * 2 + k / 6) % 1; wt.beginPath(); wt.arc(150 + Math.sin(k) * 3, 125 + ph * 30, 3, 0, 7); wt.fill(); } }
+  wt.save(); wt.translate(120, 140); wt.rotate(-S.wheel); wt.strokeStyle = '#8a5a2b'; wt.lineWidth = 4; for (let k = 0; k < 8; k++) { wt.rotate(Math.PI / 4); wt.beginPath(); wt.moveTo(0, 0); wt.lineTo(0, 24); wt.stroke(); } wt.restore();
+  wt.fillStyle = '#1b2622'; wt.fillText('물레방아', 92, 182);
+  // 높이차
+  wt.strokeStyle = '#e0453f'; wt.lineWidth = 1.5; wt.beginPath(); wt.moveTo(210, hi); wt.lineTo(210, 164); wt.stroke(); wt.fillStyle = '#e0453f'; wt.font = 'bold 12px sans-serif'; wt.fillText('높이차', 160, (hi + 164) / 2 + 28);
+  $('#wTxt').textContent = flow > 0.05 ? (S.pump ? '물레방아가 계속 돈다' : '높이차가 줄어 점점 느려진다') : S.h < 0.05 ? '높이차가 없어 물이 흐르지 않는다' : '밸브가 잠겨 물이 흐르지 않는다';
+  $('#pumpBtn').textContent = S.pump ? '펌프 끄기' : '펌프 켜기'; $('#valveBtn').textContent = S.valve ? '밸브 잠그기' : '밸브 열기';
+}
+const MATCH = [['물의 흐름', '전류'], ['물레방아', '전구'], ['펌프', '전지'], ['물의 높이차', '전압'], ['밸브', '스위치']];
+function buildMatch() { const opts = ['', '전류', '전구', '전지', '전압', '스위치'];
+  $('#match').innerHTML = MATCH.map((m, i) => `<tr><th>${m[0]}</th><td><select data-m="${i}">${opts.map(o => `<option value="${o}">${o || '고르기'}</option>`).join('')}</select></td><td id="mk${i}" style="width:40px">?</td></tr>`).join('');
+  $$('[data-m]').forEach(s => s.onchange = () => { const i = +s.dataset.m, el = $('#mk' + i); if (!s.value) { el.className = ''; el.textContent = '?'; return; } const ok = s.value === MATCH[i][1]; el.className = ok ? 'ok' : 'no'; el.textContent = ok ? '○' : '×'; }); }
+/* ---------------- 화면 글 ---------------- */
+let lastMsg = '';
+function readouts() {
+  const C = circuit();
+  $('#vState').textContent = C.short ? '합선' : C.closed ? '닫힘' : '열림'; $('#vV').textContent = Math.abs(C.E).toFixed(1) + ' V';
+  $('#vA1').textContent = C.I.toFixed(2) + ' A'; $('#vA2').textContent = C.I.toFixed(2) + ' A';
+  if (C.I) { S.done.lit = 1; if (C.nBat >= 2 || C.nB >= 2) S.done.two = 1; } if (S.done.lit && C.openSw) S.done.sw = 1;
+  $$('#check li').forEach(li => { const d = !!S.done[li.dataset.c]; li.classList.toggle('done', d); li.querySelector('.box').textContent = d ? '✓' : ''; });
+  let t, warn = false;
+  if (C.short) { t = '⚠ <b>합선</b>: 전구 없이 전지의 두 극을 전선으로 바로 이으면 아주 센 전류가 흘러 전선과 전지가 뜨거워질 수 있다. 전구를 넣어 주세요.'; warn = true; }
+  else if (C.empty) t = '회로에 <b>빈칸</b>이 있어 끊겨 있다. 위에서 부품을 고르고 빈칸을 눌러 채워 보세요.';
+  else if (C.openSw) t = '스위치가 <b>열려</b> 있어 회로가 끊겼다. 전자들이 여러 방향으로 불규칙하게 움직일 뿐 전류가 흐르지 않는다. 스위치를 눌러 닫아 보세요.';
+  else if (!C.nBat) t = '전지가 없다. 전압이 없으면 전류가 흐르지 않는다.';
+  else if (!C.E) t = '두 전지가 <b>서로 반대 방향</b>으로 놓여 전압이 0이 되었다. 전류가 흐르지 않는다.';
+  else if (!C.nB) t = '전구가 없다.';
+  else t = `💡 불이 켜졌다! 전류 ${C.I.toFixed(2)} A가 전지의 <span style="color:#e0453f;font-weight:900">(+)극에서 (−)극 쪽</span>으로 흐르고, 전자는 <span style="color:#2f73d9;font-weight:900">(−)극에서 (+)극 쪽</span>으로 이동한다. 전류계 (가)와 (나)의 값이 같다 — 전자는 전구를 지나도 사라지지 않는다.`;
+  if (t !== lastMsg) { lastMsg = t; const m = $('#msg'); m.innerHTML = t; m.className = 'msg' + (warn ? ' warn' : ''); }
+  $$('[data-p]').forEach(b => b.classList.toggle('on', b.dataset.p === S.pick));
+  $('#showE').classList.toggle('on', S.showE); $('#showI').classList.toggle('on', S.showI);
+}
+/* ---------------- 조작 ---------------- */
+$('#pal').insertAdjacentHTML('beforeend', PARTS.map(p => `<button class="btn" data-p="${p[0]}" type="button">${p[1]}</button>`).join(''));
+$$('[data-p]').forEach(b => b.onclick = () => { S.pick = b.dataset.p; readouts(); });
+function clickSlot(i) {
+  const p = S.slots[i];
+  if (p.t === S.pick || (S.pick === 'empty' && p.t === 'empty')) { if (p.t === 'switch') p.on = !p.on; else if (p.t === 'battery') { p.d *= -1; S.done.flip = 1; } }
+  else S.slots[i] = S.pick === 'battery' ? { t: 'battery', d: 1 } : S.pick === 'switch' ? { t: 'switch', on: false } : { t: S.pick };
+  readouts();
+}
+$('#app').addEventListener('click', e => { const r = e.target.getBoundingClientRect(), x = (e.clientX - r.left) * W / r.width, y = (e.clientY - r.top) * H / r.height;
+  const i = SLOTS.findIndex(sl => Math.abs(x - sl.x) < (sl.a % Math.PI ? 50 : 70) && Math.abs(y - sl.y) < (sl.a % Math.PI ? 70 : 50)); if (i >= 0) clickSlot(i); });
+$('#showE').onclick = () => { S.showE = !S.showE; readouts(); }; $('#showI').onclick = () => { S.showI = !S.showI; readouts(); };
+$('#pumpBtn').onclick = () => { S.pump = !S.pump; }; $('#valveBtn').onclick = () => { S.valve = !S.valve; };
+function start() { S = newState(); lastMsg = ''; buildMatch(); readouts(); }
+$('#resetBtn').onclick = start;
+let last = performance.now();
+function loop(ts) { const dt = Math.min(0.1, (ts - last) / 1000); last = ts; S.t += dt; const C = circuit(); S.off += -C.dir * C.I / 0.3 * 45 * dt;
+  draw(); drawZoom(dt); drawWater(dt); readouts(); requestAnimationFrame(loop); }
+start(); requestAnimationFrame(loop);
+// 테스트용
+window.__set = arr => { S.slots = arr.map(a => typeof a === 'string' ? (a === 'switch' ? { t: a, on: true } : a === 'battery' ? { t: a, d: 1 } : { t: a }) : a); readouts(); const C = circuit(); return { I: +C.I.toFixed(2), E: C.E, short: C.short, msg: $('#msg').innerText.slice(0, 40) }; };
+window.__click = i => { clickSlot(i); const C = circuit(); return { I: +C.I.toFixed(2), slots: JSON.stringify(S.slots) }; };
+</script>
+</body>
+</html>

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<!-- 단원ID: coil_force · 중2 Ⅶ. 전기와 자기 > 3. 전류의 자기 작용 > 02 자기장 속에서 코일이 받는 힘(256~258쪽) · 활동 1개: 자기장 속에서 코일이 받는 힘 관찰하기(전기 그네) → 전동기 -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>자기장 속에서 코일이 받는 힘</title>
+<style>
+:root{--bg:#f3f5f8;--card:#fff;--ink:#1e2430;--muted:#5c6577;--line:#dde2ea;--n:#e0453f;--s:#2f6fd0;--p:#7b4fc4}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+header{background:linear-gradient(120deg,#7b4fc4,#2f6fd0 55%,#e07a2f);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:20px;margin:0;font-weight:900}
+header .sub{font-size:13px;opacity:.95}
+header .sp{flex:1}
+header button{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+nav{display:flex;gap:6px;padding:10px 12px 0;max-width:1320px;margin:0 auto}
+nav button{font:inherit;font-size:14.5px;font-weight:800;border:1px solid var(--line);background:#fff;border-radius:10px 10px 0 0;padding:9px 16px;cursor:pointer;color:var(--muted);border-bottom:none}
+nav button.on{color:#4b2a86;box-shadow:inset 0 3px 0 var(--p)}
+main{padding:0 12px 24px;max-width:1320px;margin:0 auto}
+.pane{display:none;background:var(--card);border:1px solid var(--line);border-radius:0 12px 12px 12px;padding:12px 14px}
+.pane.on{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(300px,1fr);gap:12px;align-items:start}
+@media (max-width:900px){.pane.on{grid-template-columns:1fr}}
+canvas{width:100%;display:block;border-radius:10px;touch-action:manipulation}
+.guide{font-size:13.5px;color:var(--muted);line-height:1.5;margin:6px 2px 0}
+.guide b{color:#4b2a86}
+h3{margin:0 2px 6px;font-size:15px;color:#3b4252}
+.row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:6px 0}
+.lbl{font-size:13px;color:var(--muted)}
+.btn{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:9px;padding:7px 11px;cursor:pointer;min-height:38px}
+.btn:hover:not(:disabled){border-color:#9aa6bb}
+.btn.on{background:#f0eafa;border-color:var(--p);color:#4b2a86}
+.btn.N{background:#fde9e8;border-color:var(--n);color:#a8231d}
+.btn.S{background:#e6eefb;border-color:var(--s);color:#1d4c97}
+input[type=range]{flex:1;min-width:140px;accent-color:var(--p)}
+.ro{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px}
+.ro div{background:#1e2430;color:#e9edf5;border-radius:10px;padding:6px 8px}
+.ro .k{font-size:11.5px;color:#a9b3c7}
+.ro .v{font-size:18px;font-weight:900}
+.msg{background:#f8f6fc;border:1px dashed #c6b4e4;border-radius:10px;padding:8px 11px;font-size:14.5px;line-height:1.55;margin-top:8px;min-height:44px}
+table{border-collapse:collapse;width:100%;font-size:13.5px;margin-top:6px}
+th,td{border:1px solid var(--line);padding:5px 6px;text-align:center}
+th{background:#f2eefa;color:#4b2a86}
+td.cur{background:#fff8e1;font-weight:800}
+.note{font-size:12.5px;color:var(--muted);line-height:1.55;margin:8px 2px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>자기장 속에서 코일이 받는 힘</h1><span class="sub">전기 그네 실험 · 힘의 방향과 크기 · 전동기와 정류자</span>
+  <span class="sp"></span><button id="resetBtn" type="button">↺ 초기화</button>
+</header>
+<nav><button data-tab="t1" class="on" type="button">① 전기 그네 실험</button><button data-tab="t2" type="button">② 전동기의 원리</button></nav>
+<main>
+  <section class="pane on" id="t1">
+    <div>
+      <canvas id="sw" width="760" height="380" aria-label="전기 그네 실험 장치에 걸린 코일과 막대자석"></canvas>
+      <p class="guide">스위치를 닫고 자석을 코일에 <b>가까이 가져가</b> 보세요. 코일에 전류가 흐르면 코일이 <b>전자석</b>이 되어 자석과 힘을 주고받아요. 자석의 극, 전류의 방향을 바꾸며 4가지 경우를 모두 관찰해 표를 채우세요.</p>
+    </div>
+    <div>
+      <h3>실험 조작</h3>
+      <div class="row"><span class="lbl">코일 쪽 자석의 극</span><button class="btn" data-pole="N" type="button">N극</button><button class="btn" data-pole="S" type="button">S극</button>
+        <button class="btn" id="nearBtn" type="button">자석 가까이 가져가기</button></div>
+      <div class="row"><button class="btn" id="sw1Btn" type="button">스위치 닫기</button><button class="btn" id="flip1Btn" type="button">⇄ (+)·(−) 단자 바꾸기</button><button class="btn" id="strongBtn" type="button">자석 2개 겹치기</button></div>
+      <div class="row"><span class="lbl">전압</span><input type="range" id="v1" min="0" max="6" step="0.5" value="3"><b id="v1t" style="min-width:52px">3.0 V</b></div>
+      <div class="ro">
+        <div><div class="k">코일에 흐르는 전류</div><div class="v" id="r1I">0.00 A</div></div>
+        <div><div class="k">자석 쪽 코일 끝의 극</div><div class="v" id="r1P">–</div></div>
+        <div><div class="k">그네가 기운 각도</div><div class="v" id="r1A">0°</div></div>
+      </div>
+      <table><thead><tr><th>자석의 극</th><th>전류 방향</th><th>코일이 움직이는 방향</th></tr></thead><tbody id="obs"></tbody></table>
+      <div class="msg" id="msg1"></div>
+      <p class="note"><b>모델의 한계</b> · 코일에 작용하는 힘의 크기는 전류 × 자석 세기에 비례한다고 보고(자석 2개 = 1.8배), 그네는 힘과 무게의 비로 기울어진다고 계산했다. 코일 저항은 3 Ω. 자석이 멀리 있으면 힘을 무시했다.</p>
+    </div>
+  </section>
+  <section class="pane" id="t2">
+    <div>
+      <canvas id="mo" width="760" height="380" aria-label="자석 사이에서 회전하는 코일과 정류자"></canvas>
+      <p class="guide">전원을 켜면 코일(전자석)이 자석에 끌리거나 밀려 돌아가요. <b>정류자</b>가 반 바퀴마다 전류 방향을 바꿔 주기 때문에 계속 같은 방향으로 돌아요. 정류자를 빼면 어떻게 될까요?</p>
+    </div>
+    <div>
+      <h3>전동기 조작</h3>
+      <div class="row"><button class="btn" id="pwBtn" type="button">전원 켜기</button><button class="btn" id="flip2Btn" type="button">⇄ 전류 방향 바꾸기</button><button class="btn" id="magBtn" type="button">⇄ 자석의 극 바꾸기</button></div>
+      <div class="row"><button class="btn" id="comBtn" type="button">정류자 빼기</button><span class="lbl">전압</span><input type="range" id="v2" min="0" max="6" step="0.5" value="3"><b id="v2t" style="min-width:52px">3.0 V</b></div>
+      <div class="ro">
+        <div><div class="k">전류</div><div class="v" id="r2I">0.00 A</div></div>
+        <div><div class="k">회전 방향</div><div class="v" id="r2D">정지</div></div>
+        <div><div class="k">1분당 회전수</div><div class="v" id="r2R">0</div></div>
+      </div>
+      <div class="msg" id="msg2"></div>
+      <p class="note"><b>모델의 한계</b> · 코일을 전자석 막대로 단순화했고, 회전시키는 힘(돌림힘)은 전류 × 자기장 × sin(코일과 자기장 사이 각)에 비례, 마찰은 회전 속력에 비례한다고 보았다. 실제 전동기에는 여러 개의 코일과 자석이 들어 있다.</p>
+    </div>
+  </section>
+</main>
+<script>
+/* ================================================================
+   자기장 속에서 코일이 받는 힘
+   ① 전기 그네: 코일은 전류가 흐르면 전자석(오른손 규칙). sgn=+1 → 자석 쪽(왼쪽) 끝이 S극, sgn=−1 → N극
+      자석 극과 코일 끝 극이 다르면 끌림(자석 쪽), 같으면 밀림. 힘 F = 0.2 × mg × I × (자석 세기 1 또는 1.8), I = V ÷ 3 Ω
+      그네 각 θ: 진자 운동 θ'' = (g/L)(F/mg·cosθ − sinθ) − 감쇠 → 평형 tanθ = F/mg
+   ② 전동기: 코일 자기 모멘트 m = s·I·(cosθ, sinθ), 자석 자기장 B = b·x̂ (b=+1: 왼쪽 N극)
+      돌림힘 τ = m × B = −s·I·b·sinθ (비례 상수 k)
+      정류자 있음: s = sign(sinθ)·c → τ = −c·I·b·|sinθ| (반 바퀴마다 전류 반전 → 한 방향으로 계속 회전)
+      정류자 없음: s = c 고정 → τ = −c·I·b·sinθ → 흔들리다 자기장 방향으로 정렬해 멈춤
+      J·ω' = k·τ − β·ω (β: 마찰), 평균 |sinθ| = 2/π
+   ================================================================ */
+const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
+function fit(cv, w, h) { const r = Math.min(2, devicePixelRatio || 1); cv.width = w * r; cv.height = h * r; const x = cv.getContext('2d'); x.setTransform(r, 0, 0, r, 0, 0); return x; }
+const W = 760, H = 380, a = fit($('#sw'), W, H), b = fit($('#mo'), W, H), RC = 3;
+let S;
+function newState() { return { tab: S ? S.tab : 't1',
+  pole: 'N', near: false, on1: false, sgn: 1, strong: false, V1: 3, th: 0, om: 0, obs: {},
+  pw: false, cur: 1, mag: 1, com: true, V2: 3, phi: 1.0, w: 0 }; }
+/* ---------- ① 전기 그네 ---------- */
+const I1 = () => S.on1 ? S.V1 / RC : 0;
+const coilEnd = () => I1() > 0 ? (S.sgn > 0 ? 'S' : 'N') : null;   // 자석 쪽(왼쪽) 끝의 극
+function force1() { if (!I1() || !S.near) return 0; const attract = coilEnd() !== S.pole; return (attract ? -1 : 1) * 0.2 * I1() * (S.strong ? 1.8 : 1); }   // +: 오른쪽(자석에서 멀어짐)
+const PIV = [445, 50], LEN = 210;
+function rr(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
+function drawSwing() {
+  const c = a; c.clearRect(0, 0, W, H); c.fillStyle = '#fbfcfd'; c.fillRect(0, 0, W, H);
+  // 받침대·기둥
+  c.fillStyle = '#c9ced6'; rr(c, 270, 330, 350, 26, 6); c.fill(); c.fillStyle = '#9aa3ae'; c.fillRect(290, 40, 10, 292); c.fillRect(590, 40, 10, 292); c.fillStyle = '#7d8590'; rr(c, 280, 34, 330, 14, 5); c.fill();
+  const th = S.th, cx = PIV[0] + LEN * Math.sin(th), cy = PIV[1] + LEN * Math.cos(th), on = I1() > 0;
+  // 매단 도선
+  c.strokeStyle = '#c8763a'; c.lineWidth = 2; c.beginPath(); c.moveTo(PIV[0] - 14, PIV[1]); c.lineTo(cx - 14, cy - 40); c.moveTo(PIV[0] + 14, PIV[1]); c.lineTo(cx + 14, cy - 40); c.stroke();
+  // 코일(옆에서 본 고리 묶음, 축이 좌우)
+  for (let i = 0; i < 6; i++) { const x = cx - 15 + i * 6; c.strokeStyle = '#d9a37a'; c.lineWidth = 3; c.beginPath(); c.ellipse(x, cy, 9, 40, 0, Math.PI / 2, Math.PI * 1.5); c.stroke(); }
+  for (let i = 0; i < 6; i++) { const x = cx - 15 + i * 6; c.strokeStyle = on ? '#d9661c' : '#c8763a'; c.lineWidth = 3.5; c.beginPath(); c.ellipse(x, cy, 9, 40, 0, -Math.PI / 2, Math.PI / 2); c.stroke(); }
+  if (on) { [[cx - 34, coilEnd()], [cx + 34, coilEnd() === 'N' ? 'S' : 'N']].forEach(([x, p]) => { c.fillStyle = p === 'N' ? '#e0453f' : '#2f6fd0'; c.beginPath(); c.arc(x, cy - 52, 12, 0, 7); c.fill(); c.fillStyle = '#fff'; c.font = 'bold 13px sans-serif'; c.textAlign = 'center'; c.fillText(p, x, cy - 47); c.textAlign = 'left'; });
+    c.fillStyle = '#e0453f'; const d = S.sgn > 0 ? 1 : -1; c.beginPath(); c.moveTo(cx + 3, cy + 8 * d); c.lineTo(cx - 3, cy - 4 * d); c.lineTo(cx + 9, cy - 4 * d); c.fill(); }
+  // 막대자석
+  const mx = S.near ? cx - 52 : 190, mw = 170, my = cy;
+  const faceN = S.pole === 'N'; c.fillStyle = faceN ? '#2f6fd0' : '#e0453f'; c.fillRect(mx - mw, my - 20, mw / 2, 40); c.fillStyle = faceN ? '#e0453f' : '#2f6fd0'; c.fillRect(mx - mw / 2, my - 20, mw / 2, 40);
+  if (S.strong) { c.globalAlpha = .55; c.fillStyle = faceN ? '#2f6fd0' : '#e0453f'; c.fillRect(mx - mw, my + 22, mw / 2, 14); c.fillStyle = faceN ? '#e0453f' : '#2f6fd0'; c.fillRect(mx - mw / 2, my + 22, mw / 2, 14); c.globalAlpha = 1; }
+  c.fillStyle = '#fff'; c.font = 'bold 22px sans-serif'; c.textAlign = 'center'; c.fillText(faceN ? 'S' : 'N', mx - mw + 20, my + 8); c.fillText(faceN ? 'N' : 'S', mx - 20, my + 8); c.textAlign = 'left';
+  // 힘 화살표
+  const F = force1(); if (Math.abs(F) > 0.001) { const L = Math.min(110, 40 + Math.abs(F) * 160), dir = Math.sign(F), y = cy + 62; c.strokeStyle = '#7b4fc4'; c.fillStyle = '#7b4fc4'; c.lineWidth = 6; c.beginPath(); c.moveTo(cx, y); c.lineTo(cx + dir * L, y); c.stroke(); c.beginPath(); c.moveTo(cx + dir * (L + 14), y); c.lineTo(cx + dir * L, y - 10); c.lineTo(cx + dir * L, y + 10); c.fill();
+    c.font = 'bold 13px sans-serif'; c.fillText('코일이 받는 힘', cx + (dir > 0 ? 10 : -L), y + 24); }
+  // 전원 장치·단자
+  c.fillStyle = '#2b2a26'; rr(c, 620, 220, 120, 100, 10); c.fill(); c.fillStyle = '#ffb36b'; rr(c, 632, 234, 96, 30, 5); c.fill(); c.fillStyle = '#4a2200'; c.font = 'bold 18px monospace'; c.textAlign = 'center'; c.fillText(S.V1.toFixed(1) + 'V', 680, 256);
+  c.fillStyle = '#fff'; c.font = 'bold 11px sans-serif'; c.fillText(S.on1 ? '스위치 ON' : '스위치 OFF', 680, 285); c.textAlign = 'left';
+  [[650, S.sgn > 0], [710, S.sgn < 0]].forEach(([x, red]) => { c.fillStyle = red ? '#e0453f' : '#111'; c.beginPath(); c.arc(x, 304, 7, 0, 7); c.fill(); });
+  c.strokeStyle = '#e0453f'; c.lineWidth = 2; c.beginPath(); c.moveTo(S.sgn > 0 ? 650 : 710, 304); c.quadraticCurveTo(620, 200, 604, 41); c.stroke(); c.strokeStyle = '#111'; c.beginPath(); c.moveTo(S.sgn > 0 ? 710 : 650, 304); c.quadraticCurveTo(660, 150, 600, 46); c.stroke();
+}
+function stepSwing(dt) {   // 진자: θ'' = (g/L)(f·cosθ − sinθ) − γθ'
+  const f = force1(), k = 9.8 / 0.6; for (let i = 0; i < 4; i++) { const h = dt / 4; S.om += (k * (f * Math.cos(S.th) - Math.sin(S.th)) - 2.2 * S.om) * h; S.th += S.om * h; }
+  if (f && Math.abs(S.om) < 0.02 && I1() > 0) { const key = S.pole + (S.sgn > 0 ? '정' : '역'); if (!S.obs[key]) { S.obs[key] = f < 0 ? '자석 쪽으로 끌려옴' : '자석에서 밀려남'; ui1(); } }
+}
+function ui1() {
+  $$('[data-pole]').forEach(x => x.className = 'btn' + (x.dataset.pole === S.pole ? ' ' + S.pole : ''));
+  $('#nearBtn').classList.toggle('on', S.near); $('#nearBtn').textContent = S.near ? '자석 멀리 두기' : '자석 가까이 가져가기';
+  $('#sw1Btn').classList.toggle('on', S.on1); $('#sw1Btn').textContent = S.on1 ? '스위치 열기' : '스위치 닫기'; $('#strongBtn').classList.toggle('on', S.strong);
+  $('#v1t').textContent = S.V1.toFixed(1) + ' V'; $('#r1I').textContent = I1().toFixed(2) + ' A'; $('#r1P').textContent = coilEnd() ? coilEnd() + '극' : '–'; $('#r1A').textContent = Math.abs(S.th * 180 / Math.PI).toFixed(1) + '°' + (Math.abs(S.th) > 0.01 ? (S.th < 0 ? ' (자석 쪽)' : ' (반대쪽)') : '');
+  const rows = [['N', 1], ['S', 1], ['N', -1], ['S', -1]];
+  $('#obs').innerHTML = rows.map(([p, g]) => { const key = p + (g > 0 ? '정' : '역'), cur = p === S.pole && g === S.sgn; return `<tr><td class="${cur ? 'cur' : ''}">${p}극</td><td class="${cur ? 'cur' : ''}">${g > 0 ? '처음 방향' : '반대 방향'}</td><td class="${cur ? 'cur' : ''}">${S.obs[key] || '?'}</td></tr>`; }).join('');
+  const F = force1(), m = $('#msg1'); let t;
+  if (!S.on1) t = '스위치를 닫아 코일에 전류를 흘려 보세요. 전류가 없으면 코일은 자석이 아니어서 움직이지 않는다.';
+  else if (!S.near) t = `코일이 전자석이 되어 자석 쪽 끝이 <b>${coilEnd()}극</b>이 되었다. 이제 자석을 가까이 가져가 보세요.`;
+  else if (!F) t = '전압이 0 V라 전류가 흐르지 않는다.';
+  else t = `자석의 ${S.pole}극과 코일 끝의 ${coilEnd()}극이 ${F < 0 ? '<b>다르므로 서로 끌어당겨</b> 코일이 자석 쪽으로 움직인다' : '<b>같으므로 서로 밀어내어</b> 코일이 자석에서 멀어진다'}. ` +
+    (Object.keys(S.obs).length >= 4 ? '4가지 경우를 모두 관찰했다! 자기장(자석 극)이나 전류 중 <b>하나만</b> 바꾸면 힘의 방향이 반대, <b>둘 다</b> 바꾸면 처음과 같다.' : '전압을 높이거나 자석 2개를 겹치면 더 크게 기운다.');
+  if (m.dataset.t !== t) { m.dataset.t = t; m.innerHTML = t; }
+}
+$$('[data-pole]').forEach(x => x.onclick = () => { S.pole = x.dataset.pole; ui1(); });
+$('#nearBtn').onclick = () => { S.near = !S.near; ui1(); };
+$('#sw1Btn').onclick = () => { S.on1 = !S.on1; ui1(); };
+$('#flip1Btn').onclick = () => { S.sgn *= -1; ui1(); };
+$('#strongBtn').onclick = () => { S.strong = !S.strong; ui1(); };
+$('#v1').oninput = e => { S.V1 = +e.target.value; ui1(); };
+/* ---------- ② 전동기 ---------- */
+const I2 = () => S.pw ? S.V2 / RC : 0, KM = 14.8, BETA = 1.5;
+function sCom() { return S.com ? (Math.sin(S.phi) >= 0 ? 1 : -1) : 1; }   // 정류자: 반 바퀴마다 전류 방향 반전
+function stepMotor(dt) { for (let i = 0; i < 6; i++) { const h = dt / 6; const tau = -sCom() * S.cur * I2() * S.mag * Math.sin(S.phi); S.w += (KM * tau - BETA * S.w) * h; S.phi += S.w * h; } }
+function drawMotor() {
+  const c = b; c.clearRect(0, 0, W, H); c.fillStyle = '#fbfcfd'; c.fillRect(0, 0, W, H);
+  const cx = 380, cy = 180, leftN = S.mag > 0;
+  // 자석(가운데가 오목)
+  [[-1, leftN], [1, !leftN]].forEach(([sd, isN]) => { c.fillStyle = isN ? '#e0453f' : '#2f6fd0'; c.beginPath(); const x0 = cx + sd * 260, x1 = cx + sd * 150; c.moveTo(x0, cy - 130); c.lineTo(x1, cy - 130); c.arc(cx, cy, 150, sd > 0 ? -Math.asin(130 / 150) : Math.PI + Math.asin(130 / 150), sd > 0 ? Math.asin(130 / 150) : Math.PI - Math.asin(130 / 150), sd < 0); c.lineTo(x0, cy + 130); c.closePath(); c.fill();
+    c.fillStyle = '#fff'; c.font = 'bold 34px sans-serif'; c.textAlign = 'center'; c.fillText(isN ? 'N' : 'S', cx + sd * 222, cy + 12); c.textAlign = 'left'; });
+  // 자기장선(N → S)
+  c.strokeStyle = 'rgba(46,139,87,.35)'; c.lineWidth = 1.5; c.fillStyle = 'rgba(46,139,87,.5)'; for (let k = -2; k <= 2; k++) { const y = cy + k * 45; c.beginPath(); c.moveTo(cx - 140, y); c.lineTo(cx + 140, y); c.stroke(); const d = S.mag; c.beginPath(); c.moveTo(cx + 110 * d + 8 * d, y); c.lineTo(cx + 110 * d, y - 5); c.lineTo(cx + 110 * d, y + 5); c.fill(); }
+  // 코일(전자석 막대): 화면 각 = −phi (수학 좌표 → 화면)
+  const s = sCom() * S.cur, on = I2() > 0; c.save(); c.translate(cx, cy); c.rotate(-S.phi);
+  c.fillStyle = '#8b939e'; rr(c, -95, -26, 190, 52, 8); c.fill();
+  for (let i = 0; i < 13; i++) { c.strokeStyle = on ? '#d9661c' : '#c8763a'; c.lineWidth = 5; c.beginPath(); c.moveTo(-80 + i * 13, -28); c.lineTo(-74 + i * 13, 28); c.stroke(); }
+  if (on) { [[90, s > 0 ? 'N' : 'S'], [-90, s > 0 ? 'S' : 'N']].forEach(([x, p]) => { c.fillStyle = p === 'N' ? '#e0453f' : '#2f6fd0'; c.beginPath(); c.arc(x, 0, 15, 0, 7); c.fill(); c.save(); c.translate(x, 0); c.rotate(S.phi); c.fillStyle = '#fff'; c.font = 'bold 15px sans-serif'; c.textAlign = 'center'; c.fillText(p, 0, 5); c.restore(); }); }
+  c.restore();
+  // 정류자·브러시(가운데 아래쪽 보조 그림)
+  const ox = cx, oy = 322; c.fillStyle = '#eef1f5'; c.beginPath(); c.arc(ox, oy, 34, 0, 7); c.fill();
+  if (S.com) { for (let k = 0; k < 2; k++) { c.strokeStyle = k ? '#c7a14a' : '#b07f2a'; c.lineWidth = 9; c.beginPath(); const a0 = -S.phi + k * Math.PI + 0.12; c.arc(ox, oy, 20, a0, a0 + Math.PI - 0.24); c.stroke(); } }
+  else { c.strokeStyle = '#b07f2a'; c.lineWidth = 9; c.beginPath(); c.arc(ox, oy, 20, 0, 7); c.stroke(); }
+  c.fillStyle = '#e0453f'; c.fillRect(ox - 34, oy - 6, 10, 12); c.fillStyle = '#111'; c.fillRect(ox + 24, oy - 6, 10, 12);
+  c.fillStyle = '#5c6577'; c.font = 'bold 12px sans-serif'; c.textAlign = 'center'; c.fillText(S.com ? '정류자(반으로 나뉜 고리)' : '정류자 없음(이어진 고리)', ox, oy + 50 - 4); c.fillText('(+)', ox - 50, oy + 4); c.fillText('(−)', ox + 50, oy + 4); c.textAlign = 'left';
+  // 회전 방향 표시
+  if (Math.abs(S.w) > 0.3) { const ccw = S.w > 0; c.strokeStyle = '#7b4fc4'; c.fillStyle = '#7b4fc4'; c.lineWidth = 4; c.beginPath(); c.arc(cx, cy, 118, ccw ? -0.4 : -2.74, ccw ? -1.6 : -1.54, ccw); c.stroke();
+    const e = ccw ? -1.6 : -1.54, ex = cx + 118 * Math.cos(e), ey = cy + 118 * Math.sin(e), t = ccw ? e - Math.PI / 2 : e + Math.PI / 2; c.beginPath(); c.moveTo(ex + 12 * Math.cos(t), ey + 12 * Math.sin(t)); c.lineTo(ex + 8 * Math.cos(t + 2.3), ey + 8 * Math.sin(t + 2.3)); c.lineTo(ex + 8 * Math.cos(t - 2.3), ey + 8 * Math.sin(t - 2.3)); c.fill(); }
+}
+let rpmAvg = 0;
+function ui2() {
+  $('#pwBtn').classList.toggle('on', S.pw); $('#pwBtn').textContent = S.pw ? '전원 끄기' : '전원 켜기'; $('#comBtn').classList.toggle('on', !S.com); $('#comBtn').textContent = S.com ? '정류자 빼기' : '정류자 다시 끼우기';
+  $('#v2t').textContent = S.V2.toFixed(1) + ' V'; $('#r2I').textContent = I2().toFixed(2) + ' A';
+  const rpm = Math.abs(rpmAvg) * 60 / (2 * Math.PI), spinning = rpm > 5;
+  $('#r2D').textContent = !spinning ? (Math.abs(S.w) > 0.3 ? '흔들림' : '정지') : (rpmAvg > 0 ? '시계 반대 ↺' : '시계 방향 ↻'); $('#r2R').textContent = Math.round(rpm);
+  const m = $('#msg2'); let t;
+  if (!S.pw) t = '전원을 켜 보세요. 코일에 전류가 흐르면 코일이 전자석이 된다.';
+  else if (!S.V2) t = '전압이 0 V라 전류가 흐르지 않는다.';
+  else if (!S.com) t = '정류자를 빼자 코일이 <b>앞뒤로 흔들리다 멈췄다</b>. 코일의 N극이 자석의 S극 쪽을 향하면 끌어당기는 힘만 남아 더 돌지 못한다. 정류자가 반 바퀴마다 전류의 방향을 바꿔 주어야 계속 돈다.';
+  else t = `코일이 ${rpmAvg > 0 ? '시계 반대 방향' : '시계 방향'}으로 회전한다. 자석과 끌어당기다가 반 바퀴 지점에서 정류자가 전류 방향을 바꾸면 코일의 극이 바뀌어 이번엔 밀어낸다. ` +
+    '<b>전류 방향이나 자석의 극 중 하나를 바꾸면</b> 회전 방향이 반대가 되고, 전압을 높이면 더 빨리 돈다.';
+  if (m.dataset.t !== t) { m.dataset.t = t; m.innerHTML = t; }
+}
+$('#pwBtn').onclick = () => { S.pw = !S.pw; if (S.pw && Math.abs(Math.sin(S.phi)) < 0.2) S.phi += 0.6; ui2(); };
+$('#flip2Btn').onclick = () => { S.cur *= -1; ui2(); };
+$('#magBtn').onclick = () => { S.mag *= -1; ui2(); };
+$('#comBtn').onclick = () => { S.com = !S.com; if (S.com && Math.abs(Math.sin(S.phi)) < 0.2) S.phi += 0.6; ui2(); };
+$('#v2').oninput = e => { S.V2 = +e.target.value; ui2(); };
+/* ---------- 공통 ---------- */
+$$('nav button').forEach(x => x.onclick = () => { S.tab = x.dataset.tab; $$('nav button').forEach(y => y.classList.toggle('on', y === x)); $$('.pane').forEach(p => p.classList.toggle('on', p.id === S.tab)); });
+function start() { S = newState(); $('#v1').value = 3; $('#v2').value = 3; rpmAvg = 0; ui1(); ui2(); }
+$('#resetBtn').onclick = start;
+let last = performance.now(), fr = 0;
+function loop(ts) { const dt = Math.min(0.05, (ts - last) / 1000); last = ts;
+  stepSwing(dt); stepMotor(dt); rpmAvg += (S.w - rpmAvg) * Math.min(1, dt * 1.5);
+  if (S.tab === 't1') drawSwing(); else drawMotor(); if (++fr % 10 === 0) { ui1(); ui2(); } requestAnimationFrame(loop); }
+start(); requestAnimationFrame(loop);
+// 테스트용(시간을 빠르게 진행)
+window.__sw = (pole, sgn, V, strong) => { Object.assign(S, { pole, sgn, V1: V, strong: !!strong, near: true, on1: true }); for (let i = 0; i < 400; i++) stepSwing(0.02); ui1(); return { deg: +(S.th * 180 / Math.PI).toFixed(1), end: coilEnd(), obs: S.obs[pole + (sgn > 0 ? '정' : '역')] }; };
+window.__mo = (cur, mag, com, V) => { Object.assign(S, { pw: true, cur, mag, com, V2: V, w: 0, phi: 1.0 }); let sum = 0; for (let i = 0; i < 1500; i++) { stepMotor(0.01); if (i > 1000) sum += S.w; } rpmAvg = sum / 499; ui2(); return { rpm: Math.round(rpmAvg * 60 / (2 * Math.PI)), w: +S.w.toFixed(2), phiMod: +(((S.phi % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI)).toFixed(2) }; };
+</script>
+</body>
+</html>

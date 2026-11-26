@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<!-- 단원ID: photo_product · 중2 Ⅴ. 식물과 에너지 > 1. 광합성 > 01 광합성으로 만들어지는 물질(161~163쪽) · 활동 1개: 검정말로 광합성 산물 확인하기 -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>광합성으로 만들어지는 물질 확인하기</title>
+<style>
+:root{--bg:#f2f7ef;--card:#fff;--ink:#1d2a1f;--muted:#5d6b5f;--line:#d8e4d3;--accent:#3c9a4a;--accent-d:#256f33;--accent-l:#e3f4e5;--ok:#1f9a62;--warn:#c4581f}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+header{background:linear-gradient(120deg,#3c9a4a,#7cbf3a);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:20px;margin:0;font-weight:900}
+header .sub{font-size:13px;opacity:.95}
+header .sp{flex:1}
+header button{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+main{padding:10px 12px 24px;max-width:1300px;margin:0 auto}
+.intro{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:10px;padding:8px 14px;margin-bottom:10px;font-size:14px;line-height:1.55}
+.intro b{color:var(--accent-d)}
+.grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(300px,1fr);gap:10px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}
+.card h3{margin:0 4px 8px;font-size:15px;color:var(--accent-d)}
+canvas{width:100%;display:block;border-radius:8px}
+#scope{max-width:300px;margin:0 auto}
+.steps{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:8px}
+.btn{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;padding:7px 10px;cursor:pointer;min-height:38px;text-align:left}
+.btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent-d)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.on{background:var(--accent-l);border-color:var(--accent);color:var(--accent-d)}
+.btn.done{background:#e6f6ee;border-color:#9fd8bb;color:#14653f}
+.btn.done::after{content:" ✓"}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0}
+.row .lbl{font-size:13px;color:var(--muted);min-width:72px}
+.seg .btn{text-align:center;min-width:52px;padding:6px 9px}
+.msg{background:#f6faf3;border:1px dashed #a9cfa0;border-radius:8px;padding:7px 10px;font-size:14px;line-height:1.5;min-height:42px;margin-top:8px}
+.mag{background:#17301d;color:#c9f0cf;border-radius:9px;padding:6px 10px;font-size:14px;margin:6px 0}
+.mag b{font-size:18px;color:#fff}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{border:1px solid var(--line);padding:5px 6px;text-align:center}
+th{background:#eef6ea;color:var(--accent-d)}
+td.empty{color:#a0aaa2}
+.note{font-size:12.5px;color:var(--muted);line-height:1.55;margin:6px 4px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>광합성으로 만들어지는 물질 확인하기</h1><span class="sub">검정말 · 향불 · 에탄올 탈색 · 아이오딘-아이오딘화 칼륨 용액 · 현미경</span>
+  <span class="sp"></span><button id="resetBtn" type="button">↺ 초기화</button>
+</header>
+<main>
+  <div class="intro">숨을 불어 넣은 시험관 A와 B에 검정말을 넣고 <b>B만 알루미늄 포일로 감쌌다</b>. ①~⑤ 단추를 차례로 눌러 실험하고, 오른쪽 <b>현미경</b>으로 잎을 관찰해 표를 채워 보세요.</div>
+  <div class="grid">
+    <div class="card">
+      <canvas id="bench" width="760" height="380" aria-label="실험대: 시험관 A와 B, 향불, 물중탕 장치"></canvas>
+      <div class="steps">
+        <button class="btn" id="s1" type="button">① 하루 동안 빛이 잘 드는 곳에 두기</button>
+        <div class="row" style="margin:0"><button class="btn" id="s2a" type="button" style="flex:1">② 향불을 A에 넣기</button><button class="btn" id="s2b" type="button" style="flex:1">② 향불을 B에 넣기</button></div>
+        <button class="btn" id="s3" type="button">③ 잎을 떼어 현미경 표본 만들기 (2의 표본)</button>
+        <button class="btn" id="s4" type="button">④ 에탄올에 넣고 물중탕하여 탈색하기</button>
+        <button class="btn" id="s5" type="button">⑤ 탈색한 잎에 아이오딘-아이오딘화 칼륨 용액 1방울 (4의 표본)</button>
+        <button class="btn" id="sceneBtn" type="button">🔁 시험관 보기 ↔ 물중탕 보기</button>
+      </div>
+      <div class="msg" id="msg">① 단추를 눌러 시험관 A와 B를 하루 동안 빛이 잘 드는 곳에 두세요.</div>
+    </div>
+    <div>
+      <div class="card">
+        <h3>🔬 현미경으로 관찰하기</h3>
+        <canvas id="scope" width="340" height="340" aria-label="현미경으로 본 검정말 잎 세포"></canvas>
+        <div class="row seg"><span class="lbl">시험관</span><button class="btn" data-tube="A" type="button">A</button><button class="btn" data-tube="B" type="button">B</button></div>
+        <div class="row seg"><span class="lbl">표본</span><button class="btn" data-smp="2" type="button">2의 표본 (그대로)</button><button class="btn" data-smp="4" type="button">4의 표본 (탈색+아이오딘)</button></div>
+        <div class="row seg"><span class="lbl">대물렌즈</span><button class="btn" data-obj="4" type="button">4배</button><button class="btn" data-obj="10" type="button">10배</button><button class="btn" data-obj="40" type="button">40배</button></div>
+        <div class="mag" id="magBox"></div>
+      </div>
+      <div class="card">
+        <h3>관찰 기록 (현미경으로 보면 자동으로 적혀요)</h3>
+        <table><thead><tr><th></th><th>A (빛을 받음)</th><th>B (포일로 감쌈)</th></tr></thead><tbody id="tb"></tbody></table>
+        <p class="note"><b>모델의 한계</b> · 하루 동안 일어나는 일을 몇 초로 줄여 보여 준다. 세포·엽록체의 모양과 개수는 실제 검정말 잎을 단순하게 그린 것이다. B의 잎에 녹말이 전혀 없는 것으로 나타냈지만, 실제로는 실험 전에 있던 녹말이 조금 남아 옅게 물들 수도 있다. 향불의 변화는 시험관 속 산소의 양만 반영하였다.</p>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+/* ================================================================
+   광합성 산물 확인 실험 모형
+   - 빛을 받은 A: 광합성 → 산소 발생(기포), 포도당 → 녹말로 바뀌어 엽록체에 잠시 저장
+       향불: 산소가 많아 다시 밝게 타오름 / 탈색 후 아이오딘-아이오딘화 칼륨 용액 → 녹말과 반응해 청람색
+   - 포일로 감싼 B: 빛이 없어 광합성이 일어나지 않음 → 산소·녹말이 생기지 않음
+       향불: 호흡으로 산소가 줄어 불씨가 꺼짐 / 아이오딘 용액 → 청람색이 되지 않음(용액의 옅은 갈색)
+   - 에탄올 물중탕: 엽록소가 에탄올에 녹아 나와 잎은 하얗게, 에탄올은 초록색이 됨(색 변화를 잘 보이게 함)
+   - 현미경 배율 = 접안렌즈 배율(10배) × 대물렌즈 배율, 시야 지름 ≈ 140000 µm ÷ 배율(40배 3.5 mm, 400배 0.35 mm)
+   - 검정말 잎 세포: 폭 약 40 µm, 길이 60~95 µm, 엽록체 지름 약 6~7 µm(400배에서만 알갱이가 구별됨)
+   ================================================================ */
+const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
+function fit(cv, w, h) { const r = Math.min(2, window.devicePixelRatio || 1); cv.width = w * r; cv.height = h * r; const x = cv.getContext('2d'); x.setTransform(r, 0, 0, r, 0, 0); return x; }
+const BW = 760, BH = 380, SW = 340;
+const b = fit($('#bench'), BW, BH), m = fit($('#scope'), SW, SW);
+const EYE = 10;
+let S;
+function newState() {
+  return { day: 0, dayAnim: null, inc: { A: null, B: null }, slide2: false, bath: 0, bathAnim: null, slide4: false,
+    scene: 'tubes', tube: 'A', smp: '2', obj: 10, rec: { '2A': null, '2B': null, '4A': null, '4B': null }, t: 0 };
+}
+/* ---------------- 실험대 그리기 ---------------- */
+function rr(x, y, w, h, r) { b.beginPath(); b.moveTo(x + r, y); b.arcTo(x + w, y, x + w, y + h, r); b.arcTo(x + w, y + h, x, y + h, r); b.arcTo(x, y + h, x, y, r); b.arcTo(x, y, x + w, y, r); b.closePath(); }
+function elodea(cx, top, bot, col, sway) {   // 검정말(줄기 + 돌려나는 잎)
+  b.strokeStyle = col; b.lineWidth = 2.4; b.beginPath(); b.moveTo(cx, bot); b.quadraticCurveTo(cx + sway, (top + bot) / 2, cx, top); b.stroke();
+  b.fillStyle = col;
+  for (let y = bot - 8; y > top + 4; y -= 10) {
+    const k = (y - top) / (bot - top), x = cx + sway * 4 * k * (1 - k);
+    for (const s of [-1, 1]) { b.save(); b.translate(x, y); b.rotate(s * (0.9 + 0.2 * Math.sin(y))); b.beginPath(); b.ellipse(0, -8, 2.6, 9, 0, 0, 7); b.fill(); b.restore(); }
+  }
+}
+function tube(x, label, foil) {
+  const top = 70, bot = 330, w = 46;
+  // 시험관대
+  b.fillStyle = '#d9c7a6'; b.fillRect(x - 40, 250, 80, 10);
+  // 유리관
+  b.fillStyle = 'rgba(220,240,255,.35)'; b.strokeStyle = '#8fa8bb'; b.lineWidth = 2;
+  b.beginPath(); b.moveTo(x - w / 2, top); b.lineTo(x - w / 2, bot - w / 2); b.arc(x, bot - w / 2, w / 2, Math.PI, 0, true); b.lineTo(x + w / 2, top); b.fill(); b.stroke();
+  // 물
+  b.fillStyle = 'rgba(120,190,235,.35)'; b.beginPath(); b.moveTo(x - w / 2 + 2, top + 40); b.lineTo(x - w / 2 + 2, bot - w / 2); b.arc(x, bot - w / 2, w / 2 - 2, Math.PI, 0, true); b.lineTo(x + w / 2 - 2, top + 40); b.fill();
+  elodea(x, top + 52, bot - 6, '#3d8f33', 6);
+  // 기포(A, 빛을 받는 동안)
+  if (!foil && S.day > 0) {
+    b.fillStyle = 'rgba(255,255,255,.9)'; b.strokeStyle = 'rgba(80,140,190,.8)'; b.lineWidth = 1;
+    for (let k = 0; k < 9; k++) { const ph = (S.t * 0.35 + k / 9) % 1, y = bot - 30 - ph * (bot - top - 80), xx = x + Math.sin(k * 2.3 + S.t * 2) * 10;
+      if (y > top + 42) { b.beginPath(); b.arc(xx, y, 2.2 + (k % 3) * 0.6, 0, 7); b.fill(); b.stroke(); } }
+  }
+  if (foil) {   // 알루미늄 포일
+    const g = b.createLinearGradient(x - w / 2 - 4, 0, x + w / 2 + 4, 0); g.addColorStop(0, '#9aa3ab'); g.addColorStop(.35, '#eef1f4'); g.addColorStop(.6, '#b5bcc3'); g.addColorStop(1, '#dfe4e8');
+    b.fillStyle = g; b.strokeStyle = '#7d868e'; b.lineWidth = 1.5;
+    b.beginPath(); b.moveTo(x - w / 2 - 4, top + 8); b.lineTo(x - w / 2 - 4, bot - w / 2); b.arc(x, bot - w / 2, w / 2 + 4, Math.PI, 0, true); b.lineTo(x + w / 2 + 4, top + 8); b.closePath(); b.fill(); b.stroke();
+    b.strokeStyle = 'rgba(110,118,126,.55)'; b.lineWidth = 1;
+    for (let k = 0; k < 14; k++) { const y = top + 20 + k * 17; b.beginPath(); b.moveTo(x - w / 2 - 2, y); b.lineTo(x - 6 + (k % 3) * 5, y + 7); b.lineTo(x + w / 2 + 2, y - 3); b.stroke(); }
+  }
+  // 뚜껑 / 향불
+  const st = S.inc[label];
+  if (!st) { b.fillStyle = '#2f3438'; rr(x - w / 2 - 3, top - 18, w + 6, 20, 4); b.fill(); }
+  else incense(x, top, st);
+  b.fillStyle = '#1d2a1f'; b.font = 'bold 18px sans-serif'; b.textAlign = 'center';
+  b.beginPath(); b.arc(x, bot + 26, 14, 0, 7); b.fillStyle = '#fff'; b.fill(); b.strokeStyle = '#3c9a4a'; b.lineWidth = 2; b.stroke();
+  b.fillStyle = '#1d2a1f'; b.fillText(label, x, bot + 32); b.textAlign = 'left';
+}
+function incense(x, top, st) {
+  const k = Math.min(1, (S.t - st.t0) / 1.6);    // 0→1 : 향불이 들어가는 동안
+  const tipY = top - 30 + k * 60;
+  b.strokeStyle = '#8a5a2b'; b.lineWidth = 4; b.beginPath(); b.moveTo(x + 4, tipY - 120); b.lineTo(x, tipY); b.stroke();
+  let glow;
+  if (k < 1) glow = 0.55;
+  else glow = st.tube === 'A' ? 1 : Math.max(0, 0.55 - (S.t - st.t0 - 1.6) * 0.5);
+  if (st.tube === 'A' && k >= 1) {   // 불꽃이 다시 일어남
+    const f = 1 + 0.15 * Math.sin(S.t * 18);
+    const g = b.createRadialGradient(x, tipY - 8, 1, x, tipY - 8, 18 * f);
+    g.addColorStop(0, 'rgba(255,255,220,1)'); g.addColorStop(.4, 'rgba(255,190,40,.95)'); g.addColorStop(1, 'rgba(255,90,0,0)');
+    b.fillStyle = g; b.beginPath(); b.ellipse(x, tipY - 10, 9 * f, 20 * f, 0, 0, 7); b.fill();
+  }
+  b.fillStyle = `rgba(255,${Math.round(80 + 120 * glow)},40,${0.25 + 0.75 * glow})`; b.beginPath(); b.arc(x, tipY, 4, 0, 7); b.fill();
+  if (glow < 0.4) {   // 꺼진 뒤 연기
+    b.strokeStyle = 'rgba(150,150,150,.6)'; b.lineWidth = 1.5; b.beginPath();
+    for (let i = 0; i < 30; i++) { const yy = tipY - i * 2.2; const xx = x + Math.sin(i * 0.4 + S.t * 3) * (2 + i * 0.15); i ? b.lineTo(xx, yy) : b.moveTo(xx, yy); } b.stroke();
+  }
+}
+function drawTubes() {
+  // 빛(햇빛)
+  const lit = S.day > 0;
+  b.fillStyle = lit ? '#fff4c4' : '#e9eef2'; b.fillRect(0, 0, BW, BH);
+  b.fillStyle = '#c9a77a'; b.fillRect(0, 352, BW, 28);
+  if (lit) {
+    b.fillStyle = '#ffcf33'; b.beginPath(); b.arc(70, 60, 30, 0, 7); b.fill();
+    b.strokeStyle = 'rgba(255,190,40,.55)'; b.lineWidth = 3;
+    for (let k = 0; k < 6; k++) { b.beginPath(); b.moveTo(110, 70 + k * 18); b.lineTo(230 + k * 30, 140 + k * 30); b.stroke(); }
+  }
+  tube(330, 'A', false); tube(470, 'B', true);
+  b.fillStyle = '#1d2a1f'; b.font = 'bold 14px sans-serif';
+  const hrs = S.dayAnim ? Math.round(24 * Math.min(1, (S.t - S.dayAnim) / 3)) : (S.day ? 24 : 0);
+  b.fillText('빛을 비춘 시간: ' + hrs + '시간', 560, 40);
+  b.font = '13px sans-serif'; b.fillStyle = '#5d6b5f';
+  b.fillText('A: 그대로', 560, 64); b.fillText('B: 알루미늄 포일로 감쌈', 560, 84);
+  if (S.day && !S.dayAnim) { b.fillStyle = '#256f33'; b.fillText('A의 잎 주위에서 기포가 생긴다.', 560, 112); }
+  ['A', 'B'].forEach((L, i) => { const st = S.inc[L]; if (st && S.t - st.t0 > 1.8) {
+    b.fillStyle = L === 'A' ? '#c4581f' : '#5d6b5f'; b.font = 'bold 14px sans-serif'; b.textAlign = 'center';
+    b.fillText(L === 'A' ? '다시 밝게 타오름!' : '불씨가 꺼짐', [330, 470][i], 30); b.textAlign = 'left'; } });
+}
+function drawBath() {
+  b.fillStyle = '#eef3f6'; b.fillRect(0, 0, BW, BH); b.fillStyle = '#c9a77a'; b.fillRect(0, 352, BW, 28);
+  // 가열 장치
+  b.fillStyle = '#e8eaec'; rr(200, 300, 300, 52, 8); b.fill(); b.strokeStyle = '#9aa2a8'; b.lineWidth = 2; b.stroke();
+  b.fillStyle = S.bathAnim || S.bath ? '#d9472b' : '#7d868e'; b.beginPath(); b.arc(460, 326, 10, 0, 7); b.fill();
+  b.fillStyle = '#3a3f44'; b.beginPath(); b.arc(240, 326, 13, 0, 7); b.fill();
+  // 비커(물)
+  b.fillStyle = 'rgba(200,225,245,.45)'; b.strokeStyle = '#8fa8bb'; rr(250, 160, 200, 140, 6); b.fill(); b.stroke();
+  b.fillStyle = 'rgba(120,180,230,.35)'; b.fillRect(252, 190, 196, 108);
+  if (S.bathAnim || S.bath) { b.strokeStyle = 'rgba(255,255,255,.8)'; for (let k = 0; k < 6; k++) { const ph = (S.t * .6 + k / 6) % 1; b.beginPath(); b.arc(270 + k * 32, 290 - ph * 95, 2.5, 0, 7); b.stroke(); } }
+  const p = S.bathAnim ? Math.min(1, (S.t - S.bathAnim) / 4) : S.bath;
+  // 에탄올이 든 시험관 2개(A, B의 잎)
+  [['A', 315], ['B', 385]].forEach(([L, x]) => {
+    b.fillStyle = 'rgba(230,245,255,.5)'; b.strokeStyle = '#8fa8bb'; b.lineWidth = 2;
+    b.beginPath(); b.moveTo(x - 15, 110); b.lineTo(x - 15, 268); b.arc(x, 268, 15, Math.PI, 0, true); b.lineTo(x + 15, 110); b.fill(); b.stroke();
+    const eth = `rgba(${Math.round(250 - 140 * p)},${Math.round(250 - 40 * p)},${Math.round(235 - 160 * p)},.85)`;
+    b.fillStyle = eth; b.beginPath(); b.moveTo(x - 13, 200); b.lineTo(x - 13, 268); b.arc(x, 268, 13, Math.PI, 0, true); b.lineTo(x + 13, 200); b.fill();
+    const lc = `rgb(${Math.round(61 + 170 * p)},${Math.round(143 + 85 * p)},${Math.round(51 + 160 * p)})`;
+    elodea(x, 205, 276, lc, 3);
+    b.fillStyle = '#1d2a1f'; b.font = 'bold 15px sans-serif'; b.textAlign = 'center'; b.fillText(L, x, 100); b.textAlign = 'left';
+  });
+  b.fillStyle = '#1d2a1f'; b.font = 'bold 14px sans-serif'; b.fillText('에탄올', 470, 214); b.fillText('물', 470, 270);
+  b.strokeStyle = '#5d6b5f'; b.lineWidth = 1; b.beginPath(); b.moveTo(466, 210); b.lineTo(400, 225); b.moveTo(466, 266); b.lineTo(452, 266); b.stroke();
+  b.font = '13px sans-serif'; b.fillStyle = '#5d6b5f';
+  b.fillText('에탄올은 불에 직접 가열하지 않고', 540, 60); b.fillText('물중탕한다.', 540, 80);
+  if (p > 0) { b.fillStyle = '#256f33'; b.font = 'bold 14px sans-serif'; b.fillText('에탄올 색: ' + (p < .5 ? '조금씩 초록색' : '초록색'), 540, 120); b.fillText('잎 색: ' + (p < .5 ? '옅어지는 중' : '하얗게 탈색'), 540, 144); }
+  if (S.slide4) {   // 받침 유리 위 아이오딘 용액
+    [['A', 590], ['B', 680]].forEach(([L, x]) => {
+      b.fillStyle = 'rgba(210,235,245,.8)'; b.strokeStyle = '#8fa8bb'; b.fillRect(x - 38, 250, 76, 14); b.strokeRect(x - 38, 250, 76, 14);
+      b.fillStyle = L === 'A' ? '#2e2a6e' : '#c9a35a'; b.beginPath(); b.ellipse(x, 252, 12, 4, 0, 0, 7); b.fill();
+      b.fillStyle = '#1d2a1f'; b.font = 'bold 13px sans-serif'; b.textAlign = 'center'; b.fillText(L + '의 잎', x, 284); b.textAlign = 'left';
+    });
+    b.font = '12.5px sans-serif'; b.fillStyle = '#5d6b5f'; b.fillText('아이오딘-아이오딘화 칼륨 용액 1방울', 560, 230);
+  }
+}
+/* ---------------- 현미경 시야 ---------------- */
+function rng(seed) { let s = seed >>> 0 || 1; return () => { s ^= s << 13; s >>>= 0; s ^= s >> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; }; }
+const CW = 40, LEAF_HALF = 800;   // 세포 폭(µm), 잎 반폭(µm)
+function colsCells(col) {   // 열(col)의 세포: [y시작, 길이] — 잎 길이 방향(세로)으로 길쭉
+  const r = rng(col * 7919 + 13), out = []; let y = -2200 - r() * 80;
+  while (y < 2200) { const len = 60 + r() * 35; out.push([y, len]); y += len; }
+  return out;
+}
+const COLS = {}; function cellsOf(col) { return COLS[col] || (COLS[col] = colsCells(col)); }
+function palette() {
+  const stained = S.smp === '4';
+  if (!stained) return { bg: '#f3fae8', fill: '#e1f0c8', wall: '#8db35c', chl: '#3c9a2e', chlHi: '#79c45a', avg: '#86c060' };
+  if (S.tube === 'A') return { bg: '#fbf6e2', fill: '#f2e9c2', wall: '#b9a56d', chl: '#2c2868', chlHi: '#4a46a0', avg: '#6a64a8' };
+  return { bg: '#fbf6e2', fill: '#f2e9c2', wall: '#b9a56d', chl: '#d6bf7c', chlHi: '#e8d9a6', avg: '#e3cf95' };
+}
+function drawScope() {
+  const R = SW / 2 - 6, cx = SW / 2, cy = SW / 2, mag = EYE * S.obj, fov = 140000 / mag, k = 2 * R / fov;   // px per µm
+  m.fillStyle = '#111'; m.fillRect(0, 0, SW, SW);
+  const ok = S.smp === '2' ? S.slide2 : S.slide4;
+  m.save(); m.beginPath(); m.arc(cx, cy, R, 0, 7); m.clip();
+  if (!ok) { m.fillStyle = '#f4f4ee'; m.fillRect(0, 0, SW, SW); m.fillStyle = '#7a827c'; m.font = 'bold 15px sans-serif'; m.textAlign = 'center';
+    m.fillText(S.smp === '2' ? '③ 단추로 2의 표본을 먼저 만드세요' : '④ 탈색 → ⑤ 아이오딘 용액 순서로', cx, cy - 4);
+    if (S.smp === '4') m.fillText('4의 표본을 만드세요', cx, cy + 20); m.textAlign = 'left'; m.restore(); return; }
+  const P = palette();
+  m.fillStyle = P.bg; m.fillRect(0, 0, SW, SW);
+  const x0 = -fov / 2, x1 = fov / 2;
+  const c0 = Math.floor(Math.max(x0, -LEAF_HALF) / CW), c1 = Math.ceil(Math.min(x1, LEAF_HALF) / CW);
+  for (let col = c0; col < c1; col++) {
+    const edge = Math.abs(col + 0.5) * CW > LEAF_HALF - CW;    // 가장자리 열(톱니)
+    for (const [y, len] of cellsOf(col)) {
+      if (y + len < -fov / 2 || y > fov / 2) continue;
+      const X = cx + col * CW * k, Y = cy + y * k, Wd = CW * k, Hd = len * k;
+      if (edge && ((Math.floor(y / 70) & 1) === 0)) continue;
+      if (k < 0.5) { m.fillStyle = P.avg; m.fillRect(X, Y, Wd, Hd); m.strokeStyle = P.wall; m.lineWidth = Math.max(.4, k * 2); m.strokeRect(X, Y, Wd, Hd); continue; }
+      m.fillStyle = P.fill; m.fillRect(X, Y, Wd, Hd); m.strokeStyle = P.wall; m.lineWidth = Math.max(1.2, 2.4 * k); m.strokeRect(X, Y, Wd, Hd);
+      const r = rng(col * 1000003 + Math.round(y * 7) + 99991), n = 16 + Math.floor(r() * 10);
+      for (let i = 0; i < n; i++) {
+        const along = r() < .65;   // 엽록체는 세포벽 가까이에 많다
+        let ux = r(), uy = r(); if (along) { if (r() < .5) ux = r() < .5 ? .12 : .88; else uy = r() < .5 ? .07 : .93; }
+        const ex = X + (4 + ux * (CW - 8)) * k, ey = Y + (4 + uy * (len - 8)) * k, rad = (3 + r() * .5) * k;
+        m.fillStyle = P.chl; m.beginPath(); m.ellipse(ex, ey, rad, rad * .8, r() * 3, 0, 7); m.fill();
+        m.fillStyle = P.chlHi; m.beginPath(); m.arc(ex - rad * .3, ey - rad * .3, rad * .35, 0, 7); m.fill();
+      }
+    }
+  }
+  m.restore();
+  // 테두리, 축척
+  m.strokeStyle = '#555'; m.lineWidth = 3; m.beginPath(); m.arc(cx, cy, R, 0, 7); m.stroke();
+  const bar = mag >= 400 ? 50 : mag >= 100 ? 200 : 500;
+  m.fillStyle = 'rgba(0,0,0,.6)'; m.fillRect(SW - 128, SW - 40, 118, 28);
+  m.fillStyle = '#fff'; m.fillRect(SW - 120, SW - 22, bar * k, 4); m.font = '12px sans-serif'; m.fillText(bar + ' µm', SW - 120, SW - 27);
+}
+function chlColor() { return S.smp === '2' ? '초록색' : (S.tube === 'A' ? '청람색' : '청람색 아님(옅은 갈색)'); }
+function observe() {
+  const ok = S.smp === '2' ? S.slide2 : S.slide4; if (!ok) return;
+  const key = S.smp + S.tube, mag = EYE * S.obj;
+  if (mag >= 400) S.rec[key] = { mag, color: chlColor() };
+  else if (!S.rec[key]) S.rec[key] = { mag, color: null };
+  else if (!S.rec[key].color) S.rec[key].mag = mag;
+}
+function drawTable() {
+  const cell = k => { const r = S.rec[k]; if (!r) return '<td class="empty">배율 (&nbsp;&nbsp;)배<br>엽록체 색깔 (&nbsp;&nbsp;)</td>';
+    return `<td>배율 <b>${r.mag}</b>배<br>엽록체 색깔 <b>${r.color || '(배율을 높여 보세요)'}</b></td>`; };
+  $('#tb').innerHTML = `<tr><th>2의 표본<br><small>(그대로)</small></th>${cell('2A')}${cell('2B')}</tr><tr><th>4의 표본<br><small>(탈색 + 아이오딘)</small></th>${cell('4A')}${cell('4B')}</tr>`;
+}
+function magBox() {
+  const mag = EYE * S.obj;
+  $('#magBox').innerHTML = `배율 = 접안렌즈 ${EYE}배 × 대물렌즈 ${S.obj}배 = <b>${mag}배</b>` + (mag < 400 ? ' · 엽록체 알갱이를 보려면 배율을 높이세요' : '');
+}
+/* ---------------- 단추 ---------------- */
+const say = t => { $('#msg').innerHTML = t; };
+function syncButtons() {
+  $('#s1').classList.toggle('done', !!S.day && !S.dayAnim); $('#s1').disabled = !!S.day || !!S.dayAnim;
+  ['A', 'B'].forEach(L => { const el = $('#s2' + L.toLowerCase()); el.disabled = !S.day || !!S.dayAnim || !!S.inc[L]; el.classList.toggle('done', !!S.inc[L]); });
+  $('#s3').disabled = !S.day || !!S.dayAnim || S.slide2; $('#s3').classList.toggle('done', S.slide2);
+  $('#s4').disabled = !S.slide2 || !!S.bath || !!S.bathAnim; $('#s4').classList.toggle('done', !!S.bath && !S.bathAnim);
+  $('#s5').disabled = !S.bath || !!S.bathAnim || S.slide4; $('#s5').classList.toggle('done', S.slide4);
+  $$('[data-tube]').forEach(e => e.classList.toggle('on', e.dataset.tube === S.tube));
+  $$('[data-smp]').forEach(e => e.classList.toggle('on', e.dataset.smp === S.smp));
+  $$('[data-obj]').forEach(e => e.classList.toggle('on', +e.dataset.obj === S.obj));
+  $('#sceneBtn').textContent = S.scene === 'tubes' ? '🔁 물중탕 장치 보기' : '🔁 시험관 A·B 보기';
+  magBox();
+}
+function redrawScope() { observe(); drawScope(); drawTable(); syncButtons(); }
+$('#s1').onclick = () => { S.dayAnim = S.t; S.scene = 'tubes'; say('하루 동안 빛을 비추는 중…'); syncButtons(); };
+['A', 'B'].forEach(L => { $('#s2' + L.toLowerCase()).onclick = () => { S.scene = 'tubes'; S.inc[L] = { t0: S.t, tube: L };
+  say('뚜껑을 열자마자 꺼져 가는 향불을 ' + L + '에 넣었다. 향불이 어떻게 변하는지 보세요.'); syncButtons(); }; });
+$('#s3').onclick = () => { S.slide2 = true; S.smp = '2'; say('A와 B의 검정말에서 잎을 떼어 받침 유리에 올리고 덮개 유리를 덮었다. 현미경으로 관찰하세요(배율을 바꿔 보세요).'); redrawScope(); };
+$('#s4').onclick = () => { S.bathAnim = S.t; S.scene = 'bath'; say('검정말을 에탄올이 든 시험관에 넣고 물중탕하는 중… 에탄올과 잎의 색깔을 살펴보세요.'); syncButtons(); };
+$('#s5').onclick = () => { S.slide4 = true; S.smp = '4'; say('탈색한 A와 B의 잎에 아이오딘-아이오딘화 칼륨 용액을 1방울씩 떨어뜨리고 덮개 유리를 덮었다(4의 표본). 현미경으로 비교해 보세요.'); redrawScope(); };
+$('#sceneBtn').onclick = () => { S.scene = S.scene === 'tubes' ? 'bath' : 'tubes'; syncButtons(); };
+$$('[data-tube]').forEach(e => e.onclick = () => { S.tube = e.dataset.tube; redrawScope(); });
+$$('[data-smp]').forEach(e => e.onclick = () => { S.smp = e.dataset.smp; redrawScope(); });
+$$('[data-obj]').forEach(e => e.onclick = () => { S.obj = +e.dataset.obj; redrawScope(); });
+$('#resetBtn').onclick = () => { S = newState(); say('① 단추를 눌러 시험관 A와 B를 하루 동안 빛이 잘 드는 곳에 두세요.'); redrawScope(); };
+/* ---------------- 애니메이션 ---------------- */
+let last = performance.now();
+function loop(ts) {
+  S.t += Math.min(0.1, (ts - last) / 1000); last = ts;
+  if (S.dayAnim && S.t - S.dayAnim >= 3) { S.dayAnim = null; S.day = 1; say('하루가 지났다. A의 검정말 잎 주위에 기포가 생겼다. 이제 ② 향불을 A와 B에 각각 넣어 보세요.'); syncButtons(); }
+  if (S.dayAnim) S.day = 0.5;
+  if (S.bathAnim && S.t - S.bathAnim >= 4) { S.bathAnim = null; S.bath = 1; say('탈색 완료: 엽록소가 에탄올에 녹아 나와 <b>에탄올은 초록색</b>, <b>잎은 하얗게</b> 되었다. ⑤ 아이오딘 용액을 떨어뜨려 보세요.'); syncButtons(); }
+  ['A', 'B'].forEach(L => { const st = S.inc[L]; if (st && !st.said && S.t - st.t0 > 2.2) { st.said = 1;
+    say(L === 'A' ? 'A: 꺼져 가던 향불이 <b>다시 밝게 타올랐다</b>. 시험관 A 속에 무엇이 많아졌을까?' : 'B: 향불이 <b>꺼졌다</b>. 빛을 받지 못한 B에서는 어떤 일이 일어나지 않았을까?'); } });
+  if (S.scene === 'tubes') drawTubes(); else drawBath();
+  requestAnimationFrame(loop);
+}
+S = newState(); redrawScope(); requestAnimationFrame(loop);
+// 테스트용: 단계를 바로 끝내기
+window.__fast = () => { S.dayAnim = null; S.day = 1; S.bathAnim = null; syncButtons(); };
+window.__S = () => S;
+</script>
+</body>
+</html>

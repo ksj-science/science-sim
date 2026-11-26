@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<!-- 단원ID: minerals · Ⅱ. 지권의 변화 > 2. 지각의 구성 물질 > 광물의 특성 · 활동 1개: 광물의 특성 관찰하기 -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>광물 실험대 — 광물의 특성 관찰하기</title>
+<style>
+:root{--bg:#f3f5f8;--card:#fff;--ink:#1f2a30;--muted:#5f6f76;--line:#dae0e8;--accent:#2f8f9d;--accent-d:#1f6b76;--accent-l:#e2f3f5}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+header{background:linear-gradient(120deg,#2f8f9d,#4d7cc7);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:20px;margin:0;font-weight:900}
+header .sub{font-size:13px;opacity:.92}
+header .sp{flex:1}
+header button{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+main{padding:10px 12px 24px;max-width:1300px;margin:0 auto}
+.intro{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:10px;padding:8px 14px;margin-bottom:10px;font-size:14px;line-height:1.55}
+.intro b{color:var(--accent-d)}
+.grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(300px,1fr);gap:10px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}
+.card h3{margin:0 4px 8px;font-size:15px;color:var(--accent-d)}
+canvas{width:100%;display:block;border-radius:8px}
+.tray{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+.sp6{border:2px solid var(--line);border-radius:10px;padding:4px;text-align:center;cursor:pointer;background:#fff;font-size:13px;font-weight:700}
+.sp6.sel{border-color:var(--accent);background:var(--accent-l)}
+.sp6.sel2{border-color:#e2702a;background:#fff1e6}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0}
+.btn{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;padding:8px 11px;cursor:pointer;min-height:38px}
+.btn:hover{border-color:var(--accent);color:var(--accent-d)}
+.btn.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.lbl{font-size:13px;color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border:1px solid var(--line);padding:5px 4px;text-align:center}
+th{background:var(--accent-l);color:var(--accent-d)}
+td.empty{color:#b5bec5}
+.msg{min-height:22px;font-size:14px;font-weight:700;margin:6px 4px 0;color:var(--accent-d)}
+.note{font-size:12.5px;color:var(--muted);line-height:1.55;margin:6px 4px 0}
+ul.log{margin:0;padding-left:18px;font-size:13.5px;line-height:1.6}
+</style>
+</head>
+<body>
+<header>
+  <h1>광물 실험대</h1><span class="sub">색 · 조흔색 · 굳기 · 자성 · 염산 반응</span>
+  <span class="sp"></span><button id="resetBtn" type="button">↺ 초기화</button>
+</header>
+<main>
+  <div class="intro">① 광물 표본을 하나 고르고 <b>실험 도구</b>를 누른다. ② <b>서로 긁기</b>는 긁는 광물을 먼저 고른 뒤, 긁힐 광물을 한 번 더 고른다. ③ 관찰 결과는 오른쪽 기록표에 자동으로 정리된다.</div>
+  <div class="grid">
+    <div class="card">
+      <div class="tray" id="tray"></div>
+      <div class="row" id="tools">
+        <button class="btn" data-t="color" type="button">🔍 색 관찰</button>
+        <button class="btn" data-t="streak" type="button">⬜ 조흔판에 긁기</button>
+        <button class="btn" data-t="scratch" type="button">✏️ 서로 긁기</button>
+        <button class="btn" data-t="clip" type="button">📎 클립 가져가기</button>
+        <button class="btn" data-t="acid" type="button">💧 묽은 염산 떨어뜨리기</button>
+      </div>
+      <canvas id="cv" width="640" height="300" aria-label="광물 실험 장면"></canvas>
+      <div class="msg" id="msg">광물 표본을 골라 보세요.</div>
+    </div>
+    <div>
+      <div class="card">
+        <h3>관찰 기록표</h3>
+        <table><thead><tr><th>광물</th><th>색</th><th>조흔색</th><th>자성</th><th>염산 반응</th></tr></thead><tbody id="tb"></tbody></table>
+      </div>
+      <div class="card">
+        <h3>서로 긁기 결과(굳기 비교)</h3>
+        <ul class="log" id="slog"><li class="lbl">아직 기록이 없다.</li></ul>
+        <p class="note"><b>모델의 한계</b> · 굳기는 모스 굳기 값(석영 7, 장석 6, 자철석·적철석 약 6, 방해석 3, 흑운모 약 2.5)으로 비교하고, 값이 비슷하면 흠집이 뚜렷하지 않다고 나타냈다. 실제 표본은 불순물에 따라 색이 조금씩 다를 수 있다. 실제 실험에서는 묽은 염산이 피부나 눈에 닿지 않게 보안경과 장갑을 쓴다.</p>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+/* ================================================================
+   광물의 특성 자료
+   - 굳기(모스): 석영 7, 장석 6, 흑운모 2.5, 방해석 3, 자철석 6, 적철석 6(5.5~6.5), 조흔판(초벌 자기) 약 6.5
+     서로 긁기: 굳기 차가 0.25보다 크면 무른 쪽에 흠집, 아니면 '비슷함'
+   - 조흔색: 자철석 검은색, 적철석 붉은색(적갈색), 흑운모 흰색~옅은 회색, 장석·방해석 흰색,
+     석영은 조흔판보다 단단해 가루가 생기지 않고 조흔판이 긁힌다
+   - 자성: 자철석만 클립을 끌어당김 / 염산 반응: 방해석(탄산 칼슘)만 이산화 탄소 거품
+   ================================================================ */
+const M = {
+  qz: { name: '석영', color: '무색(투명)', fill: '#e9eef2', edge: '#a9b6bf', H: 7, streak: null, mag: false, acid: false },
+  fs: { name: '장석', color: '분홍색(밝은색)', fill: '#e9b7a3', edge: '#b9806a', H: 6, streak: '#ffffff', streakName: '흰색', mag: false, acid: false },
+  bt: { name: '흑운모', color: '검은색', fill: '#2a2622', edge: '#000', H: 2.5, streak: '#e4e4e0', streakName: '흰색(옅은 회색)', mag: false, acid: false, shiny: true },
+  ca: { name: '방해석', color: '무색(투명)', fill: '#f1f3ee', edge: '#b9c0b0', H: 3, streak: '#ffffff', streakName: '흰색', mag: false, acid: true },
+  mg: { name: '자철석', color: '검은색', fill: '#26272b', edge: '#000', H: 6, streak: '#1c1c1c', streakName: '검은색', mag: true, acid: false },
+  hm: { name: '적철석', color: '검은색(어두운 회색)', fill: '#4a4c52', edge: '#22242a', H: 6, streak: '#9b2e22', streakName: '붉은색', mag: false, acid: false, shiny: true },
+};
+const KEYS = Object.keys(M);
+const $ = s => document.querySelector(s);
+let sel = null, tool = null, scratchA = null, rec = {}, slog = [], scene = null, anim = 0;
+
+function renderTray() {
+  $('#tray').innerHTML = KEYS.map(k => `<div class="sp6 ${k === sel ? 'sel' : ''} ${k === scratchA && tool === 'scratch' ? 'sel2' : ''}" data-k="${k}" role="button" tabindex="0">
+    <svg viewBox="0 0 60 44" width="100%" height="40" aria-hidden="true"><polygon points="8,34 14,12 30,6 48,12 54,30 40,40 18,40" fill="${M[k].fill}" stroke="${M[k].edge}" stroke-width="2"/></svg>${M[k].name}</div>`).join('');
+}
+function renderTable() {
+  $('#tb').innerHTML = KEYS.map(k => { const r = rec[k] || {}; const cell = v => v === undefined ? '<td class="empty">–</td>' : `<td>${v}</td>`;
+    return `<tr><td><b>${M[k].name}</b></td>${cell(r.color)}${cell(r.streak)}${cell(r.mag)}${cell(r.acid)}</tr>`; }).join('');
+  $('#slog').innerHTML = slog.length ? slog.map(s => `<li>${s}</li>`).join('') : '<li class="lbl">아직 기록이 없다.</li>';
+}
+/* 받침에 따라 조사 고르기 */
+function j(w, a, b) { const ch = w.charCodeAt(w.length - 1); return w + (ch >= 0xAC00 && ch <= 0xD7A3 && (ch - 0xAC00) % 28 ? a : b); }
+const ro = w => { const ch = w.charCodeAt(w.length - 1), jj = (ch - 0xAC00) % 28; return w + (ch >= 0xAC00 && ch <= 0xD7A3 && jj && jj !== 8 ? '으로' : '로'); };
+const set = (k, f, v) => { (rec[k] = rec[k] || {})[f] = v; };
+function say(s) { $('#msg').textContent = s; }
+
+function run() {
+  if (!sel) { say('먼저 광물 표본을 골라 보세요.'); return; }
+  const m = M[sel];
+  if (tool === 'color') { set(sel, 'color', m.color); scene = { t: 'color', k: sel }; say(m.name + '의 겉보기 색은 ' + m.color + '이다.'); }
+  if (tool === 'streak') {
+    scene = { t: 'streak', k: sel };
+    if (m.streak) { set(sel, 'streak', m.streakName); say(j(m.name, '을', '를') + ' 조흔판에 긁었더니 ' + m.streakName + ' 가루가 묻었다.'); }
+    else { set(sel, 'streak', '조흔판이 긁힘'); say(j(m.name, '은', '는') + ' 조흔판보다 단단해서 가루가 생기지 않고 오히려 조흔판이 긁혔다.'); }
+  }
+  if (tool === 'clip') { set(sel, 'mag', m.mag ? '있음' : '없음'); scene = { t: 'clip', k: sel }; say(m.mag ? m.name + '에 클립이 달라붙었다! (자성이 있다)' : m.name + '에는 클립이 붙지 않는다.'); }
+  if (tool === 'acid') { set(sel, 'acid', m.acid ? '거품 발생' : '변화 없음'); scene = { t: 'acid', k: sel }; say(m.acid ? m.name + '에서 거품(이산화 탄소)이 생긴다!' : m.name + '에는 아무 변화가 없다.'); }
+  renderTable(); kick();
+}
+function doScratch(a, b) {
+  const A = M[a], B = M[b], d = A.H - B.H;
+  let res;
+  if (d > 0.25) res = `${ro(A.name)} ${j(B.name, '을', '를')} 긁었더니 <b>${B.name}에 흠집</b>이 생겼다 → ${j(A.name, '이', '가')} 더 단단하다.`;
+  else if (d < -0.25) res = `${ro(A.name)} ${j(B.name, '을', '를')} 긁었더니 ${j(B.name, '은', '는')} 멀쩡하고 <b>${j(A.name, '이', '가')} 닳았다</b> → ${j(B.name, '이', '가')} 더 단단하다.`;
+  else res = `${j(A.name, '과', '와')} ${j(B.name, '은', '는')} 굳기가 비슷하여 흠집이 뚜렷하지 않다.`;
+  slog.unshift(res); if (slog.length > 8) slog.pop();
+  scene = { t: 'scratch', a, b, d }; say(res.replace(/<[^>]+>/g, '')); renderTable(); kick();
+}
+
+/* ---------- 그림 ---------- */
+const cv = $('#cv'), c = cv.getContext('2d');
+(function () { const r = Math.min(2, window.devicePixelRatio || 1); cv.width = 640 * r; cv.height = 300 * r; c.setTransform(r, 0, 0, r, 0, 0); })();
+function rock(k, x, y, s) {
+  const m = M[k]; c.save(); c.translate(x, y); c.scale(s, s);
+  c.fillStyle = m.fill; c.strokeStyle = m.edge; c.lineWidth = 2;
+  c.beginPath(); [[-40, 20], [-30, -18], [-5, -30], [28, -20], [42, 8], [20, 28], [-20, 28]].forEach((p, i) => i ? c.lineTo(...p) : c.moveTo(...p)); c.closePath(); c.fill(); c.stroke();
+  c.fillStyle = 'rgba(255,255,255,' + (m.shiny ? .45 : .25) + ')'; c.beginPath(); c.moveTo(-22, -14); c.lineTo(0, -24); c.lineTo(8, -14); c.lineTo(-14, -6); c.closePath(); c.fill();
+  c.restore();
+}
+function draw() {
+  c.clearRect(0, 0, 640, 300); c.fillStyle = '#eef2f4'; c.fillRect(0, 0, 640, 300); c.fillStyle = '#d5dde2'; c.fillRect(0, 250, 640, 50);
+  const t = performance.now() / 1000;
+  c.font = '14px sans-serif'; c.fillStyle = '#5f6f76';
+  if (!scene) { c.textAlign = 'center'; c.fillText('표본을 고르고 실험 도구를 눌러 보세요', 320, 150); c.textAlign = 'left'; return false; }
+  const m = scene.k ? M[scene.k] : null;
+  if (scene.t === 'color') { rock(scene.k, 320, 150, 2.6); c.strokeStyle = '#333'; c.lineWidth = 6; c.beginPath(); c.arc(420, 100, 46, 0, 7); c.stroke(); c.beginPath(); c.moveTo(452, 132); c.lineTo(500, 180); c.stroke(); c.fillStyle = '#1f2a30'; c.font = 'bold 16px sans-serif'; c.fillText('색: ' + m.color, 40, 40); return false; }
+  if (scene.t === 'streak') {
+    c.fillStyle = '#fbfbf7'; c.strokeStyle = '#cfcfc8'; c.lineWidth = 2; c.fillRect(150, 160, 340, 80); c.strokeRect(150, 160, 340, 80);
+    const p = Math.min(1, anim / 1.2);
+    if (m.streak) { c.strokeStyle = m.streak === '#ffffff' ? '#e9e9e2' : m.streak; c.lineWidth = 9; c.lineCap = 'round'; c.beginPath(); c.moveTo(190, 200); c.lineTo(190 + 260 * p, 200); c.stroke(); c.lineCap = 'butt'; if (m.streak === '#ffffff') { c.fillStyle = '#9aa'; c.font = '12px sans-serif'; c.fillText('(흰색 가루라 잘 보이지 않는다)', 200, 232); } }
+    else { c.strokeStyle = '#b9b9b0'; c.lineWidth = 2; c.beginPath(); c.moveTo(190, 200); c.lineTo(190 + 260 * p, 200); c.stroke(); }
+    rock(scene.k, 190 + 260 * p, 150, 1.2);
+    c.fillStyle = '#1f2a30'; c.font = 'bold 16px sans-serif'; c.fillText('조흔판', 155, 155); c.fillText('조흔색: ' + (m.streak ? m.streakName : '없음(조흔판이 긁힘)'), 40, 40);
+    return anim < 1.2;
+  }
+  if (scene.t === 'clip') {
+    rock(scene.k, 300, 160, 2.2);
+    const colors = ['#f26b3a', '#3a8ff2', '#4cc26b'];
+    colors.forEach((col, i) => { let x, y; if (m.mag) { const p = Math.min(1, anim / 0.8); x = 470 - (470 - (350 + i * 12)) * p; y = 200 - (200 - (120 + i * 22)) * p; } else { x = 470 + i * 30; y = 228; }
+      c.strokeStyle = col; c.lineWidth = 3; c.beginPath(); c.roundRect ? c.roundRect(x - 8, y - 20, 16, 40, 8) : c.rect(x - 8, y - 20, 16, 40); c.stroke(); });
+    c.fillStyle = '#1f2a30'; c.font = 'bold 16px sans-serif'; c.fillText('자성: ' + (m.mag ? '있음(클립이 붙는다)' : '없음'), 40, 40);
+    return m.mag && anim < 0.8;
+  }
+  if (scene.t === 'acid') {
+    c.fillStyle = 'rgba(200,225,240,.5)'; c.strokeStyle = '#9ab'; c.lineWidth = 2; c.beginPath(); c.ellipse(320, 230, 150, 22, 0, 0, 7); c.fill(); c.stroke();
+    rock(scene.k, 320, 190, 1.8);
+    c.fillStyle = '#ddd'; c.fillRect(312, 20, 16, 70); c.fillStyle = '#e8455a'; c.fillRect(308, 10, 24, 18);
+    const dy = (anim * 160) % 110; if (anim < 3) { c.fillStyle = '#8fc4ff'; c.beginPath(); c.arc(320, 95 + dy, 4, 0, 7); c.fill(); }
+    if (m.acid && anim > 0.6) { c.strokeStyle = 'rgba(255,255,255,.95)'; c.lineWidth = 1.5; for (let i = 0; i < 26; i++) { const ph = (t * 1.3 + i * 0.37) % 1, bx = 280 + (i * 37) % 80, by = 175 - ph * 60; c.beginPath(); c.arc(bx, by, 2 + (i % 3), 0, 7); c.stroke(); } }
+    c.fillStyle = '#1f2a30'; c.font = 'bold 16px sans-serif'; c.fillText('묽은 염산 반응: ' + (m.acid ? '거품 발생(이산화 탄소)' : '변화 없음'), 40, 40);
+    return anim < 8;
+  }
+  if (scene.t === 'scratch') {
+    const p = Math.min(1, anim / 1); rock(scene.b, 260, 180, 1.9); rock(scene.a, 330 + 60 * Math.sin(p * Math.PI), 120, 1.1);
+    if (p > 0.5) { c.strokeStyle = scene.d > 0.25 ? '#555' : '#bbb'; c.lineWidth = scene.d > 0.25 ? 3 : 1; c.beginPath(); c.moveTo(230, 170); c.lineTo(300, 165); c.stroke(); }
+    c.fillStyle = '#1f2a30'; c.font = 'bold 15px sans-serif'; c.fillText(ro(M[scene.a].name) + ' ' + M[scene.b].name + ' 긁기', 40, 40);
+    c.font = '14px sans-serif'; c.fillText(scene.d > 0.25 ? M[scene.b].name + '에 흠집이 생김' : scene.d < -0.25 ? M[scene.b].name + '에 흠집이 생기지 않음' : '흠집이 뚜렷하지 않음', 40, 64);
+    return anim < 1;
+  }
+  return false;
+}
+let running = false, last = 0;
+function loop(ts) { anim += Math.min(0.1, (ts - last) / 1000 || 0); last = ts; const more = draw(); if (more) requestAnimationFrame(loop); else running = false; }
+function kick() { anim = 0; if (!running) { running = true; last = performance.now(); requestAnimationFrame(loop); } }
+
+$('#tray').addEventListener('click', e => {
+  const el = e.target.closest('.sp6'); if (!el) return; const k = el.dataset.k;
+  if (tool === 'scratch') {
+    if (!scratchA) { scratchA = k; sel = k; say(ro(M[k].name) + ' 긁을 광물을 하나 더 골라 보세요.'); renderTray(); return; }
+    if (k === scratchA) { say('다른 광물을 골라 보세요.'); return; }
+    sel = k; doScratch(scratchA, k); scratchA = null; renderTray(); return;
+  }
+  sel = k; renderTray(); if (tool) run(); else say(M[k].name + ' 표본을 골랐어요. 실험 도구를 눌러 보세요.');
+});
+$('#tools').addEventListener('click', e => {
+  const b = e.target.closest('button[data-t]'); if (!b) return; tool = b.dataset.t; scratchA = null;
+  document.querySelectorAll('#tools .btn').forEach(o => o.classList.toggle('on', o === b));
+  if (tool === 'scratch') { say('긁는 광물(단단한지 알아볼 광물)을 먼저 골라 보세요.'); renderTray(); return; }
+  run();
+});
+$('#resetBtn').addEventListener('click', () => { sel = null; tool = null; scratchA = null; rec = {}; slog = []; scene = null; document.querySelectorAll('#tools .btn').forEach(o => o.classList.remove('on')); renderTray(); renderTable(); draw(); say('광물 표본을 골라 보세요.'); });
+renderTray(); renderTable(); draw();
+</script>
+</body>
+</html>

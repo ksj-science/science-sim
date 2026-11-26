@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<!-- 단원ID: soil · Ⅱ. 지권의 변화 > 2. 지각의 구성 물질 > 04 토양의 생성 · 활동 1개: 풍화와 토양 생성 시간 여행 -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>토양 생성 시간 여행 — 풍화와 토양의 생성</title>
+<style>
+:root{--bg:#f4f5ef;--card:#fff;--ink:#1f2a30;--muted:#5f6f76;--line:#dfe1d6;--accent:#5a8f3c;--accent-d:#3f6d27;--accent-l:#e8f3df}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+header{background:linear-gradient(120deg,#5a8f3c,#a38a4e);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:20px;margin:0;font-weight:900}
+header .sub{font-size:13px;opacity:.92}
+header .sp{flex:1}
+header button{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+main{padding:10px 12px 24px;max-width:1300px;margin:0 auto}
+.intro{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:10px;padding:8px 14px;margin-bottom:10px;font-size:14px;line-height:1.55}
+.intro b{color:var(--accent-d)}
+.grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(300px,1fr);gap:10px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}
+.card h3{margin:0 4px 8px;font-size:15px;color:var(--accent-d)}
+canvas{width:100%;display:block;border-radius:8px}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0}
+.btn{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;padding:8px 11px;cursor:pointer;min-height:38px}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.on{background:var(--accent-l);border-color:var(--accent);color:var(--accent-d)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+label.tg{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer;background:#fff}
+label.tg input{width:18px;height:18px;accent-color:var(--accent)}
+.lbl{font-size:13px;color:var(--muted)}
+.ro{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:8px}
+.ro div{background:#26301f;color:#dff5c8;border-radius:9px;padding:6px 10px}
+.ro .k{font-size:12px;color:#b9c7ad}
+.ro .v{font-size:22px;font-weight:900}
+.ro .v small{font-size:13px;font-weight:500;margin-left:2px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border:1px solid var(--line);padding:5px 6px;text-align:center}
+th{background:var(--accent-l);color:var(--accent-d)}
+td.l{text-align:left}
+.msg{min-height:22px;font-size:14px;font-weight:700;margin:6px 4px 0;color:var(--accent-d)}
+.note{font-size:12.5px;color:var(--muted);line-height:1.55;margin:6px 4px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>토양 생성 시간 여행</h1><span class="sub">풍화 작용과 토양의 생성</span>
+  <span class="sp"></span><button id="resetBtn" type="button">↺ 초기화</button>
+</header>
+<main>
+  <div class="intro">① 암석과 <b>풍화 작용</b>을 고르고 <b>[시간 흐르기]</b>를 누른다. ② 시간이 지나며 암석이 부서지고 토양의 층(A~D)이 어떤 순서로 생기는지 관찰한다. ③ 오른쪽 위 확대 그림에서 <b>물이 얼 때 부피 변화</b>를 확인한다.</div>
+  <div class="grid">
+    <div class="card">
+      <canvas id="cv" width="680" height="420" aria-label="시간에 따른 토양 단면 변화"></canvas>
+      <div class="row"><span class="lbl">처음 암석</span>
+        <button class="btn rk on" data-r="granite" type="button">화강암</button><button class="btn rk" data-r="lime" type="button">석회암</button></div>
+      <div class="row"><span class="lbl">풍화 작용</span>
+        <label class="tg"><input type="checkbox" id="fFreeze" checked>물이 어는 작용</label>
+        <label class="tg"><input type="checkbox" id="fRoot" checked>식물 뿌리의 작용</label>
+        <label class="tg"><input type="checkbox" id="fDiss" checked>지하수의 용해 작용</label></div>
+      <div class="row">
+        <button class="btn pri" id="playBtn" type="button">▶ 시간 흐르기</button>
+        <span class="lbl">빠르기</span><button class="btn sp" data-s="1" type="button">느리게</button><button class="btn sp on" data-s="3" type="button">보통</button><button class="btn sp" data-s="8" type="button">빠르게</button>
+      </div>
+      <div class="msg" id="msg"></div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="ro">
+          <div><div class="k">흐른 시간</div><div class="v" id="vT">0<small>년</small></div></div>
+          <div><div class="k">토양의 두께</div><div class="v" id="vS">0<small>cm</small></div></div>
+        </div>
+        <table><thead><tr><th>층</th><th>특징</th><th>생긴 때(년)</th></tr></thead><tbody id="tb"></tbody></table>
+      </div>
+      <div class="card">
+        <p class="note"><b>모델의 한계</b> · 토양이 생기는 빠르기는 기후와 암석에 따라 크게 다르다. 이 모형은 화강암에서 풍화 작용을 모두 켰을 때 약 250년에 1 cm씩 토양이 두꺼워지도록(실제로는 대략 수백 년에 1 cm) 단순화하였다. 물이 얼면 밀도가 1.00 → 0.917 g/cm³로 줄어 부피가 약 9 % 늘어난다. 지하수의 용해 작용은 석회암에서만 뚜렷하게 일어난다고 보았다.</p>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+/* ================================================================
+   풍화·토양 생성 모형(단순화)
+   - 풍화된 두께 W(cm)의 증가 빠르기: dW/dt = 0.25 × (물이 어는 작용 1 + 식물 뿌리 0.6 + 석회암 용해 0.8) [cm / 100년]
+     (작용을 하나도 켜지 않으면 W는 늘지 않아 토양이 생기지 않는다)
+   - 층의 생성 순서(교과서 그림): D(기반암) → C(풍화된 돌 조각·모래) → A(부식물·생물 활동) → B(위층 물질이 스며듦)
+       A = 0.35 × max(0, W − 15),  B = 0.35 × max(0, W − 40),  C = W − A − B
+       A층은 식물이 자랄 만큼(W ≥ 15 cm) 풍화된 뒤 생기고, B층은 A층의 물질이 스며들 만큼 두꺼워진 뒤 생긴다
+   - 물이 어는 작용: 얼음 밀도 0.917 g/cm³ → 부피 = 1 / 0.917 ≈ 1.09배(약 9 % 증가)
+   ================================================================ */
+const $ = s => document.querySelector(s);
+const TMAX = 15000;
+let S, speed = 3, playing = false, last = 0, lastDraw = 0;
+function newState() { return { t: 0, W: 0, rock: S ? S.rock : 'granite', born: {}, cave: 0, freezePh: 0 }; }
+function rate() {
+  let r = 0;
+  if ($('#fFreeze').checked) r += 1;
+  if ($('#fRoot').checked) r += 0.6;
+  if ($('#fDiss').checked && S.rock === 'lime') r += 0.8;
+  return 0.25 * r / 100;              // cm / 년
+}
+const layersOf = W => { const A = 0.35 * Math.max(0, W - 15), B = 0.35 * Math.max(0, W - 40); return { A, B, C: Math.max(0, W - A - B) }; };
+function step(dy) {
+  S.t = Math.min(TMAX, S.t + dy); S.W += rate() * dy;
+  if ($('#fDiss').checked && S.rock === 'lime') S.cave = Math.min(1, S.cave + dy / 9000);
+  const L = layersOf(S.W);
+  if (!S.born.C && L.C > 0.5) { S.born.C = S.t; say('암석이 풍화되어 잘게 부서지기 시작했어요 (C층).'); }
+  if (!S.born.A && L.A > 0.5) { S.born.A = S.t; say('식물이 자라 부식물이 섞인 층이 생겼어요 (A층).'); }
+  if (!S.born.B && L.B > 0.5) { S.born.B = S.t; say('위층의 물질이 아래로 스며들어 새로운 층이 생겼어요 (B층).'); }
+  if (S.t >= TMAX) { playing = false; updBtn(); say('15000년이 흘렀어요. 토양이 만들어지는 데 아주 오랜 시간이 걸린다는 것을 확인했나요?'); }
+}
+function say(s) { $('#msg').textContent = s; }
+
+/* ---------- 그림 ---------- */
+const cv = $('#cv'), c = cv.getContext('2d');
+(function () { const r = Math.min(2, window.devicePixelRatio || 1); cv.width = 680 * r; cv.height = 420 * r; c.setTransform(r, 0, 0, r, 0, 0); })();
+function rng(seed) { let s = seed; return () => (s = (s * 16807) % 2147483647) / 2147483647; }
+const X0 = 40, X1 = 400, GY = 110, PXCM = 2.4;       // 지표 높이, 1 cm = 2.4 px
+function draw(now) {
+  c.clearRect(0, 0, 680, 420);
+  c.fillStyle = '#d9ecf7'; c.fillRect(0, 0, 680, GY);
+  const L = layersOf(S.W), rockCol = S.rock === 'lime' ? '#b7b9b4' : '#cdbfae';
+  // D: 기반암
+  c.fillStyle = rockCol; c.fillRect(X0, GY, X1 - X0, 420 - GY);
+  const r = rng(7); c.strokeStyle = 'rgba(80,70,60,.35)'; c.lineWidth = 1.2;
+  const crackN = Math.min(18, 3 + S.W / 3);
+  for (let i = 0; i < crackN; i++) { const x = X0 + 15 + r() * (X1 - X0 - 30), y = GY + (L.A + L.B + L.C) * PXCM + 10 + r() * 60; c.beginPath(); c.moveTo(x, y); c.lineTo(x + (r() - .5) * 20, y + 20 + r() * 30); c.stroke(); }
+  if (S.rock === 'lime' && S.cave > 0) { c.fillStyle = '#4b5a63'; c.beginPath(); c.ellipse(230, 385, 30 + 110 * S.cave, 8 + 20 * S.cave, 0, 0, 7); c.fill(); c.fillStyle = '#c8d3d8'; for (let i = 0; i < 6 * S.cave; i++) { const x = 200 + i * 22; c.beginPath(); c.moveTo(x - 4, 385 - (8 + 20 * S.cave) + 2); c.lineTo(x + 4, 385 - (8 + 20 * S.cave) + 2); c.lineTo(x, 385 - (8 + 20 * S.cave) + 14); c.fill(); } c.fillStyle = '#fff'; c.font = '12px sans-serif'; c.fillText('석회 동굴', 205, 390); }
+  // 위에서부터 A, B, C
+  let y = GY;
+  const band = (h, col, deco) => { if (h <= 0) return; const ph = h * PXCM; c.fillStyle = col; c.fillRect(X0, y, X1 - X0, ph); if (deco) deco(y, ph); y += ph; };
+  band(L.A, '#4a3a2a', (y0, h) => { const q = rng(3); c.fillStyle = '#6b5440'; for (let i = 0; i < h * 3; i++) c.fillRect(X0 + q() * (X1 - X0), y0 + q() * h, 2, 2); });
+  band(L.B, '#8a6a4a', (y0, h) => { const q = rng(5); c.fillStyle = '#a1805e'; for (let i = 0; i < h * 2; i++) c.fillRect(X0 + q() * (X1 - X0), y0 + q() * h, 2, 2); });
+  band(L.C, '#b49a7c', (y0, h) => { const q = rng(9); for (let i = 0; i < h * 0.8; i++) { c.fillStyle = q() < .5 ? '#8c7d6c' : '#d3c4b1'; c.beginPath(); c.ellipse(X0 + q() * (X1 - X0), y0 + q() * h, 3 + q() * 7, 2 + q() * 4, q() * 3, 0, 7); c.fill(); } });
+  // 식물(A층이 생긴 뒤)
+  if (L.A > 0.5 && $('#fRoot').checked) {
+    const g = Math.min(1, L.A / 15), q = rng(13);
+    c.fillStyle = '#4f9a3a'; for (let i = 0; i < 40 * g; i++) { const x = X0 + q() * (X1 - X0); c.fillRect(x, GY - 6 * g - q() * 6, 2, 6 + q() * 6); }
+    if (g > .5) { c.fillStyle = '#6b4b2a'; c.fillRect(300, GY - 70 * g, 8, 70 * g); c.fillStyle = '#3f8f2f'; c.beginPath(); c.arc(304, GY - 75 * g, 30 * g, 0, 7); c.fill(); c.strokeStyle = '#5a3d22'; c.lineWidth = 2; for (let k = -2; k <= 2; k++) { c.beginPath(); c.moveTo(304, GY); c.lineTo(304 + k * 18, GY + Math.min(y - GY, 70) * g); c.stroke(); } }
+  } else if (L.C > 0.5 && $('#fRoot').checked) { c.fillStyle = '#7fb36a'; c.fillRect(150, GY - 6, 3, 6); c.fillRect(260, GY - 5, 3, 5); }
+  c.strokeStyle = '#555'; c.lineWidth = 1.5; c.strokeRect(X0, GY, X1 - X0, 420 - GY);
+  // 층 이름표
+  c.font = 'bold 14px sans-serif'; let yy = GY;
+  [['A', L.A], ['B', L.B], ['C', L.C]].forEach(([n, h]) => { if (h > 0.5) { c.fillStyle = '#1f2a30'; c.fillText(n, X1 + 8, yy + Math.max(14, h * PXCM / 2 + 5)); } yy += h * PXCM; });
+  c.fillStyle = '#1f2a30'; c.fillText('D', X1 + 8, Math.min(410, yy + 30));
+  // 깊이 눈금
+  c.fillStyle = '#5f6f76'; c.font = '11px sans-serif'; for (let d = 0; d <= 120; d += 20) { const py = GY + d * PXCM; if (py > 415) break; c.fillRect(X0 - 6, py, 6, 1); c.fillText(d, X0 - 30, py + 4); } c.fillText('깊이(cm)', 2, GY - 8);
+  // 확대 그림: 물이 어는 작용(얼었다 녹았다)
+  const IX = 470, IY = 20, IW = 190, IH = 170;
+  c.fillStyle = '#fff'; c.strokeStyle = '#999'; c.lineWidth = 1; c.fillRect(IX, IY, IW, IH); c.strokeRect(IX, IY, IW, IH);
+  c.fillStyle = '#1f2a30'; c.font = 'bold 13px sans-serif'; c.fillText('확대: 암석 틈의 물', IX + 8, IY + 18);
+  const on = $('#fFreeze').checked, ph = on ? (Math.sin(now / 900) > 0 ? 1 : 0) : 0;   // 1이면 언 상태
+  const gap = 12 + (on ? Math.min(14, S.W / 3) : 0) + (ph ? 2 : 0);
+  c.fillStyle = '#9c8f80'; c.fillRect(IX + 20, IY + 40, 70 - gap / 2, 110); c.fillRect(IX + 100 + gap / 2, IY + 40, 70 - gap / 2, 110);
+  const wh = 60, ih = wh * 1.09;
+  c.fillStyle = ph ? '#e6f4ff' : '#6fb6ec'; const h = ph ? ih : wh; c.fillRect(IX + 95 - gap / 2, IY + 150 - h, gap, h);
+  c.fillStyle = '#1f2a30'; c.font = '12px sans-serif';
+  c.fillText(on ? (ph ? '얼음: 부피 약 1.09배(약 9 % 증가)' : '물: 부피 1') : '물이 어는 작용 꺼짐', IX + 8, IY + IH - 4);
+  c.fillText(on ? (ph ? '→ 틈을 밀어 넓힘' : '→ 녹으면 더 깊이 스며듦') : '', IX + 8, IY + 34);
+  // 시간 막대
+  c.fillStyle = '#5f6f76'; c.font = '12px sans-serif'; c.fillText('0년', 470, 232); c.fillText('15000년', 610, 232);
+  c.fillStyle = '#e1e5da'; c.fillRect(470, 238, 190, 10); c.fillStyle = '#5a8f3c'; c.fillRect(470, 238, 190 * S.t / TMAX, 10);
+}
+let lastRows = '';
+function updateUI() {
+  $('#vT').innerHTML = Math.round(S.t).toLocaleString() + '<small>년</small>';
+  $('#vS').innerHTML = S.W.toFixed(1) + '<small>cm</small>';
+  const L = layersOf(S.W), f = v => v ? Math.round(v / 10) * 10 + '' : '–';
+  const rows = [['A', '부식물이 포함되어 있고 생물의 활동이 매우 활발한 층', S.born.A, L.A], ['B', '위쪽 토양의 물질이 아래로 스며들어 만들어진 층', S.born.B, L.B], ['C', '풍화로 만들어진 돌 조각과 모래로 이루어진 층', S.born.C, L.C], ['D', '풍화 작용을 거의 받지 않은 암석층', 0, 1]]
+    .map(([n, d, b, h]) => `<tr><td><b>${n}</b></td><td class="l">${d}</td><td>${n === 'D' ? '처음부터' : f(b)}</td></tr>`).join('');
+  if (rows !== lastRows) { $('#tb').innerHTML = rows; lastRows = rows; }
+}
+function loop(ts) {
+  const dt = Math.min(0.1, (ts - last) / 1000 || 0); last = ts;
+  if (playing) step(dt * 300 * speed);           // 보통: 1초에 900년
+  if (playing || ts - lastDraw > 120) { draw(ts); updateUI(); lastDraw = ts; }   // 멈춰 있을 때는 초당 8번만 다시 그린다
+  requestAnimationFrame(loop);                   // 확대 그림(얼었다 녹았다)을 계속 보여 준다
+}
+function updBtn() { $('#playBtn').textContent = playing ? '⏸ 멈추기' : (S.t >= TMAX ? '시간 끝(초기화)' : '▶ 시간 흐르기'); $('#playBtn').disabled = S.t >= TMAX; }
+$('#playBtn').addEventListener('click', () => { if (!playing && rate() === 0) say('풍화 작용이 하나도 일어나지 않으면 암석이 부서지지 않아 토양이 생기지 않아요. 그래도 시간을 흘려 볼게요.'); playing = !playing; updBtn(); });
+document.querySelectorAll('.btn.sp').forEach(b => b.addEventListener('click', () => { speed = +b.dataset.s; document.querySelectorAll('.btn.sp').forEach(o => o.classList.toggle('on', o === b)); }));
+document.querySelectorAll('.btn.rk').forEach(b => b.addEventListener('click', () => { const rk = b.dataset.r; document.querySelectorAll('.btn.rk').forEach(o => o.classList.toggle('on', o === b)); S = newState(); S.rock = rk; playing = false; updBtn(); say(rk === 'lime' ? '석회암은 지하수에 녹는 성질이 있어요.' : ''); }));
+$('#fDiss').addEventListener('change', () => { if ($('#fDiss').checked && S.rock !== 'lime') say('지하수의 용해 작용은 석회암 지대에서 뚜렷하게 일어나요. 석회암을 골라 보세요.'); });
+$('#resetBtn').addEventListener('click', () => { const rk = S.rock; S = newState(); S.rock = rk; playing = false; updBtn(); say('처음 상태로 돌렸어요.'); });
+S = newState(); updBtn(); requestAnimationFrame(loop);
+</script>
+</body>
+</html>

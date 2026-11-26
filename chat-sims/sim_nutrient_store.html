@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<!-- 단원ID: nutrient_store · 중2 Ⅴ. 식물과 에너지 > 2. 식물의 호흡과 에너지 > 02 광합성으로 만들어진 양분의 저장과 이용(176~177쪽) · 활동 1개: 양분의 저장·이동·이용 과정 모형 -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>광합성으로 만들어진 양분의 저장과 이용</title>
+<style>
+:root{--bg:#f4f6ee;--card:#fff;--ink:#22281b;--muted:#5f6a55;--line:#dde4d0;--accent:#6b9a2e;--accent-d:#4a6e1c;--accent-l:#edf5df;--glu:#e6a817;--sug:#e2733a;--sta:#8a63c9}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+header{background:linear-gradient(120deg,#6b9a2e,#d0a32a);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:20px;margin:0;font-weight:900}
+header .sub{font-size:13px;opacity:.95}
+header .sp{flex:1}
+header button{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+main{padding:10px 12px 24px;max-width:1300px;margin:0 auto}
+.intro{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:10px;padding:8px 14px;margin-bottom:10px;font-size:14px;line-height:1.55}
+.intro b{color:var(--accent-d)}
+.grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(300px,1fr);gap:10px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}
+.card h3{margin:0 4px 8px;font-size:15px;color:var(--accent-d)}
+canvas{width:100%;display:block;border-radius:8px}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0}
+.btn{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;padding:7px 11px;cursor:pointer;min-height:38px}
+.btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent-d)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.on{background:var(--accent-l);border-color:var(--accent);color:var(--accent-d)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.ro{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.ro div{background:#232b18;color:#e3efc9;border-radius:9px;padding:6px 8px}
+.ro .k{font-size:11.5px;color:#b3c49a}
+.ro .v{font-size:19px;font-weight:900}
+.ro .v small{font-size:12px;font-weight:500;margin-left:2px}
+.msg{background:#f8faf3;border:1px dashed #bcd29b;border-radius:8px;padding:7px 10px;font-size:14px;line-height:1.5;margin-top:8px}
+.plant{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.store{margin-top:8px;background:#fbf7ec;border:1px solid #ecdcb2;border-radius:10px;padding:8px 10px;font-size:14px;line-height:1.6}
+.store b{color:#9a5b0e}
+.note{font-size:12.5px;color:var(--muted);line-height:1.55;margin:6px 4px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>양분의 저장과 이용 모형</h1><span class="sub">포도당 → 녹말(잎) → 설탕(체관으로 이동) → 호흡 · 몸 구성 · 저장</span>
+  <span class="sp"></span><button id="resetBtn" type="button">↺ 초기화</button>
+</header>
+<main>
+  <div class="intro">▶ 를 눌러 아침 6시부터 하루를 진행해 보세요. <b>낮</b>에는 잎에서 포도당이 만들어져 녹말로 잠시 저장되고, <b>밤</b>에는 설탕으로 바뀌어 <b>체관</b>을 따라 다른 기관으로 이동한다. 식물을 바꾸면 양분을 저장하는 곳과 형태가 달라진다.</div>
+  <div class="grid">
+    <div class="card">
+      <canvas id="app" width="760" height="430" aria-label="잎, 줄기의 물관과 체관, 저장 기관으로 양분이 이동하는 모형"></canvas>
+      <div class="row">
+        <button class="btn pri" id="runBtn" type="button">▶ 진행</button>
+        <button class="btn" id="dayBtn" type="button">⏩ 하루(24시간) 빨리 감기</button>
+        <button class="btn" id="winterBtn" type="button">🍂 잎이 떨어진 겨울로</button>
+        <span style="flex:1"></span><span style="font-size:13px;color:#5f6a55">1시간이 약 0.5초로 흘러요</span>
+      </div>
+      <div class="msg" id="msg">아침 6시. 해가 뜨면 광합성이 시작된다.</div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="ro">
+          <div><div class="k">시각</div><div class="v" id="vT">06:00</div></div>
+          <div><div class="k">만든 포도당(누적)</div><div class="v" id="vMade">0<small>개</small></div></div>
+          <div><div class="k">잎 속 녹말</div><div class="v" id="vStarch">0<small>개</small></div></div>
+          <div><div class="k">호흡에 쓴 양(누적)</div><div class="v" id="vResp">0<small>개</small></div></div>
+          <div><div class="k">몸을 만드는 데 쓴 양(누적)</div><div class="v" id="vGrow">0<small>개</small></div></div>
+          <div><div class="k">저장 기관에 저장된 양</div><div class="v" id="vStore">0<small>개</small></div></div>
+        </div>
+        <p class="note">수는 양분의 양을 포도당 알갱이 개수로 나타낸 상대값이다.</p>
+      </div>
+      <div class="card">
+        <h3>식물 고르기 — 어디에, 어떤 형태로 저장할까?</h3>
+        <div class="plant" id="plants"></div>
+        <div class="store" id="store"></div>
+        <p class="note"><b>모델의 한계</b> · 광합성은 6~18시에 일정한 빠르기(시간당 포도당 10개)로, 호흡은 하루 내내 시간당 2개로 단순화했다. 낮에 쓰고 남은 포도당은 모두 녹말로 잎에 두었다가 밤에만 설탕으로 바꾸어 옮긴다고 보았다(실제로는 낮에도 조금씩 옮긴다). 옮긴 양분의 1/3은 몸을 만드는 데, 2/3는 저장에 쓰인다고 정했다. 물관·체관은 실제보다 굵게 그렸다.</p>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+/* ================================================================
+   양분의 생성·이동·저장·이용 모형 (단위: 포도당 알갱이 '개', 시간 단위: 시간)
+   - 광합성: 6시 ≤ 시각 < 18시에 잎에서 포도당 10개/시간 생성(겨울에 잎이 없으면 0)
+   - 호흡: 하루 내내 2개/시간 사용 (낮: 새로 만든 포도당에서, 밤: 잎 속 녹말에서, 잎이 없으면 저장 양분에서)
+   - 낮: 남은 포도당 8개/시간 → 녹말로 잎에 잠시 저장
+   - 밤: 녹말 8개/시간 분해 → 2개는 호흡, 6개는 설탕으로 바뀌어 체관을 따라 이동
+          이동한 6개 중 2개는 몸을 구성(성장), 4개는 저장 기관에 저장(식물마다 저장 형태가 다름)
+   - 맑은 하루(6시 → 다음 날 6시): 만든 포도당 120 = 호흡 48 + 몸 구성 24 + 저장 48, 18시 잎 속 녹말 96
+   ================================================================ */
+const $ = s => document.querySelector(s);
+function fit(cv, w, h) { const r = Math.min(2, window.devicePixelRatio || 1); cv.width = w * r; cv.height = h * r; const x = cv.getContext('2d'); x.setTransform(r, 0, 0, r, 0, 0); return x; }
+const W = 760, H = 430, DT = 0.05, SPEED = 2;   // 2시간/초 → 하루 12초
+const c = fit($('#app'), W, H);
+const PLANTS = {
+  sweet: { name: '고구마', organ: '뿌리', form: '녹말', icon: '🍠', at: 'root' },
+  potato: { name: '감자', organ: '줄기(땅속줄기)', form: '녹말', icon: '🥔', at: 'tuber' },
+  cane: { name: '사탕수수', organ: '줄기', form: '설탕', icon: '🎋', at: 'stem' },
+  onion: { name: '양파', organ: '잎(비늘잎)', form: '포도당', icon: '🧅', at: 'bulb' },
+  sesame: { name: '깨', organ: '씨', form: '지방, 단백질', icon: '🌰', at: 'seed' },
+};
+let S;
+function newState() { return { h: 6, made: 0, starch: 0, resp: 0, grow: 0, store: 0, winter: false, running: false, plant: 'sweet', anim: 0, flow: [], days: 0, startStore: 0 }; }
+const isDay = h => { const x = ((h % 24) + 24) % 24 + 1e-7; return x >= 6 && x < 18; };
+function step(dt) {
+  const day = isDay(S.h) && !S.winter;
+  if (S.winter) { const use = Math.min(S.store, 2 * dt); S.store -= use; S.resp += use; }
+  else if (day) { S.made += 10 * dt; S.resp += 2 * dt; S.starch += 8 * dt; }
+  else { const k = Math.min(S.starch, 8 * dt); S.starch -= k; S.resp += k / 4; S.grow += k / 4; S.store += k / 2;
+    if (k > 0 && Math.random() < dt * 6) S.flow.push({ p: 0 }); }
+  S.h = Math.round((S.h + dt) * 1e6) / 1e6;   // 소수 오차가 쌓이지 않게
+}
+/* ---------------- 그림 ---------------- */
+const STEM_X = 400;
+function hexa(x, y, r, col) { c.fillStyle = col; c.beginPath(); for (let i = 0; i < 6; i++) { const a = Math.PI / 3 * i + Math.PI / 6; c.lineTo(x + r * Math.cos(a), y + r * Math.sin(a)); } c.closePath(); c.fill(); }
+function organBox(key) {   // 저장 기관 위치
+  return { root: [STEM_X + 70, 380], tuber: [STEM_X - 80, 360], stem: [STEM_X, 250], bulb: [STEM_X, 318], seed: [STEM_X, 52] }[key];
+}
+function draw() {
+  const hh = ((S.h % 24) + 24) % 24, day = isDay(hh);
+  const sky = c.createLinearGradient(0, 0, 0, 300);
+  if (S.winter) { sky.addColorStop(0, day ? '#cfe3f2' : '#1c2440'); sky.addColorStop(1, day ? '#eef4f8' : '#2b3558'); }
+  else { sky.addColorStop(0, day ? '#9fd6ff' : '#141c38'); sky.addColorStop(1, day ? '#e6f6ff' : '#28345a'); }
+  c.fillStyle = sky; c.fillRect(0, 0, W, 300);
+  c.fillStyle = S.winter ? '#e9eef2' : '#8a6a46'; c.fillRect(0, 300, W, 130);
+  if (S.winter) { c.fillStyle = '#8a6a46'; c.fillRect(0, 316, W, 114); }
+  if (day) { const sx = 40 + (hh - 6) / 12 * 680, sy = 70 - 45 * Math.sin(Math.PI * (hh - 6) / 12); c.fillStyle = '#ffcf33'; c.beginPath(); c.arc(sx, sy, 24, 0, 7); c.fill(); }
+  else { c.fillStyle = '#f3e7a0'; c.beginPath(); c.arc(680, 50, 16, 0, 7); c.fill(); c.fillStyle = S.winter ? '#1c2440' : '#141c38'; c.beginPath(); c.arc(688, 44, 15, 0, 7); c.fill(); }
+  // 줄기(체관 = 바깥쪽 주황, 물관 = 안쪽 파랑)
+  c.fillStyle = '#7fb24a'; c.fillRect(STEM_X - 22, 70, 44, 300);
+  c.fillStyle = '#5aa0e0'; c.fillRect(STEM_X - 6, 70, 12, 300);
+  c.fillStyle = '#f0a060'; c.fillRect(STEM_X - 18, 70, 8, 300); c.fillRect(STEM_X + 10, 70, 8, 300);
+  // 물 흐름(물관, 위로)
+  c.fillStyle = 'rgba(255,255,255,.85)'; for (let k = 0; k < 8; k++) { const y = 370 - ((S.anim * 40 + k * 37) % 300); c.beginPath(); c.arc(STEM_X, y, 2, 0, 7); c.fill(); }
+  // 뿌리
+  c.strokeStyle = '#c9a77a'; c.lineWidth = 4; [[STEM_X, 370, STEM_X - 60, 420], [STEM_X, 370, STEM_X + 50, 425], [STEM_X, 370, STEM_X + 5, 428]].forEach(([a, b2, x, y]) => { c.beginPath(); c.moveTo(a, b2); c.lineTo(x, y); c.stroke(); });
+  // 잎(왼쪽 위) — 겨울에는 없음
+  if (!S.winter) {
+    c.save(); c.translate(STEM_X - 20, 150); c.fillStyle = '#5cad48'; c.beginPath(); c.moveTo(0, 0); c.bezierCurveTo(-80, -90, -260, -60, -300, 20); c.bezierCurveTo(-230, 90, -80, 80, 0, 0); c.fill();
+    c.strokeStyle = '#3d8a33'; c.lineWidth = 2; c.beginPath(); c.moveTo(0, 0); c.lineTo(-290, 18); c.stroke(); c.restore();
+    // 잎 속 녹말(보라 사슬), 포도당(노랑)
+    const n = Math.min(24, Math.round(S.starch / 4));
+    for (let i = 0; i < n; i++) hexa(STEM_X - 250 + (i % 12) * 16, 160 + Math.floor(i / 12) * 15, 7, '#8a63c9');
+    if (day) for (let k = 0; k < 5; k++) { const ph = (S.anim * 0.6 + k / 5) % 1; hexa(STEM_X - 260 + ph * 180, 125 - Math.sin(ph * 3) * 10, 7, '#e6a817'); }
+    c.fillStyle = day ? '#22281b' : '#f3f6ff'; c.font = 'bold 13px sans-serif';
+    c.fillText(day ? '광합성 → 포도당 → 녹말(잎에 잠시 저장)' : '밤: 녹말 → 설탕으로 바뀌어 이동', STEM_X - 310, 220);
+    if (day) { c.strokeStyle = 'rgba(255,200,40,.8)'; c.lineWidth = 3; for (let k = 0; k < 4; k++) { c.beginPath(); c.moveTo(150 + k * 40, 40); c.lineTo(110 + k * 40, 110); c.stroke(); } }
+  } else { c.fillStyle = day ? '#5b4a36' : '#f3f6ff'; c.font = 'bold 13px sans-serif'; c.fillText('잎이 없어 광합성을 못 한다', STEM_X - 300, 150); }
+  // 가지(꽃·씨)
+  c.strokeStyle = '#7fb24a'; c.lineWidth = 8; c.beginPath(); c.moveTo(STEM_X, 70); c.lineTo(STEM_X, 50); c.stroke();
+  // 저장 기관
+  const P = PLANTS[S.plant], [ox, oy] = organBox(P.at);
+  c.fillStyle = 'rgba(255,240,200,.95)'; c.strokeStyle = '#d29a2e'; c.lineWidth = 3; c.beginPath(); c.arc(ox, oy, 34, 0, 7); c.fill(); c.stroke();
+  c.font = '30px sans-serif'; c.textAlign = 'center'; c.fillText(P.icon, ox, oy + 11);
+  c.font = 'bold 13px sans-serif'; c.fillStyle = '#7a4a0a'; c.fillText(P.organ + ': ' + P.form, ox + (P.at === 'tuber' ? -40 : 90), oy - 40 < 20 ? oy + 54 : oy - 40); c.textAlign = 'left';
+  // 이동 중인 설탕(체관 따라)
+  S.flow.forEach(f => { f.p += 0.012;
+    const startY = 150, ty = oy, x = STEM_X - 14 + (f.side ? 28 : 0); f.side = f.side ?? (Math.random() < .5);
+    let X, Y; if (f.p < .15) { X = STEM_X - 80 + f.p / .15 * 66; Y = startY; } else { const q = (f.p - .15) / .85; X = x + (ox - x) * Math.max(0, q - .8) / .2; Y = startY + (ty - startY) * Math.min(1, q / .8); }
+    hexa(X, Y, 6, '#e2733a'); });
+  S.flow = S.flow.filter(f => f.p < 1);
+  // 호흡 표시
+  c.fillStyle = 'rgba(255,90,60,.85)'; for (let k = 0; k < 3; k++) { const ph = (S.anim * .8 + k / 3) % 1; c.font = (10 + ph * 8) + 'px sans-serif'; c.fillText('✦', STEM_X + 40 + k * 20, 120 - ph * 30); }
+  c.fillStyle = day ? '#22281b' : '#e6ecff'; c.font = '12px sans-serif'; c.fillText('✦ 호흡(에너지)', STEM_X + 34, 140);
+  // 범례(왼쪽 아래 어두운 상자)
+  c.fillStyle = 'rgba(20,24,14,.72)'; c.beginPath(); c.roundRect ? c.roundRect(12, 318, 150, 104, 8) : c.rect(12, 318, 150, 104); c.fill();
+  c.font = '12px sans-serif'; const lg = [['#e6a817', '포도당'], ['#8a63c9', '녹말'], ['#e2733a', '설탕(이동 형태)']];
+  lg.forEach(([col, t], i) => { hexa(28, 334 + i * 20, 7, col); c.fillStyle = '#fff'; c.fillText(t, 42, 338 + i * 20); });
+  c.fillStyle = '#5aa0e0'; c.fillRect(24, 392, 9, 9); c.fillStyle = '#fff'; c.fillText('물관(물)', 40, 401);
+  c.fillStyle = '#f0a060'; c.fillRect(94, 392, 9, 9); c.fillStyle = '#fff'; c.fillText('체관(양분)', 108, 401);
+}
+/* ---------------- 화면 ---------------- */
+const fmtH = h => { const x = ((h % 24) + 24) % 24; return String(Math.floor(x + 1e-6)).padStart(2, '0') + ':' + String(Math.round((x - Math.floor(x + 1e-6)) * 60) % 60).padStart(2, '0'); };
+function readouts() {
+  $('#vT').textContent = (S.days ? S.days + '일 뒤 ' : '') + fmtH(S.h);
+  [['#vMade', S.made], ['#vStarch', S.starch], ['#vResp', S.resp], ['#vGrow', S.grow], ['#vStore', S.store]].forEach(([id, v]) => $(id).innerHTML = Math.round(v) + '<small>개</small>');
+  $('#runBtn').textContent = S.running ? '❚❚ 멈춤' : '▶ 진행'; $('#winterBtn').classList.toggle('on', S.winter);
+  $('#winterBtn').textContent = S.winter ? '🌱 봄·여름으로(잎 다시 남)' : '🍂 잎이 떨어진 겨울로';
+  const P = PLANTS[S.plant];
+  $('#store').innerHTML = `<b>${P.name}</b>: 광합성으로 만든 양분을 <b>${P.organ}</b>에 <b>${P.form}</b>(으)로 저장한다.` + (S.plant === 'potato' ? '<br>감자는 뿌리가 아니라 땅속에 있는 <b>줄기</b>가 굵어진 것이다.' : '') + (S.plant === 'onion' ? '<br>양파의 먹는 부분은 줄기를 둘러싼 <b>잎</b>이 두꺼워진 것이다.' : '');
+  document.querySelectorAll('#plants .btn').forEach(e => e.classList.toggle('on', e.dataset.k === S.plant));
+}
+let lastMsg = '';
+function message() {
+  const hh = ((S.h % 24) + 24) % 24; let t;
+  if (S.winter) t = S.store > 0.5 ? `잎이 없어 광합성을 못 하지만, <b>저장해 둔 양분</b>을 호흡에 써서 에너지를 얻으며 살아간다(남은 양 ${Math.round(S.store)}개). 봄에는 이 양분으로 꽃과 새잎을 만든다.` : '저장된 양분을 다 썼다. 여름에 더 많이 저장해 두어야 겨울을 날 수 있다.';
+  else if (isDay(hh)) t = '낮: 잎에서 광합성으로 <b>포도당</b>이 만들어진다. 일부는 호흡에 쓰이고, 나머지는 <b>녹말</b>로 바뀌어 잎에 잠시 저장된다.';
+  else t = '밤: 잎 속 녹말이 <b>설탕</b>으로 바뀌어 <b>체관</b>을 따라 다른 기관으로 이동한다. 이동한 양분은 호흡, 몸 구성(성장), 저장에 쓰인다.';
+  if (t !== lastMsg) { $('#msg').innerHTML = t; lastMsg = t; }
+}
+const pl = $('#plants'); Object.entries(PLANTS).forEach(([k, p]) => { const bt = document.createElement('button'); bt.className = 'btn'; bt.type = 'button'; bt.dataset.k = k; bt.textContent = p.icon + ' ' + p.name; bt.onclick = () => { S.plant = k; S.flow = []; readouts(); }; pl.appendChild(bt); });
+$('#runBtn').onclick = () => { S.running = !S.running; readouts(); };
+$('#dayBtn').onclick = () => { S.acc = 0; for (let k = 0; k < Math.round(24 / DT); k++) step(DT); S.days += 1; S.flow = []; readouts(); message(); };
+$('#winterBtn').onclick = () => { S.winter = !S.winter; if (S.winter) S.starch = 0; readouts(); message(); };
+$('#resetBtn').onclick = () => { const p = S.plant; S = newState(); S.plant = p; lastMsg = ''; readouts(); message(); };
+let last = performance.now();
+function loop(ts) {
+  const dt = Math.min(0.1, (ts - last) / 1000); last = ts; S.anim += dt;
+  if (S.running) { S.acc = (S.acc || 0) + dt * SPEED; const before = Math.floor((S.h - 6 + 1e-7) / 24); while (S.acc >= DT) { step(DT); S.acc -= DT; } if (Math.floor((S.h - 6 + 1e-7) / 24) > before) S.days++; readouts(); message(); }
+  draw(); requestAnimationFrame(loop);
+}
+S = newState(); readouts(); message(); requestAnimationFrame(loop);
+window.__day = () => { $('#dayBtn').click(); return { made: S.made, starch: S.starch, resp: S.resp, grow: S.grow, store: S.store }; };
+window.__to = h => { while (S.h < h - 1e-9) step(DT); readouts(); return { starch: S.starch, made: S.made }; };
+</script>
+</body>
+</html>

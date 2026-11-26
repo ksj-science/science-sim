@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<!-- 단원ID: star_brightness · 중2 Ⅷ. 별과 우주 > 1. 별 > 02 별의 밝기와 색(274~275쪽) · 활동 1개: 광원으로부터의 거리에 따른 빛의 밝기 측정하기 -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>거리에 따른 빛의 밝기</title>
+<style>
+:root{--bg:#f3f4f8;--card:#fff;--ink:#1e2232;--muted:#5b6479;--line:#dce0ea;--y:#e7a614;--b:#2f6fd0;--p:#d07a14}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+header{background:linear-gradient(120deg,#16203d,#2f4c8f 55%,#e7a614);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:20px;margin:0;font-weight:900}
+header .sub{font-size:13px;opacity:.95}
+header .sp{flex:1}
+header button{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.55);color:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+nav{display:flex;gap:6px;padding:10px 12px 0;max-width:1320px;margin:0 auto}
+nav button{font:inherit;font-size:14.5px;font-weight:800;border:1px solid var(--line);background:#fff;border-radius:10px 10px 0 0;padding:9px 16px;cursor:pointer;color:var(--muted);border-bottom:none}
+nav button.on{color:#8a5208;box-shadow:inset 0 3px 0 var(--y)}
+main{padding:0 12px 24px;max-width:1320px;margin:0 auto}
+.pane{display:none;background:var(--card);border:1px solid var(--line);border-radius:0 12px 12px 12px;padding:12px 14px}
+.pane.on{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(300px,1fr);gap:12px;align-items:start}
+@media (max-width:900px){.pane.on{grid-template-columns:1fr}}
+canvas{width:100%;display:block;border-radius:10px;touch-action:none}
+.guide{font-size:13.5px;color:var(--muted);line-height:1.5;margin:6px 2px 0}
+.guide b{color:#8a5208}
+h3{margin:0 2px 6px;font-size:15px;color:#33395a}
+.row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:6px 0}
+.lbl{font-size:13px;color:var(--muted)}
+.btn{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:9px;padding:7px 11px;cursor:pointer;min-height:38px}
+.btn:hover:not(:disabled){border-color:#9aa6bb}
+.btn.on{background:#fdf2dc;border-color:var(--y);color:#7a4806}
+.btn.main{background:#e7a614;border-color:#e7a614;color:#fff}
+input[type=range]{flex:1;min-width:140px;accent-color:var(--y)}
+.ro{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px}
+.ro div{background:#161b2c;color:#eef0f7;border-radius:10px;padding:6px 8px}
+.ro .k{font-size:11.5px;color:#a7aed0}
+.ro .v{font-size:18px;font-weight:900}
+.msg{background:#fffaf0;border:1px dashed #e6c27a;border-radius:10px;padding:8px 11px;font-size:14.5px;line-height:1.55;margin-top:8px;min-height:44px}
+table{border-collapse:collapse;width:100%;font-size:13.5px;margin-top:6px}
+th,td{border:1px solid var(--line);padding:5px 4px;text-align:center}
+th{background:#fdf2dc;color:#7a4806;white-space:nowrap}
+.note{font-size:12.5px;color:var(--muted);line-height:1.55;margin:8px 2px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>거리에 따른 빛의 밝기</h1><span class="sub">조도 센서 측정 · 거리의 제곱에 반비례 · 별의 밝기</span>
+  <span class="sp"></span><button id="resetBtn" type="button">↺ 초기화</button>
+</header>
+<nav><button data-tab="t1" class="on" type="button">① 조도 측정하기</button><button data-tab="t2" type="button">② 빛이 퍼지는 모습</button></nav>
+<main>
+  <section class="pane on" id="t1">
+    <div>
+      <canvas id="c1" width="760" height="230" aria-label="줄자 위에 놓인 조명과 조도 센서. 센서를 끌어 거리를 바꾼다."></canvas>
+      <canvas id="g1" width="760" height="230" style="margin-top:8px" aria-label="거리-조도 그래프"></canvas>
+      <p class="guide"><b>조도 센서를 끌거나</b> 거리 단추를 눌러 20 cm, 30 cm, …, 90 cm로 옮기고 <b>측정</b>을 눌러 기록하세요. 그래프가 어떤 모양이 되나요?</p>
+    </div>
+    <div>
+      <h3>조작 (어두운 방, 조명과 센서가 정확히 마주 봄)</h3>
+      <div class="row" id="dBtns"></div>
+      <div class="row"><button class="btn main" id="measBtn" type="button">📏 측정·기록</button><button class="btn" id="curveBtn" type="button">반비례 곡선 겹쳐 보기</button><button class="btn" id="clrBtn" type="button">기록 지우기</button></div>
+      <div class="ro">
+        <div><div class="k">조명과 센서 사이 거리</div><div class="v" id="vD">–</div></div>
+        <div><div class="k">조도(밝기)</div><div class="v" id="vE">–</div></div>
+        <div><div class="k">20 cm일 때와 비교</div><div class="v" id="vR">–</div></div>
+      </div>
+      <table><thead><tr><th>거리(cm)</th><th>조도(lx)</th><th>20 cm의 몇 배 거리</th><th>밝기는 몇 배</th></tr></thead><tbody id="tb"></tbody></table>
+      <div class="msg" id="msg1"></div>
+      <p class="note"><b>모델의 한계</b> · 조명을 크기가 없는 점광원으로 보고 조도 = 640000 ÷ (거리 cm)² lx로 계산했다(20 cm → 1600 lx). 주변 빛, 벽에서 반사된 빛, 센서의 오차는 무시했다.</p>
+    </div>
+  </section>
+  <section class="pane" id="t2">
+    <div>
+      <canvas id="c2" width="760" height="330" aria-label="광원에서 퍼져 나가는 빛이 거리 1배, 2배, 3배에서 비추는 면"></canvas>
+      <canvas id="c3" width="760" height="150" style="margin-top:8px" aria-label="같은 밝기의 별 두 개를 다른 거리에서 볼 때"></canvas>
+      <p class="guide">거리를 늘리면 같은 빛이 <b>더 넓은 면적</b>을 비춘다. 빨간 점선 칸(같은 면적)에 들어오는 빛이 얼마로 줄어드는지 보세요.</p>
+    </div>
+    <div>
+      <h3>조작</h3>
+      <div class="row"><span class="lbl">광원으로부터 거리</span><input type="range" id="nSl" min="1" max="4" step="1" value="2"><b id="nTx" style="min-width:48px">2 배</b></div>
+      <div class="ro">
+        <div><div class="k">비추는 면적</div><div class="v" id="vA">–</div></div>
+        <div><div class="k">같은 면적의 밝기</div><div class="v" id="vB">–</div></div>
+        <div><div class="k">관계</div><div class="v" style="font-size:14px">밝기 ∝ 1 / 거리²</div></div>
+      </div>
+      <h3 style="margin-top:12px">같은 밝기를 내는 두 별</h3>
+      <div class="row"><span class="lbl">별 B는 별 A보다</span><input type="range" id="kSl" min="1" max="10" step="1" value="3"><b id="kTx" style="min-width:76px">3 배 멀다</b></div>
+      <div class="msg" id="msg2"></div>
+      <p class="note"><b>모델의 한계</b> · 빛이 모든 방향으로 고르게 퍼지고, 도중에 흡수되지 않는다고 보았다. 실제 별의 밝기는 별이 내는 빛의 양과 거리에 따라 함께 달라진다.</p>
+    </div>
+  </section>
+</main>
+<script>
+/* ================================================================
+   거리에 따른 빛의 밝기
+   - 조도 E = K ÷ d², K = 640000 lx·cm² → 20 cm 1600 lx, 40 cm 400 lx, 60 cm 177.8 lx, 80 cm 100 lx
+     거리가 2배, 3배 → 밝기 1/4배, 1/9배 (빛이 퍼지는 면적이 거리²에 비례)
+   - 같은 별(같은 빛의 양)을 k배 먼 곳에서 보면 밝기 1/k²배
+   ================================================================ */
+const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
+function fit(cv, w, h) { const r = Math.min(2, devicePixelRatio || 1); cv.width = w * r; cv.height = h * r; const x = cv.getContext('2d'); x.setTransform(r, 0, 0, r, 0, 0); return x; }
+const c1 = fit($('#c1'), 760, 230), g1 = fit($('#g1'), 760, 230), c2 = fit($('#c2'), 760, 330), c3 = fit($('#c3'), 760, 150), K = 640000;
+const lux = d => K / (d * d);
+let S;
+function newState() { return { tab: S ? S.tab : 't1', d: 20, rec: {}, curve: false, n: 2, k: 3, drag: false }; }
+/* ---------- ① 측정 ---------- */
+const X0 = 110, PX = 6.6;   // 조명 위치, 1 cm → 6.6 px
+function draw1() {
+  const c = c1; c.clearRect(0, 0, 760, 230); c.fillStyle = '#1b2033'; c.fillRect(0, 0, 760, 230);
+  // 탁자·줄자
+  c.fillStyle = '#d9dde6'; c.fillRect(0, 175, 760, 55); c.fillStyle = '#f4e9b8'; c.fillRect(X0 - 10, 182, 640, 18);
+  for (let cm = 0; cm <= 95; cm++) { const x = X0 + cm * PX; c.strokeStyle = '#6b5a2a'; c.lineWidth = 1; c.beginPath(); c.moveTo(x, 182); c.lineTo(x, 182 + (cm % 10 ? 4 : cm % 5 ? 6 : 10)); c.stroke(); if (cm % 10 === 0) { c.fillStyle = '#4a3d16'; c.font = '10px sans-serif'; c.fillText(cm, x - 5, 198); } }
+  // 빛 퍼짐
+  const sx = X0 + S.d * PX, g = c.createRadialGradient(X0, 110, 4, X0, 110, 560); g.addColorStop(0, 'rgba(255,240,170,.75)'); g.addColorStop(0.25, 'rgba(255,230,140,.25)'); g.addColorStop(1, 'rgba(255,230,140,0)');
+  c.fillStyle = g; c.beginPath(); c.moveTo(X0, 110); c.lineTo(760, 0); c.lineTo(760, 175); c.lineTo(X0, 110); c.fill();
+  // 조명(삼각대)
+  c.strokeStyle = '#9aa1ad'; c.lineWidth = 3; c.beginPath(); c.moveTo(X0, 130); c.lineTo(X0 - 22, 182); c.moveTo(X0, 130); c.lineTo(X0 + 22, 182); c.moveTo(X0, 130); c.lineTo(X0, 182); c.stroke();
+  c.fillStyle = '#2b2f3c'; c.beginPath(); c.roundRect(X0 - 18, 80, 18, 54, 4); c.fill(); c.fillStyle = '#fffbe0'; c.beginPath(); c.arc(X0, 108, 9, 0, 7); c.fill();
+  c.fillStyle = '#fff'; c.font = 'bold 12px sans-serif'; c.fillText('조명', X0 - 22, 72);
+  // 센서(삼각대)
+  c.strokeStyle = '#9aa1ad'; c.beginPath(); c.moveTo(sx, 132); c.lineTo(sx - 20, 182); c.moveTo(sx, 132); c.lineTo(sx + 20, 182); c.moveTo(sx, 132); c.lineTo(sx, 182); c.stroke();
+  c.fillStyle = '#3c4659'; c.beginPath(); c.roundRect(sx - 2, 90, 34, 44, 6); c.fill(); c.fillStyle = '#26b3a8'; c.fillRect(sx + 18, 92, 12, 40); c.fillStyle = '#111'; c.fillRect(sx - 4, 100, 5, 18);
+  c.fillStyle = '#fff'; c.font = 'bold 12px sans-serif'; c.fillText('조도 센서', sx - 10, 80);
+  c.fillStyle = '#ffd36b'; c.font = 'bold 15px sans-serif'; c.fillText(`${Math.round(lux(S.d))} lx`, sx + 40, 116);
+  // 거리 화살표
+  c.strokeStyle = '#ffd36b'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(X0, 160); c.lineTo(sx, 160); c.stroke(); c.fillStyle = '#ffd36b'; c.font = 'bold 12px sans-serif'; c.textAlign = 'center'; c.fillText(S.d + ' cm', (X0 + sx) / 2, 155); c.textAlign = 'left';
+}
+function graph() {
+  const c = g1, L = 70, R = 740, T = 20, B = 195; c.clearRect(0, 0, 760, 230); c.fillStyle = '#fff'; c.fillRect(0, 0, 760, 230);
+  const xs = d => L + d / 100 * (R - L), ys = e => B - e / 1800 * (B - T);
+  c.strokeStyle = '#eceef3'; c.lineWidth = 1; for (let e = 0; e <= 1800; e += 300) { c.beginPath(); c.moveTo(L, ys(e)); c.lineTo(R, ys(e)); c.stroke(); c.fillStyle = '#5b6479'; c.font = '11px sans-serif'; c.fillText(e, L - 36, ys(e) + 4); }
+  for (let d = 0; d <= 100; d += 10) { c.fillStyle = '#5b6479'; c.fillText(d, xs(d) - 6, B + 15); }
+  c.strokeStyle = '#333'; c.beginPath(); c.moveTo(L, T); c.lineTo(L, B); c.lineTo(R, B); c.stroke();
+  c.fillStyle = '#33395a'; c.font = 'bold 12px sans-serif'; c.fillText('거리(cm)', R - 52, B + 30); c.fillText('조도(lx)', 8, 14);
+  if (S.curve) { c.strokeStyle = 'rgba(231,166,20,.8)'; c.lineWidth = 2; c.beginPath(); for (let d = 18.9; d <= 100; d += 0.5) { const p = [xs(d), ys(lux(d))]; d === 18.9 ? c.moveTo(...p) : c.lineTo(...p); } c.stroke(); c.fillStyle = '#b07a08'; c.fillText('조도 = 640000 ÷ 거리²', xs(45), ys(900)); }
+  Object.keys(S.rec).forEach(d => { c.fillStyle = '#2f6fd0'; c.beginPath(); c.arc(xs(+d), ys(S.rec[d]), 5, 0, 7); c.fill(); });
+}
+function fracD(d) { const g = (a, b) => b ? g(b, a % b) : a, n = 400, m = d * d, k = g(n, m); return m / k === 1 ? String(n / k) : `${n / k}/${m / k}`; }   // (20/d)² 기약분수
+function frac(r) { if (Math.abs(r - 1) < 1e-9) return '1'; const inv = 1 / r; return Math.abs(inv - Math.round(inv)) < 0.01 ? '1/' + Math.round(inv) : r.toFixed(3).replace(/0+$/, ''); }
+function ui1() {
+  $('#dBtns').innerHTML = [20, 30, 40, 50, 60, 70, 80, 90].map(d => `<button class="btn ${S.d === d ? 'on' : ''}" data-d="${d}" type="button" style="padding:6px 8px">${d}</button>`).join('') + '<span class="lbl">cm</span>';
+  $$('[data-d]').forEach(b => b.onclick = () => { S.d = +b.dataset.d; ui1(); });
+  $('#curveBtn').classList.toggle('on', S.curve);
+  $('#vD').textContent = S.d + ' cm'; $('#vE').textContent = Math.round(lux(S.d)) + ' lx'; $('#vR').textContent = fracD(S.d) + ' 배';
+  const ds = Object.keys(S.rec).map(Number).sort((a, b) => a - b);
+  $('#tb').innerHTML = ds.length ? ds.map(d => `<tr><td>${d}</td><td>${Math.round(S.rec[d])}</td><td>${+(d / 20).toFixed(2)} 배</td><td>${fracD(d)} 배</td></tr>`).join('') : '<tr><td colspan="4" style="color:#8a90a3">측정 단추를 눌러 기록하세요</td></tr>';
+  const m = $('#msg1'); let t;
+  if (ds.length < 3) t = `지금 거리 ${S.d} cm에서 조도는 ${Math.round(lux(S.d))} lx이다. 20, 40, 60, 80 cm를 포함해 여러 거리에서 측정해 보세요.`;
+  else t = '거리가 멀어질수록 조도가 빠르게 줄어든다. 거리가 <b>2배(40 cm)이면 1/4배, 3배(60 cm)이면 1/9배, 4배(80 cm)이면 1/16배</b> — 빛의 밝기는 <b>거리의 제곱에 반비례</b>한다. "반비례 곡선 겹쳐 보기"로 확인해 보세요.';
+  if (m.dataset.t !== t) { m.dataset.t = t; m.innerHTML = t; }
+}
+$('#measBtn').onclick = () => { S.rec[S.d] = lux(S.d); ui1(); };
+$('#curveBtn').onclick = () => { S.curve = !S.curve; ui1(); };
+$('#clrBtn').onclick = () => { S.rec = {}; ui1(); };
+const cv1 = $('#c1'); const px = e => { const r = cv1.getBoundingClientRect(); return (e.clientX - r.left) * 760 / r.width; };
+cv1.addEventListener('pointerdown', e => { if (Math.abs(px(e) - (X0 + S.d * PX + 14)) < 40) { S.drag = true; cv1.setPointerCapture(e.pointerId); } });
+cv1.addEventListener('pointermove', e => { if (!S.drag) return; const d = Math.round((px(e) - 14 - X0) / PX / 10) * 10; const nd = Math.max(20, Math.min(90, d)); if (nd !== S.d) { S.d = nd; ui1(); } });
+cv1.addEventListener('pointerup', () => S.drag = false);
+/* ---------- ② 빛이 퍼지는 모습 ---------- */
+function draw2() {
+  const c = c2; c.clearRect(0, 0, 760, 330); c.fillStyle = '#f7f8fc'; c.fillRect(0, 0, 760, 330);
+  const src = [60, 170], u = 160, h1 = 34;   // 거리 1배 = 160 px, 1배 거리의 면 반높이 34 px
+  const nMax = Math.min(4, S.n), far = src[0] + u * nMax + 20;
+  c.fillStyle = 'rgba(120,190,255,.18)'; c.beginPath(); c.moveTo(...src); c.lineTo(far, src[1] - h1 * (far - src[0]) / u); c.lineTo(far, src[1] + h1 * (far - src[0]) / u); c.closePath(); c.fill();
+  c.strokeStyle = 'rgba(80,150,230,.7)'; c.lineWidth = 1; c.beginPath(); c.moveTo(...src); c.lineTo(far, src[1] - h1 * (far - src[0]) / u); c.moveTo(...src); c.lineTo(far, src[1] + h1 * (far - src[0]) / u); c.stroke();
+  for (let n = 1; n <= nMax; n++) { const x = src[0] + u * n, hh = h1 * n, w = 18 * n, sk = 0.45, top = src[1] - hh;   // 면: 세로 2hh × 가로 w(비스듬히), 칸 = n × n
+    const P = (fx, fy) => [x + fx * w, top - fx * w * sk + fy * 2 * hh];   // fx, fy ∈ [0,1]
+    c.fillStyle = `rgba(47,111,208,${0.85 / n / n + 0.08})`; c.beginPath(); [[0, 0], [1, 0], [1, 1], [0, 1]].forEach((q, k) => k ? c.lineTo(...P(...q)) : c.moveTo(...P(...q))); c.closePath(); c.fill();
+    c.strokeStyle = 'rgba(255,255,255,.85)'; c.lineWidth = 1; for (let i = 1; i < n; i++) { c.beginPath(); c.moveTo(...P(0, i / n)); c.lineTo(...P(1, i / n)); c.stroke(); c.beginPath(); c.moveTo(...P(i / n, 0)); c.lineTo(...P(i / n, 1)); c.stroke(); }
+    c.strokeStyle = '#e0453f'; c.lineWidth = 2; c.setLineDash([4, 3]); c.beginPath(); [[0, 0], [1 / n, 0], [1 / n, 1 / n], [0, 1 / n]].forEach((q, k) => k ? c.lineTo(...P(...q)) : c.moveTo(...P(...q))); c.closePath(); c.stroke(); c.setLineDash([]);
+    const hh2 = hh;
+    c.fillStyle = '#1e2232'; c.font = 'bold 13px sans-serif'; c.textAlign = 'center'; c.fillText(`${n}배 거리`, x + 6, 318); c.fillStyle = '#e0453f'; c.fillText(n === 1 ? '밝기 1' : `밝기 1/${n * n}`, x + 6, top - w * sk - 10); c.fillStyle = '#5b6479'; c.font = '11px sans-serif'; c.fillText(`면적 ${n * n}칸`, x + 6, src[1] + hh + 18); c.textAlign = 'left'; }
+  const g = c.createRadialGradient(...src, 2, ...src, 20); g.addColorStop(0, '#fff7c2'); g.addColorStop(1, 'rgba(255,200,40,0)'); c.fillStyle = g; c.beginPath(); c.arc(...src, 20, 0, 7); c.fill(); c.fillStyle = '#f2b705'; c.beginPath(); c.arc(...src, 7, 0, 7); c.fill();
+  c.fillStyle = '#1e2232'; c.font = 'bold 12px sans-serif'; c.fillText('광원', src[0] - 14, src[1] + 32);
+  // 두 별
+  const d3 = c3; d3.clearRect(0, 0, 760, 150); d3.fillStyle = '#0d1230'; d3.fillRect(0, 0, 760, 150);
+  const bB = 1 / (S.k * S.k);
+  [[190, 1, '별 A (거리 1)'], [570, bB, `별 B (거리 ${S.k})`]].forEach(([x, br, n]) => { const r = 6 + 34 * Math.sqrt(br); const gg = d3.createRadialGradient(x, 64, 1, x, 64, r * 1.8); gg.addColorStop(0, `rgba(255,255,240,${Math.min(1, 0.25 + br)})`); gg.addColorStop(1, 'rgba(255,255,240,0)'); d3.fillStyle = gg; d3.beginPath(); d3.arc(x, 64, r * 1.8, 0, 7); d3.fill();
+    d3.fillStyle = '#e8ebf7'; d3.font = 'bold 13px sans-serif'; d3.textAlign = 'center'; d3.fillText(n, x, 128); d3.fillStyle = '#ffd36b'; d3.fillText(br === 1 ? '보이는 밝기 1' : `보이는 밝기 1/${S.k * S.k}`, x, 146); d3.textAlign = 'left'; });
+}
+function ui2() {
+  $('#nTx').textContent = S.n + ' 배'; $('#nSl').value = S.n; $('#kTx').textContent = S.k + ' 배 멀다'; $('#kSl').value = S.k;
+  $('#vA').textContent = S.n * S.n + ' 배'; $('#vB').textContent = S.n === 1 ? '1 배' : `1/${S.n * S.n} 배`;
+  const m = $('#msg2'), t = `광원에서 거리가 <b>${S.n}배</b>가 되면 같은 빛이 <b>${S.n * S.n}배</b> 넓은 면적에 퍼지므로, 일정한 면적(빨간 칸)을 비추는 밝기는 <b>1/${S.n * S.n}배</b>가 된다. 같은 밝기의 별이라도 ${S.k}배 멀리 있으면 1/${S.k * S.k}배로 어둡게 보인다.`;
+  if (m.dataset.t !== t) { m.dataset.t = t; m.innerHTML = t; }
+}
+$('#nSl').oninput = e => { S.n = +e.target.value; ui2(); };
+$('#kSl').oninput = e => { S.k = +e.target.value; ui2(); };
+/* ---------- 공통 ---------- */
+$$('nav button').forEach(x => x.onclick = () => { S.tab = x.dataset.tab; $$('nav button').forEach(y => y.classList.toggle('on', y === x)); $$('.pane').forEach(p => p.classList.toggle('on', p.id === S.tab)); });
+function start() { S = newState(); ui1(); ui2(); }
+$('#resetBtn').onclick = start;
+function loop() { if (S.tab === 't1') { draw1(); graph(); } else draw2(); requestAnimationFrame(loop); }
+start(); requestAnimationFrame(loop);
+// 테스트용
+window.__lx = d => { S.d = d; S.rec[d] = lux(d); ui1(); return [Math.round(lux(d)), $('#vR').textContent]; };
+</script>
+</body>
+</html>

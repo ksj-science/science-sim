@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<!-- 단원ID: ohm · 중2 Ⅶ. 전기와 자기 > 2. 전류와 전기 에너지 > 02 옴의 법칙(240~243쪽) · 활동 1개: 니크롬선의 전압과 전류 측정해 저항·전류·전압의 관계 탐구하기 -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>저항, 전류, 전압 사이의 관계 탐구 — 옴의 법칙</title>
+<style>
+:root{--bg:#f4f5f9;--card:#fff;--ink:#1d2030;--muted:#5d6278;--line:#dde0ec;--accent:#e0742b;--accent-d:#a8501a;--accent-l:#fdf0e5;--long:#2f73d9;--short:#e0453f;--thick:#1f9a6e}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+header{background:linear-gradient(120deg,#e0742b,#d9473a 55%,#7a55c0);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:20px;margin:0;font-weight:900}
+header .sub{font-size:13px;opacity:.95}
+header .sp{flex:1}
+header button{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+main{padding:10px 12px 24px;max-width:1320px;margin:0 auto}
+.intro{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:10px;padding:8px 14px;margin-bottom:10px;font-size:14px;line-height:1.55}
+.intro b{color:var(--accent-d)}
+.grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(320px,1fr);gap:10px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:10px}
+.card h3{margin:0 2px 8px;font-size:15px;color:var(--accent-d)}
+canvas{width:100%;display:block;border-radius:10px;touch-action:manipulation}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0}
+.lbl{font-size:13px;color:var(--muted)}
+.btn{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:9px;padding:7px 11px;cursor:pointer;min-height:38px}
+.btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent-d)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.on{background:var(--accent-l);border-color:var(--accent);color:var(--accent-d)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.big{font-size:18px;min-width:52px}
+.ro{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px}
+.ro div{background:#1b1e2c;color:#e3e5f2;border-radius:10px;padding:6px 8px}
+.ro .k{font-size:11.5px;color:#a7abc4}
+.ro .v{font-size:19px;font-weight:900}
+.msg{background:#fbf8f5;border:1px dashed #e6bf9f;border-radius:10px;padding:8px 11px;font-size:14.5px;line-height:1.55;margin-top:8px;min-height:44px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{border:1px solid var(--line);padding:4px 5px;text-align:center}
+th{background:#f6f1ec;color:var(--accent-d)}
+.sw{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px}
+.tbwrap{max-height:168px;overflow:auto}
+.quiz{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:15px}
+.quiz input{font:inherit;font-size:16px;width:90px;padding:5px 7px;border:1px solid var(--line);border-radius:8px}
+.mats{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.mats .btn{padding:5px 4px;font-size:13px}
+.mats .btn.t-c{background:#e3f1fd;border-color:#8fbce8}.mats .btn.t-i{background:#e7f6e5;border-color:#9fd39a}.mats .btn.t-s{background:#eceef2;border-color:#a8afbb}
+.note{font-size:12.5px;color:var(--muted);line-height:1.55;margin:6px 2px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>저항, 전류, 전압 사이의 관계 탐구</h1><span class="sub">니크롬선 · 전류계 · 전압계 · 옴의 법칙 · 도체 · 부도체 · 반도체</span>
+  <span class="sp"></span><button id="resetBtn" type="button">↺ 초기화</button>
+</header>
+<main>
+  <div class="intro">스위치를 닫고 전원 장치의 전압을 <b>1.5 V씩 높이면서</b> <b>📌 측정값 기록</b>을 눌러 보세요. 니크롬선을 바꿔서도 측정하면 오른쪽 그래프에서 비교할 수 있어요.</div>
+  <div class="grid">
+    <div>
+      <div class="card">
+        <div class="row" style="margin-top:0"><span class="lbl">니크롬선</span>
+          <button class="btn" data-w="long" type="button"><span class="sw" style="background:#2f73d9"></span>긴 니크롬선</button>
+          <button class="btn" data-w="short" type="button"><span class="sw" style="background:#e0453f"></span>짧은 니크롬선</button>
+          <button class="btn" data-w="thick" type="button"><span class="sw" style="background:#1f9a6e"></span>짧고 굵은 니크롬선</button>
+        </div>
+        <canvas id="app" width="760" height="330" aria-label="직류 전원 장치, 스위치, 전류계, 니크롬선, 전압계가 연결된 회로"></canvas>
+        <div class="row"><span class="lbl">전원 장치 전압</span><button class="btn big" id="vDown" type="button">−</button><button class="btn big" id="vUp" type="button">+</button><span class="lbl">1.5 V씩</span>
+          <button class="btn" id="swBtn" type="button">스위치 닫기</button><span style="flex:1"></span><button class="btn pri" id="recBtn" type="button">📌 측정값 기록</button></div>
+        <div class="ro">
+          <div><div class="k">전압계 (니크롬선 양 끝)</div><div class="v" id="vV">0.0 V</div></div>
+          <div><div class="k">전류계</div><div class="v" id="vI">0.00 A</div></div>
+          <div><div class="k">니크롬선</div><div class="v" id="vW" style="font-size:15px">긴 니크롬선</div></div>
+          <div><div class="k">니크롬선의 온도</div><div class="v" id="vT">미지근함</div></div>
+        </div>
+        <div class="msg" id="msg"></div>
+      </div>
+      <div class="card">
+        <h3>전선 속에서 저항이 생기는 까닭 (확대)</h3>
+        <canvas id="zoom" width="760" height="120" aria-label="니크롬선 속에서 원자와 충돌하며 이동하는 전자"></canvas>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h3>전압에 따른 전류의 세기 그래프</h3>
+        <canvas id="graph" width="420" height="250" aria-label="전압-전류 그래프"></canvas>
+        <div class="tbwrap"><table><thead><tr><th>니크롬선</th><th>전압(V)</th><th>전류(A)</th><th>전압 ÷ 전류</th></tr></thead><tbody id="tb"></tbody></table></div>
+        <div class="row"><button class="btn" id="clrBtn" type="button">기록 지우기</button><span class="lbl" id="slopeTxt"></span></div>
+      </div>
+      <div class="card">
+        <h3>계산 도전: 전류의 세기 = 전압 ÷ 저항</h3>
+        <div class="quiz"><span id="qText"></span><input id="qIn" type="number" step="0.01" inputmode="decimal" aria-label="답"><span>A</span><button class="btn" id="qBtn" type="button">확인</button><button class="btn" id="qNew" type="button">새 문제</button></div>
+        <div class="msg" id="qMsg" style="min-height:30px"></div>
+      </div>
+      <div class="card">
+        <h3>물질 시험대: 저항이 작은 물질은?</h3>
+        <div class="lbl" style="margin-bottom:5px">물질을 누르면 전구(3 V 전지)와 연결해 시험한다.</div>
+        <div class="mats" id="mats"></div>
+        <canvas id="bulb" width="420" height="96" aria-label="시험 회로의 전구"></canvas>
+        <div class="row" id="sortRow"><span class="lbl">이 물질은</span><button class="btn" data-k="c" type="button">도체</button><button class="btn" data-k="i" type="button">부도체</button><button class="btn" data-k="s" type="button">반도체</button><span class="lbl" id="sortTxt"></span></div>
+        <p class="note"><b>모델의 한계</b> · 니크롬선의 저항은 온도와 관계없이 일정하다고 보았다(긴 20 Ω, 짧은 10 Ω, 짧고 굵은 5 Ω). 전류계·전압계·전선의 저항은 무시했다. 물질 시험대의 규소 저항(100 Ω)은 이해를 돕기 위한 값으로 실제로는 순도와 온도에 따라 크게 다르다. 뜨거워진 니크롬선은 맨손으로 만지지 않는다.</p>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+/* ================================================================
+   옴의 법칙 모형:  전류의 세기 I = 전압 V ÷ 저항 R   (단위: A = V ÷ Ω)
+   - 니크롬선 저항: 긴 니크롬선 20 Ω, 짧은 니크롬선(길이 1/2) 10 Ω, 짧고 굵은 니크롬선(단면적 2배) 5 Ω
+       니크롬선의 저항은 길이에 비례하고 굵기(단면적)에 반비례한다
+   - 전원 장치 전압 0 ~ 9 V, 1.5 V씩. 스위치가 열리면 전류 0, 전압계(니크롬선 양 끝) 0
+     예: 긴 니크롬선 6 V → 0.30 A, 짧은 니크롬선 6 V → 0.60 A, 짧고 굵은 니크롬선 6 V → 1.20 A
+   - 니크롬선에서 쓰는 전력 P = V × I (온도 표시에만 사용)
+   - 물질 시험대: 3 V 전지 + 전구(5 Ω) + 물질(도체 0.01 Ω, 규소 100 Ω, 부도체 10¹² Ω) 직렬, I = 3 ÷ (5 + R물질)
+   ================================================================ */
+const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
+function fit(cv, w, h) { const r = Math.min(2, window.devicePixelRatio || 1); cv.width = w * r; cv.height = h * r; const x = cv.getContext('2d'); x.setTransform(r, 0, 0, r, 0, 0); return x; }
+const c = fit($('#app'), 760, 330), g = fit($('#graph'), 420, 250), z = fit($('#zoom'), 760, 120), bl = fit($('#bulb'), 420, 96);
+const WIRES = { long: { name: '긴 니크롬선', R: 20, len: 300, th: 6, col: '#2f73d9' }, short: { name: '짧은 니크롬선', R: 10, len: 150, th: 6, col: '#e0453f' }, thick: { name: '짧고 굵은 니크롬선', R: 5, len: 150, th: 11, col: '#1f9a6e' } };
+const MATS = [['은', 'c'], ['구리', 'c'], ['철', 'c'], ['알루미늄', 'c'], ['고무', 'i'], ['플라스틱', 'i'], ['나무', 'i'], ['유리', 'i'], ['규소', 's']];
+const eun = w => { const c = w.charCodeAt(w.length - 1) - 0xAC00; return c >= 0 && c % 28 ? '은' : '는'; };
+const MR = { c: 0.01, s: 100, i: 1e12 }, KN = { c: '도체', i: '부도체', s: '반도체' };
+let S;
+function newState() { return { wire: 'long', V: 0, on: false, rec: [], t: 0, heat: 0, mat: null, sorted: {}, q: null }; }
+const I = () => S.on ? S.V / WIRES[S.wire].R : 0, Vm = () => S.on ? S.V : 0;
+/* ---------------- 회로 그림 ---------------- */
+function rr(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+function meter(x, y, label, val, unit, col) {
+  c.fillStyle = '#2b2f3c'; rr(c, x - 52, y - 34, 104, 68, 10); c.fill(); c.fillStyle = '#c9f5d3'; rr(c, x - 42, y - 22, 84, 30, 5); c.fill();
+  c.fillStyle = '#163d22'; c.font = 'bold 19px monospace'; c.textAlign = 'center'; c.fillText(val + ' ' + unit, x, y);
+  c.fillStyle = col; c.font = 'bold 12px sans-serif'; c.fillText(label, x, y + 25); c.textAlign = 'left';
+}
+function wirePath(pts, col, w) { c.strokeStyle = col; c.lineWidth = w || 4; c.lineJoin = 'round'; c.beginPath(); pts.forEach((p, i) => i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); c.stroke(); }
+function draw() {
+  const W_ = WIRES[S.wire], cur = I();
+  c.clearRect(0, 0, 760, 330); c.fillStyle = '#fbfbfd'; c.fillRect(0, 0, 760, 330);
+  // 니크롬선 위치(아래 가운데)
+  const wy = 268, wx0 = 380 - W_.len / 2, wx1 = 380 + W_.len / 2;
+  // 전선: 전원 (+) → 스위치 → 전류계 → 니크롬선 → 전원 (−)
+  wirePath([[150, 120], [300, 120], [300, 60], [440, 60]], '#e0453f');
+  wirePath([[520, 60], [640, 60], [640, 160]], '#e0453f');
+  wirePath([[640, 220], [640, wy], [wx1, wy]], '#e0453f');
+  wirePath([[wx0, wy], [100, wy], [100, 200], [120, 200]], '#2b2f3c');
+  // 전압계 병렬
+  wirePath([[wx0 + 4, wy], [wx0 + 4, 236], [352, 236], [352, 218]], '#7a55c0', 2.5); wirePath([[wx1 - 4, wy], [wx1 - 4, 236], [408, 236], [408, 218]], '#7a55c0', 2.5);
+  // 전원 장치
+  c.fillStyle = '#2b2f3c'; rr(c, 20, 80, 130, 150, 12); c.fill(); c.fillStyle = '#ffb36b'; rr(c, 34, 96, 102, 40, 6); c.fill();
+  c.fillStyle = '#4a2200'; c.font = 'bold 24px monospace'; c.textAlign = 'center'; c.fillText(S.V.toFixed(1) + 'V', 85, 125);
+  c.fillStyle = '#fff'; c.font = 'bold 12px sans-serif'; c.fillText('직류 전원 장치', 85, 160); c.fillStyle = '#e0453f'; c.beginPath(); c.arc(140, 120, 7, 0, 7); c.fill(); c.fillStyle = '#9aa'; c.beginPath(); c.arc(120, 200, 7, 0, 7); c.fill();
+  c.fillStyle = '#e0453f'; c.fillText('(+)', 160, 112); c.fillStyle = '#2b2f3c'; c.fillText('(−)', 128, 222);
+  // 스위치
+  c.fillStyle = '#e9ebf0'; rr(c, 436, 46, 88, 28, 6); c.fill(); c.strokeStyle = '#9aa0ad'; c.stroke(); c.fillStyle = '#6b7280'; c.beginPath(); c.arc(448, 60, 6, 0, 7); c.arc(512, 60, 6, 0, 7); c.fill();
+  c.strokeStyle = '#4b5263'; c.lineWidth = 6; c.lineCap = 'round'; c.beginPath(); c.moveTo(448, 60); const a = S.on ? 0 : -.6; c.lineTo(448 + 66 * Math.cos(a), 60 + 66 * Math.sin(a)); c.stroke(); c.lineCap = 'butt';
+  c.fillStyle = '#1d2030'; c.font = 'bold 12px sans-serif'; c.fillText('스위치 ' + (S.on ? '(닫힘)' : '(열림)'), 480, 28);
+  // 전류계, 전압계
+  meter(640, 190, '전류계 (직렬)', cur.toFixed(3), 'A', '#e0742b'); meter(380, 186, '전압계 (병렬)', Vm().toFixed(1), 'V', '#7a55c0');
+  // 니크롬선 받침과 선
+  c.fillStyle = '#2b2f3c'; rr(c, wx0 - 26, wy - 10, W_.len + 52, 34, 8); c.fill();
+  const hot = Math.min(1, S.heat); c.strokeStyle = `rgb(${Math.round(150 + 105 * hot)},${Math.round(150 - 60 * hot)},${Math.round(150 - 120 * hot)})`; c.lineWidth = W_.th;
+  c.beginPath(); for (let x = wx0; x <= wx1; x += 2) { const y = wy + Math.sin((x - wx0) / 4) * 3; x === wx0 ? c.moveTo(x, y) : c.lineTo(x, y); } c.stroke();
+  [wx0, wx1].forEach(x => { c.fillStyle = '#d9473a'; c.beginPath(); c.arc(x, wy, 6, 0, 7); c.fill(); });
+  c.fillStyle = '#1d2030'; c.font = 'bold 13px sans-serif'; c.textAlign = 'center'; c.fillText(W_.name + ' (' + W_.len / 15 + ' cm)', 380, wy + 44); c.textAlign = 'left';
+  // 전류 흐름 점
+  if (cur > 0) { const sp = cur * 160; c.fillStyle = '#ffcf33'; const path = [[150, 120], [300, 120], [300, 60], [640, 60], [640, wy], [wx0, wy], [100, wy], [100, 200]];
+    let L = 0; const segs = []; for (let i = 1; i < path.length; i++) { const l = Math.hypot(path[i][0] - path[i - 1][0], path[i][1] - path[i - 1][1]); segs.push([path[i - 1], path[i], L, l]); L += l; }
+    for (let k = 0; k < 30; k++) { const s = (S.t * sp + k * L / 30) % L, sg = segs.find(q => s >= q[2] && s < q[2] + q[3]); if (!sg) continue; const f = (s - sg[2]) / sg[3]; c.beginPath(); c.arc(sg[0][0] + (sg[1][0] - sg[0][0]) * f, sg[0][1] + (sg[1][1] - sg[0][1]) * f, 3, 0, 7); c.fill(); } }
+}
+/* ---------------- 확대 ---------------- */
+const ZE = Array.from({ length: 26 }, (_, i) => ({ x: (i * 131) % 760, y: 14 + (i * 37) % 92, vx: 0, vy: 0, flash: 0 }));
+function drawZoom(dt) {
+  const W_ = WIRES[S.wire], cur = I(); z.clearRect(0, 0, 760, 120); z.fillStyle = '#efe7df'; z.fillRect(0, 0, 760, 120);
+  const gap = W_.th > 6 ? 0 : 0, ions = []; for (let i = 0; i < 18; i++) for (let j = 0; j < 3; j++) ions.push([24 + i * 42 + (j % 2) * 21, 22 + j * 38]);
+  ions.forEach(([x, y]) => { z.fillStyle = '#e0453f'; z.beginPath(); z.arc(x, y, 9, 0, 7); z.fill(); z.strokeStyle = '#fff'; z.lineWidth = 2; z.beginPath(); z.moveTo(x - 4, y); z.lineTo(x + 4, y); z.moveTo(x, y - 4); z.lineTo(x, y + 4); z.stroke(); });
+  const drift = -cur * 260;   // 전자는 (−)극 쪽 → (+)극 쪽: 그림에서 오른쪽(+)에서 왼쪽으로 흐르는 전류의 반대
+  ZE.forEach(e => { e.vx += (drift - e.vx) * dt * 2 + (Math.random() - .5) * 400 * dt; e.vy += (Math.random() - .5) * 400 * dt; e.vy *= 0.96; e.x += e.vx * dt; e.y += e.vy * dt;
+    if (e.y < 8 || e.y > 112) e.vy *= -1, e.y = Math.max(8, Math.min(112, e.y)); if (e.x < 0) e.x += 760; if (e.x > 760) e.x -= 760;
+    for (const [ix, iy] of ions) if ((ix - e.x) ** 2 + (iy - e.y) ** 2 < 150) { e.vx *= -0.4; e.vy = (e.y - iy) * 6; e.flash = 0.25; break; }
+    e.flash = Math.max(0, e.flash - dt);
+    if (e.flash > 0 && cur > 0) { z.fillStyle = 'rgba(255,200,0,.6)'; z.beginPath(); z.arc(e.x, e.y, 10, 0, 7); z.fill(); }
+    z.fillStyle = '#2f73d9'; z.beginPath(); z.arc(e.x, e.y, 5, 0, 7); z.fill(); });
+  z.fillStyle = 'rgba(255,255,255,.92)'; rr(z, 8, 92, 380, 24, 8); z.fill(); z.fillStyle = '#1d2030'; z.font = '12.5px sans-serif';
+  z.fillText(cur > 0 ? '전자가 원자와 부딪치며(노란 빛) 움직이기 방해를 받는다 → 저항' : '스위치를 닫으면 전자가 한쪽으로 이동하기 시작한다', 16, 109);
+}
+/* ---------------- 그래프 ---------------- */
+function drawGraph() {
+  g.clearRect(0, 0, 420, 250); g.fillStyle = '#fcfcfe'; g.fillRect(0, 0, 420, 250);
+  const x0 = 46, x1 = 405, y0 = 210, y1 = 14, X = v => x0 + v / 9 * (x1 - x0), Y = i => y0 - i / 2 * (y0 - y1);
+  g.strokeStyle = '#e6e8f0'; for (let v = 0; v <= 9; v += 1.5) { g.beginPath(); g.moveTo(X(v), y1); g.lineTo(X(v), y0); g.stroke(); } for (let i = 0; i <= 2; i += 0.4) { g.beginPath(); g.moveTo(x0, Y(i)); g.lineTo(x1, Y(i)); g.stroke(); }
+  g.strokeStyle = '#7d8197'; g.beginPath(); g.moveTo(x0, y1); g.lineTo(x0, y0); g.lineTo(x1, y0); g.stroke();
+  g.fillStyle = '#5d6278'; g.font = '11px sans-serif'; g.textAlign = 'center'; for (let v = 0; v <= 9; v += 1.5) g.fillText(v, X(v), y0 + 13); g.fillText('전압(V)', (x0 + x1) / 2, y0 + 28);
+  g.textAlign = 'right'; for (let i = 0; i <= 2.01; i += 0.4) g.fillText(i.toFixed(1), x0 - 5, Y(i) + 4); g.save(); g.translate(12, 112); g.rotate(-Math.PI / 2); g.textAlign = 'center'; g.fillText('전류(A)', 0, 0); g.restore();
+  Object.keys(WIRES).forEach(k => { const pts = S.rec.filter(r => r.w === k).sort((a, b) => a.V - b.V); if (!pts.length) return; const col = WIRES[k].col;
+    if (pts.length >= 2) { const mx = Math.max(...pts.map(p => p.V)); g.strokeStyle = col; g.lineWidth = 2; g.beginPath(); g.moveTo(X(0), Y(0)); g.lineTo(X(mx), Y(mx / WIRES[k].R)); g.stroke(); g.lineWidth = 1; }
+    pts.forEach(p => { g.fillStyle = col; g.beginPath(); g.arc(X(p.V), Y(p.I), 5, 0, 7); g.fill(); }); });
+  // 지금 값
+  if (S.on) { g.strokeStyle = '#1d2030'; g.lineWidth = 1.5; g.beginPath(); g.arc(X(S.V), Y(I()), 8, 0, 7); g.stroke(); g.lineWidth = 1; }
+  g.textAlign = 'left';
+}
+function tableUI() {
+  $('#tb').innerHTML = S.rec.length ? S.rec.map(r => `<tr><td><span class="sw" style="background:${WIRES[r.w].col}"></span>${WIRES[r.w].name}</td><td>${r.V.toFixed(1)}</td><td>${r.I.toFixed(3)}</td><td>${r.V ? (r.V / r.I).toFixed(0) + ' Ω' : '–'}</td></tr>`).join('') : '<tr><td colspan="4" style="color:#a0a4b8">📌 측정값 기록을 누르면 쌓여요.</td></tr>';
+  const ks = Object.keys(WIRES).filter(k => S.rec.filter(r => r.w === k && r.V > 0).length >= 2);
+  $('#slopeTxt').innerHTML = ks.length ? '저항(전압 ÷ 전류): ' + ks.map(k => `<b style="color:${WIRES[k].col}">${WIRES[k].R} Ω</b>`).join(', ') : '';
+}
+/* ---------------- 화면 글 ---------------- */
+let lastMsg = '';
+function readouts() {
+  const W_ = WIRES[S.wire], cur = I();
+  $('#vV').textContent = Vm().toFixed(1) + ' V'; $('#vI').textContent = cur.toFixed(3) + ' A'; $('#vW').textContent = W_.name;
+  $('#vT').textContent = S.heat > .66 ? '뜨거움 🔥' : S.heat > .33 ? '따뜻함' : '미지근함';
+  $$('[data-w]').forEach(b => b.classList.toggle('on', b.dataset.w === S.wire));
+  $('#swBtn').textContent = S.on ? '스위치 열기' : '스위치 닫기'; $('#swBtn').classList.toggle('on', S.on);
+  $('#vDown').disabled = S.V <= 0; $('#vUp').disabled = S.V >= 9; $('#recBtn').disabled = !S.on;
+  let t;
+  if (!S.on) t = '스위치가 열려 있어 전류가 흐르지 않는다. <b>스위치 닫기</b>를 눌러 보세요.';
+  else if (S.V === 0) t = '전압이 0 V이면 전류가 흐르지 않는다. <b>+</b>를 눌러 전압을 1.5 V씩 높여 보세요.';
+  else t = `${W_.name}에 <b>${S.V.toFixed(1)} V</b>를 걸었더니 <b>${+cur.toFixed(3)} A</b>가 흐른다. 전압 ÷ 전류 = ${S.V.toFixed(1)} ÷ ${+cur.toFixed(3)} = <b>${W_.R} Ω</b>(저항)` + (S.V >= 7.5 && W_.R <= 5 ? ' · 니크롬선이 뜨거워졌어요. 만지지 마세요!' : '');
+  if (t !== lastMsg) { lastMsg = t; $('#msg').innerHTML = t; }
+}
+/* ---------------- 계산 도전 ---------------- */
+function newQ() { const Rs = [5, 10, 20, 30, 40], Vs = [1.5, 3, 4.5, 6, 9, 12], R = Rs[Math.floor(Math.random() * Rs.length)], V = Vs[Math.floor(Math.random() * Vs.length)]; S.q = { R, V, ans: V / R };
+  $('#qText').innerHTML = `저항 <b>${R} Ω</b>인 니크롬선에 <b>${V} V</b>를 걸면 전류는?`; $('#qIn').value = ''; $('#qMsg').innerHTML = '전류의 세기 = 전압 ÷ 저항'; }
+$('#qBtn').onclick = () => { const v = parseFloat($('#qIn').value); if (isNaN(v)) { $('#qMsg').textContent = '숫자를 입력하세요.'; return; } const ok = Math.abs(v - S.q.ans) < 0.006;
+  $('#qMsg').innerHTML = ok ? `⭕ 정답! ${S.q.V} ÷ ${S.q.R} = <b>${+S.q.ans.toFixed(3)} A</b>` : `❌ 다시 해 보세요. (힌트: ${S.q.V} ÷ ${S.q.R})`; };
+$('#qNew').onclick = newQ;
+/* ---------------- 물질 시험대 ---------------- */
+function matUI() {
+  $('#mats').innerHTML = MATS.map(([n, k]) => `<button class="btn ${S.mat === n ? 'on' : ''} ${S.sorted[n] ? 't-' + k : ''}" data-mat="${n}" type="button">${n}${S.sorted[n] ? ' ✓' : ''}</button>`).join('');
+  $$('[data-mat]').forEach(b => b.onclick = () => { S.mat = b.dataset.mat; $('#sortTxt').textContent = ''; matUI(); });
+  $$('#sortRow [data-k]').forEach(b => b.disabled = !S.mat);
+}
+function drawBulb() {
+  bl.clearRect(0, 0, 420, 96); bl.fillStyle = '#fbfbfd'; bl.fillRect(0, 0, 420, 96);
+  const m = MATS.find(x => x[0] === S.mat), cur = m ? 3 / (5 + MR[m[1]]) : 0, b = Math.min(1, cur / 0.6);
+  bl.strokeStyle = '#c47a3a'; bl.lineWidth = 4; bl.strokeRect(40, 20, 300, 56);
+  bl.fillStyle = '#3b3f45'; bl.fillRect(26, 34, 28, 28); bl.fillStyle = '#fff'; bl.font = 'bold 11px sans-serif'; bl.fillText('3V', 31, 52);
+  if (b > 0.02) { const gr = bl.createRadialGradient(190, 20, 3, 190, 20, 14 + 30 * b); gr.addColorStop(0, `rgba(255,236,120,${.4 + .6 * b})`); gr.addColorStop(1, 'rgba(255,236,120,0)'); bl.fillStyle = gr; bl.beginPath(); bl.arc(190, 20, 14 + 30 * b, 0, 7); bl.fill(); }
+  bl.fillStyle = b > 0.02 ? '#fff3a0' : '#eef1f3'; bl.strokeStyle = '#9aa3aa'; bl.lineWidth = 2; bl.beginPath(); bl.arc(190, 20, 13, 0, 7); bl.fill(); bl.stroke();
+  bl.fillStyle = '#fff'; bl.fillRect(250, 66, 60, 20); bl.fillStyle = m ? { c: '#b87333', i: '#e2574c', s: '#5f6b7a' }[m[1]] : '#ddd'; bl.fillRect(254, 68, 52, 16);
+  bl.fillStyle = '#1d2030'; bl.font = 'bold 13px sans-serif'; bl.fillText(m ? m[0] : '물질을 고르세요', 356, 52); if (m) bl.fillText(cur < 1e-6 ? '0 A' : cur.toFixed(cur < .1 ? 3 : 2) + ' A', 356, 72);
+}
+$$('#sortRow [data-k]').forEach(b => b.onclick = () => { const m = MATS.find(x => x[0] === S.mat); if (!m) return; const ok = b.dataset.k === m[1];
+  if (ok) S.sorted[m[0]] = 1; $('#sortTxt').innerHTML = ok ? `⭕ ${m[0]}${eun(m[0])} ${KN[m[1]]}!` : '❌ 전구의 밝기를 다시 보세요.'; matUI();
+  if (Object.keys(S.sorted).length === MATS.length) $('#sortTxt').innerHTML = '🎉 모두 분류했어요! 도체: 은·구리·철·알루미늄 / 부도체: 고무·플라스틱·나무·유리 / 반도체: 규소'; });
+/* ---------------- 조작 ---------------- */
+$$('[data-w]').forEach(b => b.onclick = () => { S.wire = b.dataset.w; S.heat = 0; readouts(); });
+$('#vUp').onclick = () => { S.V = Math.min(9, +(S.V + 1.5).toFixed(1)); readouts(); };
+$('#vDown').onclick = () => { S.V = Math.max(0, +(S.V - 1.5).toFixed(1)); readouts(); };
+$('#swBtn').onclick = () => { S.on = !S.on; readouts(); };
+$('#recBtn').onclick = () => { if (!S.on) return; const r = { w: S.wire, V: S.V, I: I() }; S.rec = S.rec.filter(x => !(x.w === r.w && x.V === r.V)); S.rec.push(r); S.rec.sort((a, b) => a.w.localeCompare(b.w) || a.V - b.V); tableUI(); };
+$('#clrBtn').onclick = () => { S.rec = []; tableUI(); };
+function start() { S = newState(); lastMsg = ''; newQ(); matUI(); tableUI(); readouts(); }
+$('#resetBtn').onclick = start;
+let last = performance.now();
+function loop(ts) { const dt = Math.min(0.1, (ts - last) / 1000); last = ts; S.t += dt; const P = Vm() * I(); S.heat += (Math.min(1, P / 12) - S.heat) * dt * 0.8;
+  draw(); drawZoom(dt); drawGraph(); drawBulb(); readouts(); requestAnimationFrame(loop); }
+start(); requestAnimationFrame(loop);
+// 테스트용
+window.__meas = (w, V) => { S.wire = w; S.V = V; S.on = true; $('#recBtn').click(); readouts(); return [+I().toFixed(3), $('#vV').textContent]; };
+window.__mat = n => { S.mat = n; drawBulb(); const m = MATS.find(x => x[0] === n); return (3 / (5 + MR[m[1]])).toFixed(3); };
+</script>
+</body>
+</html>

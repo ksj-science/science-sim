@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<!-- 단원ID: digestion · 중2 Ⅵ. 동물과 에너지 > 1. 소화와 순환 > 02 소화계(192~196쪽) · 활동 1개: 침의 소화 작용 탐구 + 소화 과정 따라가기 -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>침의 소화 작용과 소화 과정</title>
+<style>
+:root{--bg:#fbf3f1;--card:#fff;--ink:#2a1f1d;--muted:#6a5b58;--line:#ecdcd8;--accent:#c9584a;--accent-d:#963b30;--accent-l:#fbe7e3}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+header{background:linear-gradient(120deg,#c9584a,#e79a4a);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:20px;margin:0;font-weight:900}
+header .sub{font-size:13px;opacity:.95}
+header .sp{flex:1}
+header button{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+main{padding:10px 12px 24px;max-width:1300px;margin:0 auto}
+.intro{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:10px;padding:8px 14px;margin-bottom:10px;font-size:14px;line-height:1.55}
+.intro b{color:var(--accent-d)}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}
+.card h3{margin:0 4px 8px;font-size:15px;color:var(--accent-d)}
+canvas{width:100%;display:block;border-radius:8px}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0}
+.lbl{font-size:13px;color:var(--muted)}
+.btn{font:inherit;font-size:13.5px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;padding:6px 10px;cursor:pointer;min-height:36px}
+.btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent-d)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.on{background:var(--accent-l);border-color:var(--accent);color:var(--accent-d)}
+.btn.done{background:#e8f6ee;border-color:#a6d9bb;color:#1d6b43}
+.btn.done::after{content:" ✓"}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{border:1px solid var(--line);padding:4px 5px;text-align:center}
+th{background:#fbeeeb;color:var(--accent-d)}
+.msg{background:#fdf8f7;border:1px dashed #e3b5ad;border-radius:8px;padding:7px 10px;font-size:14px;line-height:1.5;margin-top:8px}
+.note{font-size:12.5px;color:var(--muted);line-height:1.55;margin:6px 4px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>침의 소화 작용과 소화 과정</h1><span class="sub">녹말 · 아밀레이스 · 아이오딘-아이오딘화 칼륨 용액 · 베네딕트 용액 · 소화효소</span>
+  <span class="sp"></span><button id="resetBtn" type="button">↺ 초기화</button>
+</header>
+<main>
+  <div class="intro">왼쪽: 시험관 A(녹말 용액 + 증류수)와 B(녹말 용액 + <b>침 용액</b>)로 ①~④ 단계를 차례로 실험하세요. 물의 <b>온도</b>를 바꿔서도 해 보세요. 오른쪽: 음식이 소화관을 지나며 <b>소화효소</b>에 의해 어떻게 분해되는지 따라가 보세요.</div>
+  <div class="grid">
+    <div class="card">
+      <h3>① 침의 소화 작용 탐구</h3>
+      <canvas id="lab" width="620" height="320" aria-label="시험관 A와 B, 물중탕, 페트리 접시"></canvas>
+      <div class="row"><span class="lbl">물의 온도</span>
+        <button class="btn" data-t="5" type="button">찬물 5 ℃</button><button class="btn" data-t="35" type="button">따뜻한 물 35 ℃</button><button class="btn" data-t="90" type="button">뜨거운 물 90 ℃</button></div>
+      <div class="row">
+        <button class="btn" id="s1" type="button">① 침 용액 만들기</button>
+        <button class="btn" id="s2" type="button">② A·B를 물에 10분 담그기</button>
+        <button class="btn" id="s3" type="button">③ 아이오딘 용액 떨어뜨리기</button>
+        <button class="btn" id="s4" type="button">④ 베네딕트 용액 + 뜨거운 물 10분</button>
+      </div>
+      <table><thead><tr><th></th><th>A (녹말 + 증류수)</th><th>B (녹말 + 침)</th></tr></thead><tbody id="tb"></tbody></table>
+      <div class="msg" id="msg">① 입에 물을 머금고 2~3분 뒤 뱉어 침 용액을 만든다.</div>
+    </div>
+    <div class="card">
+      <h3>② 소화 과정 따라가기</h3>
+      <canvas id="tract" width="620" height="420" aria-label="소화 기관과 소화효소의 작용"></canvas>
+      <div class="row"><button class="btn" id="prevBtn" type="button">◀ 이전 기관</button><button class="btn" id="nextBtn" type="button">다음 기관 ▶</button><span class="lbl" id="stageLbl"></span></div>
+      <div class="msg" id="stageMsg"></div>
+      <p class="note"><b>모델의 한계</b> · 녹말·단백질·지방을 알갱이가 이어진 사슬로 단순하게 그렸다. 침의 작용은 남은 녹말 = e^(−k·시간)으로 나타냈고, k는 35 ℃에서 가장 크게(0.6 /분), 5 ℃에서 작게(0.05 /분), 90 ℃에서는 효소가 제 기능을 잃어 0으로 정했다. 실제 반응 속도는 침의 양, 녹말 농도에 따라 다르다.</p>
+    </div>
+  </div>
+</main>
+<script>
+/* ================================================================
+   침의 소화 작용 모형
+   - 침 속 아밀레이스가 녹말을 엿당으로 분해: 남은 녹말 비율 s = e^(−k·t) (t: 분, 10분 담금)
+       k(5 ℃) = 0.05 /분 → s ≈ 0.61, k(35 ℃) = 0.6 /분 → s ≈ 0.002, k(90 ℃) = 0 (효소가 열에 의해 기능을 잃음) → s = 1
+   - 아이오딘 반응: s > 0.3 청람색 / 0.05 ~ 0.3 연한 청람색 / s < 0.05 색 변화 없음(용액의 갈색)
+   - 베네딕트 반응(엿당 m = 1 − s, 가열 필요): m ≥ 0.5 황적색 / 0.1 ~ 0.5 초록~노란색(조금) / m < 0.1 변화 없음(파란색)
+   - 시험관 A(증류수)는 아밀레이스가 없으므로 항상 s = 1
+   소화 과정: 입(아밀레이스: 녹말→엿당) → 식도 → 위(펩신: 단백질 분해, 염산이 펩신 작용을 돕고 살균)
+              → 작은창자(이자액: 아밀레이스·트립신·라이페이스, 쓸개즙: 지방 소화를 도움, 작은창자의 소화효소 → 포도당·아미노산·지방산과 모노글리세리드로 분해 후 흡수)
+              → 큰창자(물 흡수, 소화 작용 거의 없음) → 항문(대변 배출)
+   ================================================================ */
+const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
+function fit(cv, w, h) { const r = Math.min(2, window.devicePixelRatio || 1); cv.width = w * r; cv.height = h * r; const x = cv.getContext('2d'); x.setTransform(r, 0, 0, r, 0, 0); return x; }
+const LW = 620, LH = 320, TW = 620, TH = 420;
+const L = fit($('#lab'), LW, LH), T = fit($('#tract'), TW, TH);
+const KT = { 5: 0.05, 35: 0.6, 90: 0 };
+let S;
+function newState() { return { temp: 35, step: 0, anim: 0, a2: null, a4: null, iod: false, ben: false, stage: 0, usedTemp: null }; }
+const starchLeft = (tube, mins) => tube === 'A' ? 1 : Math.exp(-KT[S.usedTemp ?? S.temp] * mins);
+const soakMin = () => S.a2 ? Math.min(10, (S.anim - S.a2) / 3 * 10) : (S.step >= 2 ? 10 : 0);
+function iodName(s) { return s > 0.3 ? '청람색' : s >= 0.05 ? '연한 청람색' : '변화 없음(갈색)'; }
+function iodCol(s) { const k = s > 0.3 ? 1 : s >= 0.05 ? 0.45 : 0; return mix([196, 140, 60], [30, 40, 110], k); }
+function benName(m) { return m >= 0.5 ? '황적색' : m >= 0.1 ? '초록~노란색(조금)' : '변화 없음(파란색)'; }
+function benCol(m, h) { const k = m >= 0.5 ? 1 : m >= 0.1 ? 0.45 : 0; const target = k === 1 ? [215, 85, 30] : k > 0 ? [170, 175, 50] : [58, 143, 214]; return mix([58, 143, 214], target, h); }
+function mix(a, b, k) { return 'rgb(' + a.map((v, i) => Math.round(v + (b[i] - v) * k)).join(',') + ')'; }
+function rr(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+function hexa(c, x, y, r, col) { c.fillStyle = col; c.beginPath(); for (let i = 0; i < 6; i++) { const a = Math.PI / 3 * i; c.lineTo(x + r * Math.cos(a), y + r * Math.sin(a)); } c.closePath(); c.fill(); }
+/* ---------------- 실험 그림 ---------------- */
+function drawLab() {
+  L.clearRect(0, 0, LW, LH); L.fillStyle = '#fffaf8'; L.fillRect(0, 0, LW, LH); L.fillStyle = '#d9c7b4'; L.fillRect(0, 292, LW, 28);
+  const temp = S.usedTemp ?? S.temp, mins = soakMin();
+  // 비커(물중탕)
+  const wc = temp === 5 ? 'rgba(140,190,240,.45)' : temp === 35 ? 'rgba(170,215,240,.45)' : 'rgba(250,170,130,.45)';
+  L.strokeStyle = '#8fa8bb'; L.lineWidth = 2.5; L.beginPath(); L.moveTo(40, 110); L.lineTo(44, 290); L.lineTo(236, 290); L.lineTo(240, 110); L.stroke();
+  L.fillStyle = wc; L.fillRect(46, 160, 188, 128);
+  L.fillStyle = '#2a1f1d'; L.font = 'bold 13px sans-serif'; L.fillText('물 ' + temp + ' ℃', 52, 282);
+  if (temp === 90) { L.fillStyle = 'rgba(255,255,255,.8)'; for (let k = 0; k < 6; k++) { const ph = (S.anim * .7 + k / 6) % 1; L.beginPath(); L.arc(60 + k * 30, 285 - ph * 120, 2.5, 0, 7); L.fill(); } }
+  // 시험관 A, B
+  ['A', 'B'].forEach((t, i) => {
+    const x = 100 + i * 70, top = 40, bot = 280, w = 30;
+    L.fillStyle = 'rgba(255,255,255,.55)'; L.strokeStyle = '#8fa8bb'; L.lineWidth = 2; L.beginPath(); L.moveTo(x - w / 2, top); L.lineTo(x - w / 2, bot - w / 2); L.arc(x, bot - w / 2, w / 2, Math.PI, 0, true); L.lineTo(x + w / 2, top); L.fill(); L.stroke();
+    const s = starchLeft(t, mins), cloud = S.step >= 1 ? 0.25 + 0.4 * s : 0.25;
+    L.fillStyle = `rgba(235,235,225,${cloud})`; L.fillRect(x - w / 2 + 2, 120, w - 4, bot - w / 2 - 120); L.beginPath(); L.arc(x, bot - w / 2, w / 2 - 2, 0, Math.PI); L.fill();
+    L.fillStyle = '#fff'; L.fillRect(x - 13, top + 6, 26, 18); L.strokeStyle = '#c9584a'; L.strokeRect(x - 13, top + 6, 26, 18); L.fillStyle = '#c9584a'; L.font = 'bold 13px sans-serif'; L.textAlign = 'center'; L.fillText(t, x, top + 20); L.textAlign = 'left';
+  });
+  L.font = '12px sans-serif'; L.fillStyle = '#6a5b58'; L.fillText('A: 1 % 녹말 용액 10 mL + 증류수 10 mL', 250, 30); L.fillText('B: 1 % 녹말 용액 10 mL + 침 용액 10 mL', 250, 48);
+  L.fillStyle = '#2a1f1d'; L.font = 'bold 14px sans-serif'; L.fillText('담근 시간: ' + mins.toFixed(0) + '분', 250, 76);
+  // 확대 그림(B 속 녹말 사슬)
+  L.save(); L.beginPath(); L.arc(330, 170, 62, 0, 7); L.clip(); L.fillStyle = '#fff'; L.fillRect(260, 100, 140, 140);
+  const s = starchLeft('B', mins), long = Math.max(2, Math.round(10 * s));
+  for (let row = 0; row < 4; row++) { let x = 278, y = 130 + row * 26; let n = 0;
+    for (let k = 0; k < 10; k++) { hexa(L, x, y + (k % 2) * 4, 6, '#e8a33a'); n++; x += 11; if (n >= long && k < 9) { x += 9; n = 0; } } }
+  L.restore(); L.strokeStyle = '#c9584a'; L.lineWidth = 2; L.beginPath(); L.arc(330, 170, 62, 0, 7); L.stroke();
+  L.fillStyle = '#2a1f1d'; L.font = '12px sans-serif'; L.fillText('B 속 확대', 300, 250); L.fillText(S.step < 1 ? '녹말(긴 사슬)' : s > 0.3 ? '녹말이 아직 많다' : '엿당(짧은 조각)', 290, 266);
+  // 페트리 접시(아이오딘)
+  if (S.iod) { const sA = starchLeft('A', 10), sB = starchLeft('B', 10);
+    L.fillStyle = 'rgba(230,240,248,.8)'; L.strokeStyle = '#9fb3c4'; L.beginPath(); L.ellipse(480, 150, 70, 40, 0, 0, 7); L.fill(); L.stroke(); L.beginPath(); L.moveTo(480, 110); L.lineTo(480, 190); L.stroke();
+    L.fillStyle = iodCol(sA); L.beginPath(); L.ellipse(452, 152, 18, 10, 0, 0, 7); L.fill(); L.fillStyle = iodCol(sB); L.beginPath(); L.ellipse(508, 152, 18, 10, 0, 0, 7); L.fill();
+    L.fillStyle = '#2a1f1d'; L.font = 'bold 12px sans-serif'; L.fillText('A', 446, 182); L.fillText('B', 503, 182); L.fillText('아이오딘 반응', 440, 104); }
+  // 베네딕트 시험관
+  if (S.ben || S.a4) { const h = S.a4 ? Math.min(1, (S.anim - S.a4) / 3) : 1;
+    ['A', 'B'].forEach((t, i) => { const x = 450 + i * 60, top = 205, bot = 290;
+      L.fillStyle = benCol(1 - starchLeft(t, 10), h); L.fillRect(x - 10, 240, 20, bot - 250); L.beginPath(); L.arc(x, bot - 10, 10, 0, Math.PI); L.fill();
+      L.strokeStyle = '#8fa8bb'; L.strokeRect(x - 12, top, 24, bot - top - 10);
+      L.fillStyle = '#2a1f1d'; L.font = 'bold 12px sans-serif'; L.fillText(t, x - 4, top - 4); });
+    L.fillStyle = '#2a1f1d'; L.font = 'bold 12px sans-serif'; L.fillText('베네딕트 반응', 440, 200); }
+}
+function table() {
+  const rows = [];
+  const sA = starchLeft('A', 10), sB = starchLeft('B', 10);
+  rows.push(['③ 아이오딘 반응', S.iod ? iodName(sA) : '–', S.iod ? iodName(sB) : '–']);
+  rows.push(['④ 베네딕트 반응', S.ben ? benName(1 - sA) : '–', S.ben ? benName(1 - sB) : '–']);
+  $('#tb').innerHTML = rows.map(r => `<tr><th>${r[0]}</th><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('') + (S.usedTemp != null ? `<tr><th>물의 온도</th><td colspan="2">${S.usedTemp} ℃에서 10분</td></tr>` : '');
+}
+function syncBtns() {
+  $$('[data-t]').forEach(e => { e.classList.toggle('on', +e.dataset.t === S.temp); e.disabled = S.step >= 2 || !!S.a2; });
+  $('#s1').disabled = S.step >= 1; $('#s1').classList.toggle('done', S.step >= 1);
+  $('#s2').disabled = S.step !== 1 || !!S.a2; $('#s2').classList.toggle('done', S.step >= 2);
+  $('#s3').disabled = S.step < 2 || S.iod; $('#s3').classList.toggle('done', S.iod);
+  $('#s4').disabled = S.step < 2 || S.ben || !!S.a4; $('#s4').classList.toggle('done', S.ben);
+}
+const say = t => { $('#msg').innerHTML = t; };
+$$('[data-t]').forEach(e => e.onclick = () => { S.temp = +e.dataset.t; syncBtns(); });
+$('#s1').onclick = () => { S.step = 1; say('침 용액을 만들었다. 시험관 A에는 녹말 용액과 증류수를, B에는 녹말 용액과 침 용액을 넣었다. ② 물에 담가 보세요.'); syncBtns(); };
+$('#s2').onclick = () => { S.usedTemp = S.temp; S.a2 = S.anim; say(S.temp + ' ℃ 물에 10분 동안 담그는 중… 오른쪽 확대 그림에서 녹말 사슬을 살펴보세요.'); syncBtns(); };
+$('#s3').onclick = () => { S.iod = true; const sB = starchLeft('B', 10);
+  say(`2분할 페트리 접시에 A, B 용액을 떨어뜨리고 아이오딘-아이오딘화 칼륨 용액을 1방울씩 떨어뜨렸다. A: <b>${iodName(1)}</b>, B: <b>${iodName(sB)}</b>.` + (sB < 0.05 ? ' B에는 녹말이 거의 남지 않았다.' : ' B에도 녹말이 남아 있다.')); table(); syncBtns(); };
+$('#s4').onclick = () => { S.a4 = S.anim; say('남은 용액에 베네딕트 용액을 3방울씩 넣고 뜨거운 물에 10분 담그는 중…'); syncBtns(); };
+$('#resetBtn').onclick = () => { const st = S.stage; S = newState(); S.stage = st; say('① 입에 물을 머금고 2~3분 뒤 뱉어 침 용액을 만든다.'); table(); syncBtns(); };
+/* ---------------- 소화 과정 ---------------- */
+const STAGES = [
+  { org: '입', y: 40, gland: '침샘', text: '이로 잘게 부수고 침과 섞는다. 침샘에서 분비된 침 속 <b>아밀레이스</b>가 <b>녹말을 엿당</b>으로 분해한다.', table: ['녹말', '아밀레이스(침)', '녹말 → 엿당'] },
+  { org: '식도', y: 110, text: '음식이 위로 내려간다. 식도에서는 소화효소가 작용하지 않는다.', table: ['–', '없음', '이동'] },
+  { org: '위', y: 175, gland: '위샘(위액)', text: '위액 속 <b>펩신</b>이 <b>단백질</b>을 분해한다. 위액에 든 <b>염산</b>은 펩신의 작용을 돕고 살균 작용을 한다.', table: ['단백질', '펩신(위액)', '단백질 → 작은 조각'] },
+  { org: '작은창자', y: 255, gland: '이자 · 간 · 쓸개', text: '이자액의 <b>아밀레이스</b>(녹말), <b>트립신</b>(단백질), <b>라이페이스</b>(지방)와 작은창자의 소화효소가 작용하여 <b>포도당, 아미노산, 지방산과 모노글리세리드</b>로 분해된다. 간에서 만든 <b>쓸개즙</b>(쓸개에 저장)은 지방 소화를 돕는다. 분해된 영양소는 작은창자에서 <b>흡수</b>된다.', table: ['녹말·단백질·지방', '아밀레이스, 트립신, 라이페이스 등', '포도당, 아미노산, 지방산·모노글리세리드 → 흡수'] },
+  { org: '큰창자', y: 330, text: '흡수되지 않은 물질이 이동한다. 남은 <b>물을 흡수</b>하고 소화 작용은 거의 일어나지 않는다.', table: ['–', '없음', '물 흡수'] },
+  { org: '항문', y: 395, text: '남은 음식 찌꺼기는 대변이 되어 항문을 통해 몸 밖으로 나간다.', table: ['–', '없음', '대변 배출'] },
+];
+function chain(x, y, n, kind, cut) {   // kind: s(녹말) p(단백질) f(지방)
+  if (kind === 'f') { if (cut) { for (let k = 0; k < 3; k++) { T.fillStyle = '#5aa0d8'; T.fillRect(x + k * 18, y - 8 + (k % 2) * 6, 12, 4); } T.fillStyle = '#3b7fb8'; T.fillRect(x + 56, y - 8, 4, 16); }
+    else { T.fillStyle = '#3b7fb8'; T.fillRect(x, y - 10, 5, 22); for (let k = 0; k < 3; k++) { T.fillStyle = '#5aa0d8'; T.fillRect(x + 5, y - 10 + k * 8, 26, 4); } } return; }
+  const cols = kind === 's' ? ['#e8a33a'] : ['#e05a4e', '#6aa64e', '#8a6ac8', '#4d7fc4'];
+  let xx = x; for (let k = 0; k < n; k++) { const col = cols[k % cols.length];
+    if (kind === 's') hexa(T, xx, y + (k % 2) * 3, 6, col); else { T.fillStyle = col; T.beginPath(); T.arc(xx, y + (k % 2) * 3, 5.5, 0, 7); T.fill(); }
+    xx += 12; if (cut && (k + 1) % cut === 0) xx += 10; }
+}
+function drawTract() {
+  T.clearRect(0, 0, TW, TH); T.fillStyle = '#fff8f4'; T.fillRect(0, 0, TW, TH);
+  const st = S.stage, X = 130;
+  // 소화관(관) — 위치는 단순화한 그림
+  T.strokeStyle = '#f0b9a8'; T.lineWidth = 16; T.lineCap = 'round'; T.beginPath(); T.moveTo(X, 40); T.lineTo(X, 395); T.stroke();
+  STAGES.forEach((g, i) => { const on = i === st, pass = i < st;
+    T.fillStyle = on ? '#c9584a' : pass ? '#e9a99e' : '#f6d8d0'; rr(T, X - 52, g.y - 16, 104, 32, 16); T.fill();
+    T.fillStyle = on || pass ? '#fff' : '#7a4a42'; T.font = 'bold 14px sans-serif'; T.textAlign = 'center'; T.fillText(g.org, X, g.y + 5);
+    if (g.gland) { T.fillStyle = on ? '#e79a4a' : '#f3d3b7'; rr(T, 10, g.y - 12, 58, 24, 8); T.fill(); T.fillStyle = on ? '#fff' : '#8a5a2a'; T.font = '11px sans-serif'; T.fillText(g.gland.length > 6 ? g.gland.slice(0, 7) : g.gland, 39, g.y + 4); }
+    T.textAlign = 'left'; });
+  // 음식 위치 표시
+  const fy = STAGES[st].y; T.fillStyle = '#7a5532'; T.beginPath(); T.arc(X + 64, fy, 8, 0, 7); T.fill(); T.fillStyle = '#2a1f1d'; T.font = '12px sans-serif'; T.fillText('◀ 음식', X + 76, fy + 4);
+  // 영양소 상태
+  const sx = 290; T.fillStyle = '#2a1f1d'; T.font = 'bold 14px sans-serif'; T.fillText('영양소의 상태', sx, 40);
+  const starchCut = st === 0 ? 4 : st >= 3 ? 1 : st >= 1 ? 4 : 0, protCut = st >= 3 ? 1 : st >= 2 ? 3 : 0, fatCut = st >= 3;
+  const rows = [['탄수화물(녹말)', 's', starchCut, st >= 3 ? '포도당' : st >= 0 && starchCut ? '엿당' : '녹말'], ['단백질', 'p', protCut, st >= 3 ? '아미노산' : st >= 2 ? '작은 조각' : '단백질'], ['지방', 'f', fatCut, fatCut ? '지방산, 모노글리세리드' : '지방']];
+  rows.forEach(([n, k, cut, state], i) => { const y = 80 + i * 60; T.fillStyle = '#6a5b58'; T.font = 'bold 13px sans-serif'; T.fillText(n, sx, y - 14);
+    if (st >= 4) { T.fillStyle = '#1d6b43'; T.fillText('작은창자에서 흡수됨', sx, y + 8); return; }
+    chain(sx + 6, y + 4, 10, k, cut); T.fillStyle = '#963b30'; T.font = '12px sans-serif'; T.fillText('→ ' + state, sx + 150, y + 30); });
+  // 기관에서 하는 일 요약 표
+  const tb = STAGES[st].table; T.fillStyle = '#fbeeeb'; rr(T, sx - 6, 262, 324, 120, 10); T.fill();
+  T.fillStyle = '#963b30'; T.font = 'bold 13px sans-serif'; T.fillText('소화기관: ' + STAGES[st].org, sx + 4, 284);
+  T.fillStyle = '#2a1f1d'; T.font = '12.5px sans-serif'; wrap('섭취한 영양소: ' + tb[0], sx + 4, 306); wrap('작용한 소화효소: ' + tb[1], sx + 4, 328); wrap('변화: ' + tb[2], sx + 4, 350);
+}
+function wrap(t, x, y) { const max = 300; let line = '', yy = y; for (const ch of t) { if (T.measureText(line + ch).width > max) { T.fillText(line, x, yy); line = ch; yy += 16; } else line += ch; } T.fillText(line, x, yy); }
+function stageUI() { $('#stageLbl').textContent = (S.stage + 1) + ' / ' + STAGES.length + ' · ' + STAGES[S.stage].org; $('#stageMsg').innerHTML = STAGES[S.stage].text; $('#prevBtn').disabled = S.stage === 0; $('#nextBtn').disabled = S.stage === STAGES.length - 1; drawTract(); }
+$('#prevBtn').onclick = () => { S.stage = Math.max(0, S.stage - 1); stageUI(); };
+$('#nextBtn').onclick = () => { S.stage = Math.min(STAGES.length - 1, S.stage + 1); stageUI(); };
+/* ---------------- 반복 ---------------- */
+let last = performance.now();
+function loop(ts) {
+  S.anim += Math.min(0.1, (ts - last) / 1000); last = ts;
+  if (S.a2 && S.anim - S.a2 >= 3) { S.a2 = null; S.step = 2; say(S.usedTemp + ' ℃ 물에 10분 담갔다. ③ 아이오딘 용액, ④ 베네딕트 용액으로 확인해 보세요.'); syncBtns(); }
+  if (S.a4 && S.anim - S.a4 >= 3) { S.a4 = null; S.ben = true; const mB = 1 - starchLeft('B', 10);
+    say(`10분 뒤 A: <b>${benName(0)}</b>, B: <b>${benName(mB)}</b>.` + (mB >= 0.5 ? ' B에는 녹말이 분해되어 생긴 <b>엿당</b>이 있다. 침 속 소화효소(아밀레이스)가 녹말을 엿당으로 분해했다.' : S.usedTemp === 90 ? ' 뜨거운 물에서는 침 속 소화효소가 제 기능을 하지 못해 녹말이 분해되지 않았다.' : ' 찬물에서는 소화가 느리게 일어나 엿당이 조금만 생겼다.')); table(); syncBtns(); }
+  drawLab(); requestAnimationFrame(loop);
+}
+S = newState(); table(); syncBtns(); stageUI(); requestAnimationFrame(loop);
+window.__exp = t => { S = Object.assign(newState(), { stage: S.stage, temp: t, usedTemp: t, step: 2, iod: true, ben: true }); table(); syncBtns(); return $('#tb').innerText; };
+</script>
+</body>
+</html>

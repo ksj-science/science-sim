@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>비열</title>
+<style>html,body{margin:0;height:100%;background:#f4f6fb;font-family:"Malgun Gothic","Noto Sans KR",sans-serif}#wrap{height:100vh;padding:10px;box-sizing:border-box}</style></head><body><div id="wrap">
+<!--
+  단원 시뮬레이터: 비열 (중2 Ⅲ. 열 > 2. 비열과 열팽창 > 01 비열)
+  단원ID: specific_heat
+  Student.html 안에 include 되어 왼쪽 시뮬레이터 영역에 들어간다.
+  모든 CSS 클래스·ID는 'shs-' 접두사로 다른 단원과 충돌하지 않게 한다.
+-->
+<style>
+  .shs { display:flex; flex-direction:column; height:100%; min-height:0; font-size:14px; color:#1f2933; }
+  .shs-tabs { display:flex; gap:6px; margin-bottom:8px; }
+  .shs-tab { flex:0 0 auto; border:1px solid #c7d0db; background:#f4f6f9; color:#3b4754; border-radius:8px; padding:7px 14px; font-size:14px; font-weight:600; cursor:pointer; }
+  .shs-tab.active { background:#1f6feb; border-color:#1f6feb; color:#fff; }
+  .shs-panel { display:flex; flex-direction:column; gap:8px; min-height:0; flex:1 1 auto; }
+  .shs-panel[hidden] { display:none; }
+  .shs-guide { margin:0; color:#52606d; font-size:13px; }
+  .shs-controls { display:flex; flex-wrap:wrap; gap:8px; align-items:stretch; }
+  .shs-box { border:1px solid #d9e0e8; border-radius:8px; padding:6px 10px; background:#fff; display:flex; flex-direction:column; gap:4px; }
+  .shs-box legend, .shs-box .shs-box-title { font-weight:700; font-size:13px; }
+  .shs-box.a .shs-box-title { color:#d63a3f; }
+  .shs-box.b .shs-box-title { color:#0b74c4; }
+  .shs-row { display:flex; align-items:center; gap:6px; }
+  .shs select { font-size:14px; padding:3px 6px; border-radius:6px; border:1px solid #c7d0db; }
+  .shs input[type=range] { width:120px; accent-color:#1f6feb; }
+  .shs output { min-width:58px; display:inline-block; font-variant-numeric:tabular-nums; font-weight:600; }
+  .shs-btn { border:1px solid #c7d0db; background:#fff; border-radius:8px; padding:6px 12px; font-size:14px; cursor:pointer; touch-action:manipulation; }
+  .shs-btn.primary { background:#e8590c; border-color:#e8590c; color:#fff; font-weight:700; }
+  .shs-btn.small { padding:3px 9px; font-size:13px; }
+  .shs-btn.on { background:#1f6feb; border-color:#1f6feb; color:#fff; }
+  .shs-btn:disabled { opacity:.45; cursor:default; }
+  .shs-run { justify-content:center; }
+  .shs-clock { font-variant-numeric:tabular-nums; font-weight:700; font-size:15px; }
+  .shs-stage { display:flex; gap:8px; flex:1 1 auto; min-height:230px; }
+  .shs-stage canvas { display:block; background:#fff; border:1px solid #d9e0e8; border-radius:8px; touch-action:none; }
+  #shs-scene { flex:0 0 42%; width:42%; height:100%; }
+  #shs-graph { flex:1 1 auto; width:58%; height:100%; cursor:crosshair; }
+  .shs-table { border-collapse:collapse; font-size:13px; font-variant-numeric:tabular-nums; width:100%; background:#fff; }
+  .shs-table th, .shs-table td { border:1px solid #d9e0e8; padding:3px 6px; text-align:center; }
+  .shs-table th { background:#f4f6f9; font-weight:600; }
+  .shs-table td.a { color:#d63a3f; font-weight:600; } .shs-table td.b { color:#0b74c4; font-weight:600; }
+  .shs-limit { font-size:12px; color:#7b8794; margin:0; line-height:1.4; }
+  .shs-limit b { color:#52606d; }
+  /* 열량 계산 실험실 */
+  .shs-calc { display:grid; grid-template-columns: 270px 150px 1fr; gap:10px; flex:1 1 auto; min-height:0; }
+  .shs-chips { display:flex; flex-wrap:wrap; gap:5px; }
+  .shs-chip { border:1px solid #c7d0db; background:#fff; border-radius:16px; padding:4px 11px; font-size:14px; cursor:pointer; }
+  .shs-chip.on { background:#1f6feb; color:#fff; border-color:#1f6feb; font-weight:700; }
+  #shs-thermo { width:100%; height:100%; min-height:240px; background:#fff; border:1px solid #d9e0e8; border-radius:8px; }
+  .shs-readout { display:grid; grid-template-columns:auto 1fr; gap:3px 10px; font-size:14px; }
+  .shs-readout b { font-variant-numeric:tabular-nums; text-align:right; }
+  .shs-formula { background:#fff8e6; border:1px solid #f5d48a; border-radius:8px; padding:8px 10px; font-size:14px; line-height:1.6; font-variant-numeric:tabular-nums; }
+  .shs-bars { display:flex; flex-direction:column; gap:5px; }
+  .shs-bar-row { display:grid; grid-template-columns:62px 1fr 92px; align-items:center; gap:6px; font-size:13px; }
+  .shs-bar { height:16px; border-radius:3px; background:#b9c4d0; }
+  .shs-bar-row.on .shs-bar { background:#1f6feb; }
+  .shs-bar-row.on { font-weight:700; }
+  .shs-bar-val { font-variant-numeric:tabular-nums; text-align:right; }
+  .shs-h { font-size:13px; font-weight:700; margin:0 0 4px; color:#323f4b; }
+</style>
+
+<div class="shs" id="shs-root">
+  <div class="shs-tabs" role="tablist">
+    <button type="button" class="shs-tab active" data-tab="lab" role="tab">① 가상 실험</button>
+    <button type="button" class="shs-tab" data-tab="calc" role="tab">② 열량 계산 실험실</button>
+  </div>
+
+  <!-- ① 가상 실험: 교과서 94쪽 탐구 재현 -->
+  <section class="shs-panel" data-panel="lab">
+    <p class="shs-guide">비커 A·B의 물질과 질량을 고르고 <b>▶ 가열 시작</b>을 누르세요. 그래프를 누르거나 끌면 그 시각의 온도를 읽을 수 있어요.</p>
+    <div class="shs-controls">
+      <div class="shs-box a">
+        <span class="shs-box-title">비커 A</span>
+        <div class="shs-row"><select id="shs-matA" aria-label="비커 A 물질"></select></div>
+        <div class="shs-row">질량 <input type="range" id="shs-massA" min="50" max="200" step="10" value="100" aria-label="비커 A 질량"><output id="shs-massA-out">100 g</output></div>
+      </div>
+      <div class="shs-box b">
+        <span class="shs-box-title">비커 B</span>
+        <div class="shs-row"><select id="shs-matB" aria-label="비커 B 물질"></select></div>
+        <div class="shs-row">질량 <input type="range" id="shs-massB" min="50" max="200" step="10" value="100" aria-label="비커 B 질량"><output id="shs-massB-out">100 g</output></div>
+      </div>
+      <div class="shs-box shs-run">
+        <div class="shs-row">
+          <button type="button" class="shs-btn primary" id="shs-play">▶ 가열 시작</button>
+          <button type="button" class="shs-btn" id="shs-reset">↺ 초기화</button>
+        </div>
+        <div class="shs-row">
+          <span>속도</span>
+          <button type="button" class="shs-btn small on" data-speed="10">×10</button>
+          <button type="button" class="shs-btn small" data-speed="30">×30</button>
+          <span class="shs-clock" id="shs-clock">0분 00초</span>
+        </div>
+      </div>
+    </div>
+    <div class="shs-stage" id="shs-stage">
+      <canvas id="shs-scene" aria-label="가열 장치와 비커 그림"></canvas>
+      <canvas id="shs-graph" aria-label="시간-온도 그래프"></canvas>
+    </div>
+    <table class="shs-table" id="shs-table">
+      <thead><tr><th>시간</th><th>0분</th><th>1분</th><th>2분</th><th>3분</th><th>4분</th><th>5분</th><th>온도 변화</th></tr></thead>
+      <tbody>
+        <tr><th id="shs-rowA">A</th><td class="a"></td><td class="a"></td><td class="a"></td><td class="a"></td><td class="a"></td><td class="a"></td><td class="a"></td></tr>
+        <tr><th id="shs-rowB">B</th><td class="b"></td><td class="b"></td><td class="b"></td><td class="b"></td><td class="b"></td><td class="b"></td><td class="b"></td></tr>
+      </tbody>
+    </table>
+    <p class="shs-limit"><b>실험 조건</b> 같은 가열 장치가 두 비커에 <b>1초마다 25 J</b>씩 똑같은 열을 줌 · 처음 온도 20 ℃ · 5분 가열<br>
+      <b>모델의 한계</b> 공기로 빠져나가는 열과 비커가 흡수하는 열은 무시함 · 물질 전체의 온도가 고르게 오른다고 가정 · 물은 100 ℃에서 끓으면 온도가 더 오르지 않음</p>
+  </section>
+
+  <!-- ② 열량 계산 실험실: Q = c m ΔT -->
+  <section class="shs-panel" data-panel="calc" hidden>
+    <p class="shs-guide">물질·질량·가한 열량을 바꾸며 온도가 얼마나 오르는지 확인하세요. − / + 버튼으로 값을 정확히 맞출 수 있어요.</p>
+    <div class="shs-calc">
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="shs-box">
+          <span class="shs-box-title">물질</span>
+          <div class="shs-chips" id="shs-cmat"></div>
+        </div>
+        <div class="shs-box">
+          <span class="shs-box-title">질량 (m)</span>
+          <div class="shs-row">
+            <button type="button" class="shs-btn small" id="shs-cm-dec" aria-label="질량 줄이기">−</button>
+            <input type="range" id="shs-cmass" min="0.1" max="1.0" step="0.1" value="0.5" aria-label="질량">
+            <button type="button" class="shs-btn small" id="shs-cm-inc" aria-label="질량 늘리기">+</button>
+            <output id="shs-cmass-out">0.5 kg</output>
+          </div>
+        </div>
+        <div class="shs-box">
+          <span class="shs-box-title">가한 열량 (Q)</span>
+          <div class="shs-row">
+            <button type="button" class="shs-btn small" id="shs-cq-dec" aria-label="열량 줄이기">−</button>
+            <input type="range" id="shs-cq" min="0" max="20000" step="100" value="4000" aria-label="열량">
+            <button type="button" class="shs-btn small" id="shs-cq-inc" aria-label="열량 늘리기">+</button>
+            <output id="shs-cq-out">4000 J</output>
+          </div>
+        </div>
+        <div class="shs-box">
+          <div class="shs-readout">
+            <span>처음 온도</span><b>20.0 ℃</b>
+            <span>나중 온도</span><b id="shs-c-final">-</b>
+            <span>온도 변화 (ΔT)</span><b id="shs-c-dt" style="color:#d63a3f">-</b>
+          </div>
+        </div>
+      </div>
+      <canvas id="shs-thermo" aria-label="온도계"></canvas>
+      <div style="display:flex;flex-direction:column;gap:10px;min-width:0;">
+        <div class="shs-formula" id="shs-formula"></div>
+        <div class="shs-box">
+          <p class="shs-h">물질별 비열 — 물질 1 kg의 온도를 1 ℃ 높이는 데 필요한 열량</p>
+          <div class="shs-bars" id="shs-bars"></div>
+          <p class="shs-limit" style="margin-top:4px">단위: J/(kg·℃) · 괄호는 물의 비열을 1로 볼 때의 값</p>
+        </div>
+        <p class="shs-limit"><b>모델의 한계</b> 가한 열이 모두 물질의 온도를 높이는 데만 쓰인다고 가정(열 손실 없음) · 비열은 온도에 따라 거의 변하지 않는다고 봄 · 물은 100 ℃에서 끓어 더 오르지 않음</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ================= 물리 모델 =================
+   * 열량 공식: Q = c × m × ΔT  →  ΔT = Q ÷ (c × m)
+   *   Q: 열량 [J], c: 비열 [J/(kg·℃)], m: 질량 [kg], ΔT: 온도 변화 [℃]
+   * 가상 실험: 가열 장치가 각 비커에 일정한 비율 P = 25 J/s(25 W)로 열을 준다.
+   *   Q(t) = P × t  →  T(t) = T0 + P·t / (c·m)   (식으로 바로 계산하므로 누적 오차 없음)
+   *   예) 물 100 g, 5분(300 s): ΔT = 25×300 / (4200×0.1) = 17.86 ℃ → 37.9 ℃
+   * 비열 값: 교과서 그림 Ⅲ-9 상대 비열(물 1.00, 콩기름 0.47, 모래 0.23, 알루미늄 0.21, 철 0.11)과
+   *   맞도록 물 = 4200 J/(kg·℃) 기준으로 정함. (실제 문헌값: 물 4186, 알루미늄 약 900, 철 약 450)
+   * 밀도(그림 속 부피 표현용): 물 1.0, 콩기름 0.92, 모래(마른 모래 겉보기) 1.6, 알루미늄 2.7, 철 7.87 g/cm³
+   * 끓음: 물은 1기압 100 ℃에서 끓어 온도가 일정 → cap = 100. 다른 물질은 이 범위에서 상태 변화 없음.
+   */
+  var T0 = 20;          // 처음 온도 [℃]
+  var POWER = 25;       // 비커 하나에 공급되는 열 [J/s]
+  var T_END = 300;      // 가열 시간 [s] = 5분
+  var MATS = {
+    water:    { name: '물',       c: 4200, rho: 1.00, cap: 100,      kind: 'liquid', color: [124, 196, 239] },
+    oil:      { name: '콩기름',   c: 1970, rho: 0.92, cap: Infinity, kind: 'liquid', color: [243, 211, 107] },
+    sand:     { name: '모래',     c: 970,  rho: 1.60, cap: Infinity, kind: 'grain',  color: [217, 180, 122] },
+    aluminum: { name: '알루미늄', c: 880,  rho: 2.70, cap: Infinity, kind: 'metal',  color: [201, 206, 214] },
+    iron:     { name: '철',       c: 460,  rho: 7.87, cap: Infinity, kind: 'metal',  color: [124, 130, 140] }
+  };
+  var ORDER = ['water', 'oil', 'sand', 'aluminum', 'iron'];
+  var COLOR_A = '#d63a3f', COLOR_B = '#0b74c4';
+
+  /** 열량 Q[J]를 받은 물질의 온도 [℃] */
+  function tempAfterHeat(key, massKg, Q) {
+    var m = MATS[key];
+    return Math.min(T0 + Q / (m.c * massKg), m.cap);
+  }
+  /** 가상 실험에서 t초 뒤 온도 */
+  function tempAt(key, massG, t) { return tempAfterHeat(key, massG / 1000, POWER * t); }
+
+  var $ = function (id) { return document.getElementById(id); };
+  var root = $('shs-root');
+  function fmt1(x) { return (Math.round(x * 10) / 10).toFixed(1); }
+  function clock(t) { var s = Math.floor(t + 1e-6); return Math.floor(s / 60) + '분 ' + String(s % 60).padStart(2, '0') + '초'; }
+  function niceMax(v) {
+    if (v <= 60) return 60; if (v <= 100) return Math.ceil(v / 20) * 20;
+    if (v <= 200) return Math.ceil(v / 20) * 20; return Math.ceil(v / 50) * 50;
+  }
+  function gridStep(max) { return max <= 100 ? 10 : max <= 200 ? 20 : 50; }
+  function rgba(c, a) { return 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + a + ')'; }
+  /** 온도가 오를수록 붉게 (시각 효과일 뿐, 물리값과 무관) */
+  function tint(c, T) {
+    var k = Math.max(0, Math.min(0.35, (T - T0) / 300));
+    return [Math.round(c[0] + (240 - c[0]) * k), Math.round(c[1] + (90 - c[1]) * k), Math.round(c[2] + (60 - c[2]) * k)];
+  }
+  function fitCanvas(cv) {
+    var r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+    var w = Math.max(10, Math.round(r.width)), h = Math.max(10, Math.round(r.height));
+    if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) {
+      cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    }
+    var ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { ctx: ctx, w: w, h: h };
+  }
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+  }
+
+  /* ---------- 탭 전환 ---------- */
+  var currentTab = 'lab';
+  root.querySelectorAll('.shs-tab').forEach(function (b) {
+    b.addEventListener('click', function () {
+      currentTab = b.dataset.tab;
+      root.querySelectorAll('.shs-tab').forEach(function (x) { x.classList.toggle('active', x === b); });
+      root.querySelectorAll('.shs-panel').forEach(function (p) { p.hidden = p.dataset.panel !== currentTab; });
+      requestDraw();
+    });
+  });
+
+  /* ================= ① 가상 실험 ================= */
+  var lab = { matA: 'water', massA: 100, matB: 'oil', massB: 100, t: 0, running: false, speed: 10, hoverT: null, lastTs: null };
+  ['shs-matA', 'shs-matB'].forEach(function (id) {
+    var sel = $(id);
+    ORDER.forEach(function (k) { var o = document.createElement('option'); o.value = k; o.textContent = MATS[k].name; sel.appendChild(o); });
+  });
+  $('shs-matA').value = lab.matA; $('shs-matB').value = lab.matB;
+
+  function onSetupChange() {
+    lab.matA = $('shs-matA').value; lab.matB = $('shs-matB').value;
+    lab.massA = +$('shs-massA').value; lab.massB = +$('shs-massB').value;
+    $('shs-massA-out').textContent = lab.massA + ' g'; $('shs-massB-out').textContent = lab.massB + ' g';
+    resetLab();
+  }
+  ['shs-matA', 'shs-matB'].forEach(function (id) { $(id).addEventListener('change', onSetupChange); });
+  ['shs-massA', 'shs-massB'].forEach(function (id) { $(id).addEventListener('input', onSetupChange); });
+
+  function resetLab() { lab.t = 0; lab.running = false; lab.hoverT = null; lab.lastTs = null; updateLabUi(); requestDraw(); }
+  $('shs-reset').addEventListener('click', resetLab);
+  $('shs-play').addEventListener('click', function () {
+    if (lab.t >= T_END) { lab.t = 0; }
+    lab.running = !lab.running; lab.lastTs = null; updateLabUi(); requestDraw();
+  });
+  root.querySelectorAll('[data-speed]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      lab.speed = +b.dataset.speed;
+      root.querySelectorAll('[data-speed]').forEach(function (x) { x.classList.toggle('on', x === b); });
+    });
+  });
+
+  function updateLabUi() {
+    var btn = $('shs-play');
+    btn.textContent = lab.running ? '⏸ 일시 정지' : (lab.t >= T_END ? '▶ 다시 가열' : (lab.t > 0 ? '▶ 계속 가열' : '▶ 가열 시작'));
+    $('shs-clock').textContent = clock(lab.t);
+    $('shs-rowA').textContent = 'A ' + MATS[lab.matA].name + ' ' + lab.massA + 'g';
+    $('shs-rowB').textContent = 'B ' + MATS[lab.matB].name + ' ' + lab.massB + 'g';
+    var rows = $('shs-table').tBodies[0].rows;
+    [[lab.matA, lab.massA], [lab.matB, lab.massB]].forEach(function (s, i) {
+      var cells = rows[i].cells;
+      for (var m = 0; m <= 5; m++) {
+        cells[m + 1].textContent = lab.t + 1e-6 >= m * 60 ? fmt1(tempAt(s[0], s[1], m * 60)) + ' ℃' : '–';
+      }
+      cells[7].textContent = lab.t > 0 ? '+' + fmt1(tempAt(s[0], s[1], lab.t) - T0) + ' ℃' : '–';
+    });
+  }
+
+  function labYMax() {
+    return niceMax(Math.max(tempAt(lab.matA, lab.massA, T_END), tempAt(lab.matB, lab.massB, T_END)) + 5);
+  }
+
+  function drawBeaker(ctx, cx, baseY, bw, bh, key, massG, T, label, color, heating) {
+    var m = MATS[key];
+    var x = cx - bw / 2, y = baseY - bh;
+    var vol = massG / m.rho;                    // 부피 [mL]
+    var CAP = 300;                              // 비커 용량 300 mL로 그림
+    var col = tint(m.color, T);
+    ctx.save();
+    // 내용물
+    if (m.kind === 'metal') {
+      var side = Math.max(14, Math.min(bw * 0.7, Math.cbrt(vol) * bw / Math.cbrt(CAP) * 0.95));
+      var bx = cx - side / 2, by = baseY - 4 - side * 0.8;
+      ctx.fillStyle = rgba(col, 1); ctx.fillRect(bx, by, side, side * 0.8);
+      ctx.strokeStyle = 'rgba(0,0,0,.35)'; ctx.strokeRect(bx, by, side, side * 0.8);
+      ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.fillRect(bx + 2, by + 2, side * 0.3, 3);
+    } else {
+      var lh = Math.min(bh * 0.92, (vol / CAP) * bh);
+      ctx.fillStyle = rgba(col, m.kind === 'liquid' ? 0.85 : 1);
+      ctx.fillRect(x + 3, baseY - 3 - lh, bw - 6, lh);
+      if (m.kind === 'grain') { // 모래 알갱이 무늬
+        ctx.fillStyle = 'rgba(120,80,30,.35)';
+        for (var i = 0; i < 70; i++) {
+          var gx = x + 5 + ((i * 37) % (bw - 10)), gy = baseY - 5 - ((i * 53) % Math.max(4, lh - 4));
+          ctx.fillRect(gx, gy, 2, 2);
+        }
+      }
+      if (key === 'water' && T >= 100 - 1e-9 && heating) { // 끓는 물 기포
+        ctx.fillStyle = 'rgba(255,255,255,.85)';
+        var now = performance.now() / 300;
+        for (var j = 0; j < 10; j++) {
+          var ph = (now + j * 0.37) % 1;
+          ctx.beginPath(); ctx.arc(x + 10 + ((j * 29) % (bw - 20)), baseY - 6 - ph * (lh - 8), 2 + (j % 3), 0, 6.283); ctx.fill();
+        }
+      }
+    }
+    // 금속 비커(옆면)
+    ctx.strokeStyle = '#7b8794'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(x - 4, y); ctx.lineTo(x, y + 4); ctx.lineTo(x, baseY); ctx.lineTo(x + bw, baseY); ctx.lineTo(x + bw, y + 4); ctx.lineTo(x + bw + 4, y); ctx.stroke();
+    // 온도 센서 막대 (비커 벽에 닿지 않게 가운데로)
+    ctx.strokeStyle = '#9aa5b1'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(cx + bw * 0.18, y - 34); ctx.lineTo(cx + bw * 0.18, baseY - 10); ctx.stroke();
+    // 센서 표시창
+    var dw = Math.min(bw + 26, 132), dh = 44, dx = cx - dw / 2, dy = y - 34 - dh;
+    roundRect(ctx, dx, dy, dw, dh, 7); ctx.fillStyle = '#1f2933'; ctx.fill();
+    ctx.fillStyle = color; ctx.font = '600 11px sans-serif'; ctx.textAlign = 'left';
+    ctx.fillText(label + '  ' + m.name + ' ' + massG + 'g', dx + 7, dy + 14);
+    ctx.fillStyle = '#7ef0a8'; ctx.font = '700 19px ui-monospace, monospace'; ctx.textAlign = 'right';
+    ctx.fillText(fmt1(T) + ' ℃', dx + dw - 7, dy + 37);
+    ctx.restore();
+  }
+
+  function drawScene() {
+    var f = fitCanvas($('shs-scene')), ctx = f.ctx, w = f.w, h = f.h;
+    ctx.clearRect(0, 0, w, h);
+    var plateTop = h - 64, bw = Math.min(104, w * 0.32), bh = Math.min(118, h * 0.4);
+    // 가열 장치
+    ctx.fillStyle = '#e4e7eb'; roundRect(ctx, w * 0.06, plateTop + 10, w * 0.88, 44, 8); ctx.fill();
+    ctx.strokeStyle = '#9aa5b1'; ctx.lineWidth = 1; ctx.stroke();
+    ctx.fillStyle = lab.running ? '#ff7a2f' : '#3e4c59';
+    roundRect(ctx, w * 0.1, plateTop, w * 0.8, 12, 5); ctx.fill();
+    ctx.fillStyle = '#323f4b'; ctx.beginPath(); ctx.arc(w * 0.5, plateTop + 33, 11, 0, 6.283); ctx.fill();
+    ctx.fillStyle = lab.running ? '#ff3b30' : '#b0b8c1'; ctx.beginPath(); ctx.arc(w * 0.5 + 24, plateTop + 33, 4, 0, 6.283); ctx.fill();
+    ctx.fillStyle = '#52606d'; ctx.font = '12px sans-serif'; ctx.textAlign = 'left';
+    ctx.fillText(lab.running ? '가열 중' : '가열 꺼짐', w * 0.1, plateTop + 37);
+    // 비커
+    var TA = tempAt(lab.matA, lab.massA, lab.t), TB = tempAt(lab.matB, lab.massB, lab.t);
+    drawBeaker(ctx, w * 0.29, plateTop, bw, bh, lab.matA, lab.massA, TA, 'A', '#ff8a8e', lab.running);
+    drawBeaker(ctx, w * 0.71, plateTop, bw, bh, lab.matB, lab.massB, TB, 'B', '#7cc4ff', lab.running);
+    // 같은 열이 들어감을 표시
+    if (lab.running) {
+      ctx.strokeStyle = 'rgba(255,122,47,.9)'; ctx.lineWidth = 2;
+      var ph = (performance.now() / 400) % 1;
+      [w * 0.29, w * 0.71].forEach(function (cx) {
+        for (var k = -1; k <= 1; k++) {
+          var yy = plateTop - 4 - ph * 6, xx = cx + k * 18;
+          ctx.beginPath(); ctx.moveTo(xx - 4, yy + 3); ctx.lineTo(xx, yy - 2); ctx.lineTo(xx + 4, yy + 3); ctx.stroke();
+        }
+      });
+    }
+  }
+
+  var G = { l: 48, r: 14, t: 26, b: 36 };
+  function drawGraph() {
+    var f = fitCanvas($('shs-graph')), ctx = f.ctx, w = f.w, h = f.h;
+    ctx.clearRect(0, 0, w, h);
+    var pw = w - G.l - G.r, ph = h - G.t - G.b, yMax = labYMax(), step = gridStep(yMax);
+    var X = function (t) { return G.l + (t / T_END) * pw; };
+    var Y = function (T) { return G.t + ph - (T / yMax) * ph; };
+    ctx.font = '12px sans-serif'; ctx.lineWidth = 1;
+    // 격자
+    for (var s = 0; s <= T_END; s += 30) {
+      ctx.strokeStyle = s % 60 === 0 ? '#d9e0e8' : '#eef1f4';
+      ctx.beginPath(); ctx.moveTo(X(s), G.t); ctx.lineTo(X(s), G.t + ph); ctx.stroke();
+      if (s % 60 === 0) { ctx.fillStyle = '#52606d'; ctx.textAlign = 'center'; ctx.fillText(String(s / 60), X(s), G.t + ph + 15); }
+    }
+    for (var T = 0; T <= yMax + 1e-9; T += step / 2) {
+      var major = Math.abs(T / step - Math.round(T / step)) < 1e-9;
+      ctx.strokeStyle = major ? '#d9e0e8' : '#f1f3f5';
+      ctx.beginPath(); ctx.moveTo(G.l, Y(T)); ctx.lineTo(G.l + pw, Y(T)); ctx.stroke();
+      if (major) { ctx.fillStyle = '#52606d'; ctx.textAlign = 'right'; ctx.fillText(String(T), G.l - 6, Y(T) + 4); }
+    }
+    ctx.strokeStyle = '#3e4c59'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(G.l, G.t); ctx.lineTo(G.l, G.t + ph); ctx.lineTo(G.l + pw, G.t + ph); ctx.stroke();
+    ctx.fillStyle = '#323f4b'; ctx.textAlign = 'right'; ctx.fillText('시간(분)', G.l + pw, G.t + ph + 30);
+    ctx.textAlign = 'left'; ctx.fillText('온도(℃)', 4, 14);
+    // 선
+    var series = [[lab.matA, lab.massA, COLOR_A, 'A'], [lab.matB, lab.massB, COLOR_B, 'B']];
+    series.forEach(function (s) {
+      ctx.strokeStyle = s[2]; ctx.lineWidth = 2.5; ctx.beginPath();
+      var n = Math.max(1, Math.ceil(lab.t));
+      for (var i = 0; i <= n; i++) {
+        var tt = Math.min(lab.t, i), yy = Y(tempAt(s[0], s[1], tt));
+        if (i === 0) ctx.moveTo(X(tt), yy); else ctx.lineTo(X(tt), yy);
+      }
+      ctx.stroke();
+      ctx.fillStyle = s[2]; ctx.beginPath(); ctx.arc(X(lab.t), Y(tempAt(s[0], s[1], lab.t)), 4, 0, 6.283); ctx.fill();
+    });
+    // 범례
+    ctx.font = '600 12px sans-serif'; ctx.textAlign = 'left';
+    var lx = G.l + 70;
+    series.forEach(function (s, i) {
+      var yy = 14, xx = lx + i * 120;
+      ctx.strokeStyle = s[2]; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(xx, yy - 4); ctx.lineTo(xx + 16, yy - 4); ctx.stroke();
+      ctx.fillStyle = s[2]; ctx.fillText(s[3] + ' ' + MATS[s[0]].name + ' ' + s[1] + 'g', xx + 20, yy);
+    });
+    // 읽기 커서
+    if (lab.hoverT !== null && lab.t > 0) {
+      var ht = Math.min(lab.hoverT, lab.t), hx = X(ht);
+      ctx.setLineDash([4, 3]); ctx.strokeStyle = '#3e4c59'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(hx, G.t); ctx.lineTo(hx, G.t + ph); ctx.stroke(); ctx.setLineDash([]);
+      var vals = series.map(function (s) { return tempAt(s[0], s[1], ht); });
+      series.forEach(function (s, i) {
+        ctx.fillStyle = '#fff'; ctx.strokeStyle = s[2]; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(hx, Y(vals[i]), 4.5, 0, 6.283); ctx.fill(); ctx.stroke();
+      });
+      var txt = [clock(ht), 'A ' + fmt1(vals[0]) + ' ℃', 'B ' + fmt1(vals[1]) + ' ℃'];
+      ctx.font = '600 12px sans-serif';
+      var bw = 92, bh = 54, bx = hx + 8 + bw > G.l + pw ? hx - bw - 8 : hx + 8, by = G.t + 6;
+      ctx.fillStyle = 'rgba(255,255,255,.95)'; ctx.strokeStyle = '#9aa5b1'; ctx.lineWidth = 1;
+      roundRect(ctx, bx, by, bw, bh, 6); ctx.fill(); ctx.stroke();
+      ctx.textAlign = 'left';
+      txt.forEach(function (t, i) { ctx.fillStyle = i === 0 ? '#323f4b' : (i === 1 ? COLOR_A : COLOR_B); ctx.fillText(t, bx + 8, by + 16 + i * 15); });
+    }
+  }
+
+  // 그래프 읽기 (마우스·터치)
+  (function () {
+    var cv = $('shs-graph');
+    function setHover(ev) {
+      var r = cv.getBoundingClientRect(), pw = r.width - G.l - G.r;
+      var t = ((ev.clientX - r.left - G.l) / pw) * T_END;
+      lab.hoverT = Math.max(0, Math.min(T_END, Math.round(t))); // 1초 단위로 맞춤
+      requestDraw();
+    }
+    cv.addEventListener('pointerdown', function (ev) { cv.setPointerCapture(ev.pointerId); setHover(ev); });
+    cv.addEventListener('pointermove', function (ev) { if (ev.pointerType === 'mouse' || ev.buttons) setHover(ev); });
+    cv.addEventListener('pointerleave', function (ev) { if (ev.pointerType === 'mouse') { lab.hoverT = null; requestDraw(); } });
+  })();
+
+  /* ================= ② 열량 계산 실험실 ================= */
+  var calc = { mat: 'water', mass: 0.5, q: 4000 };
+  (function buildCalcUi() {
+    var chips = $('shs-cmat'), bars = $('shs-bars');
+    ORDER.forEach(function (k) {
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'shs-chip'; b.dataset.mat = k; b.textContent = MATS[k].name;
+      b.addEventListener('click', function () { calc.mat = k; updateCalc(); });
+      chips.appendChild(b);
+      var row = document.createElement('div'); row.className = 'shs-bar-row'; row.dataset.mat = k;
+      var ratio = MATS[k].c / MATS.water.c;
+      row.innerHTML = '<span>' + MATS[k].name + '</span><div><div class="shs-bar" style="width:' + (ratio * 100).toFixed(1) + '%"></div></div>' +
+        '<span class="shs-bar-val">' + MATS[k].c + ' (' + ratio.toFixed(2) + ')</span>';
+      bars.appendChild(row);
+    });
+  })();
+  function clampStep(v, min, max, step) { return Math.min(max, Math.max(min, Math.round(v / step) * step)); }
+  $('shs-cmass').addEventListener('input', function () { calc.mass = clampStep(+this.value, 0.1, 1.0, 0.1); updateCalc(); });
+  $('shs-cq').addEventListener('input', function () { calc.q = clampStep(+this.value, 0, 20000, 100); updateCalc(); });
+  $('shs-cm-dec').addEventListener('click', function () { calc.mass = clampStep(calc.mass - 0.1, 0.1, 1.0, 0.1); updateCalc(); });
+  $('shs-cm-inc').addEventListener('click', function () { calc.mass = clampStep(calc.mass + 0.1, 0.1, 1.0, 0.1); updateCalc(); });
+  $('shs-cq-dec').addEventListener('click', function () { calc.q = clampStep(calc.q - 100, 0, 20000, 100); updateCalc(); });
+  $('shs-cq-inc').addEventListener('click', function () { calc.q = clampStep(calc.q + 100, 0, 20000, 100); updateCalc(); });
+
+  function updateCalc() {
+    var m = MATS[calc.mat];
+    $('shs-cmass').value = calc.mass; $('shs-cq').value = calc.q;
+    $('shs-cmass-out').textContent = calc.mass.toFixed(1) + ' kg';
+    $('shs-cq-out').textContent = calc.q + ' J';
+    root.querySelectorAll('.shs-chip').forEach(function (b) { b.classList.toggle('on', b.dataset.mat === calc.mat); });
+    root.querySelectorAll('.shs-bar-row').forEach(function (r) { r.classList.toggle('on', r.dataset.mat === calc.mat); });
+    var ideal = calc.q / (m.c * calc.mass), Tf = tempAfterHeat(calc.mat, calc.mass, calc.q), dT = Tf - T0;
+    $('shs-c-final').textContent = fmt1(Tf) + ' ℃';
+    $('shs-c-dt').textContent = fmt1(dT) + ' ℃';
+    var html = '<b>열량 공식</b>  Q = c × m × ΔT<br>' +
+      'ΔT = Q ÷ (c × m)<br>' +
+      '&nbsp;&nbsp;&nbsp;= ' + calc.q + ' ÷ (' + m.c + ' × ' + calc.mass.toFixed(1) + ')<br>' +
+      '&nbsp;&nbsp;&nbsp;= <b>' + fmt1(ideal) + ' ℃</b>';
+    if (Tf < T0 + ideal - 1e-9) html += '<br><span style="color:#d63a3f">물이 100 ℃에 이르러 끓기 시작했어요. 남은 열은 물을 끓이는 데 쓰여 온도가 더 오르지 않아요.</span>';
+    $('shs-formula').innerHTML = html;
+    requestDraw();
+  }
+
+  function drawThermo() {
+    var f = fitCanvas($('shs-thermo')), ctx = f.ctx, w = f.w, h = f.h;
+    ctx.clearRect(0, 0, w, h);
+    var Tf = tempAfterHeat(calc.mat, calc.mass, calc.q);
+    var max = niceMax(Math.max(100, Tf + 5)), step = gridStep(max);
+    var top = 36, bottom = h - 46, cx = w / 2 - 12, tubeW = 14;
+    var Y = function (T) { return bottom - (T / max) * (bottom - top); };
+    ctx.font = '12px sans-serif';
+    // 유리관
+    ctx.fillStyle = '#f4f6f9'; ctx.strokeStyle = '#9aa5b1'; ctx.lineWidth = 1.5;
+    roundRect(ctx, cx - tubeW / 2, top - 8, tubeW, bottom - top + 16, 7); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx, bottom + 18, 15, 0, 6.283); ctx.fillStyle = '#e03131'; ctx.fill(); ctx.stroke();
+    // 액주
+    ctx.fillStyle = '#e03131'; ctx.fillRect(cx - 4, Y(Tf), 8, bottom + 8 - Y(Tf));
+    // 눈금
+    for (var T = 0; T <= max + 1e-9; T += step / 2) {
+      var major = Math.abs(T / step - Math.round(T / step)) < 1e-9;
+      ctx.strokeStyle = '#52606d'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(cx + tubeW / 2 + 2, Y(T)); ctx.lineTo(cx + tubeW / 2 + (major ? 12 : 7), Y(T)); ctx.stroke();
+      if (major) { ctx.fillStyle = '#52606d'; ctx.textAlign = 'left'; ctx.fillText(String(T), cx + tubeW / 2 + 15, Y(T) + 4); }
+    }
+    // 처음 온도 표시
+    ctx.strokeStyle = '#7b8794'; ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(cx - 30, Y(T0)); ctx.lineTo(cx - tubeW / 2, Y(T0)); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = '#7b8794'; ctx.textAlign = 'right'; ctx.fillText('처음', cx - 32, Y(T0) + 4);
+    ctx.fillStyle = '#e03131'; ctx.font = '700 12px sans-serif'; ctx.fillText('나중', cx - 32, Y(Tf) + 4);
+    ctx.textAlign = 'center'; ctx.fillStyle = '#323f4b'; ctx.font = '600 12px sans-serif';
+    ctx.fillText('온도(℃)', w / 2, 14);
+  }
+
+  /* ---------- 그리기 루프 (필요할 때만) ---------- */
+  var rafId = null;
+  function requestDraw() { if (rafId === null) rafId = requestAnimationFrame(frame); }
+  function frame(ts) {
+    rafId = null;
+    if (lab.running) {
+      if (lab.lastTs !== null) {
+        var dt = Math.min(0.1, (ts - lab.lastTs) / 1000); // 탭 전환 등으로 멈췄다 돌아올 때 급점프 방지
+        lab.t = Math.min(T_END, lab.t + dt * lab.speed);
+        if (lab.t >= T_END) { lab.running = false; }
+        updateLabUi();
+      }
+      lab.lastTs = ts;
+    }
+    if (currentTab === 'lab') { drawScene(); drawGraph(); } else { drawThermo(); }
+    var boiling = currentTab === 'lab' && lab.running;
+    if (lab.running || boiling) requestDraw();
+  }
+  if (window.ResizeObserver) new ResizeObserver(function () { requestDraw(); }).observe(root);
+  window.addEventListener('resize', requestDraw);
+
+  updateLabUi(); updateCalc(); requestDraw();
+
+  // 테스트용 노출(학생 화면 동작에는 영향 없음)
+  window.SIM_SPECIFIC_HEAT = { tempAt: tempAt, tempAfterHeat: tempAfterHeat, MATS: MATS, lab: lab, calc: calc };
+})();
+</script>
+
+</div></body></html>

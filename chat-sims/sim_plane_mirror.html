@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<!-- 단원ID: plane_mirror · Ⅲ. 빛과 파동 > 1. 빛 > 03 평면거울이 만드는 상(96~97쪽) · 활동 1개: 반투명 거울로 상의 위치와 크기 찾기 -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>반투명 거울 실험 — 평면거울이 만드는 상</title>
+<style>
+:root{--bg:#f1f5fa;--card:#fff;--ink:#1d2533;--muted:#5d6779;--line:#d6dfea;--accent:#3a7bd5;--accent-d:#2659a3;--accent-l:#e3eefc;--ok:#1f9a62}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+header{background:linear-gradient(120deg,#3a7bd5,#4bb6d6);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:20px;margin:0;font-weight:900}
+header .sub{font-size:13px;opacity:.95}
+header .sp{flex:1}
+header button{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+main{padding:10px 12px 24px;max-width:1300px;margin:0 auto}
+.intro{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:10px;padding:8px 14px;margin-bottom:10px;font-size:14px;line-height:1.55}
+.intro b{color:var(--accent-d)}
+.grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(290px,1fr);gap:10px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}
+.card h3{margin:0 4px 8px;font-size:15px;color:var(--accent-d)}
+canvas{width:100%;display:block;border-radius:8px;touch-action:none}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0}
+.btn{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;padding:8px 12px;cursor:pointer;min-height:38px}
+.btn:hover{border-color:var(--accent);color:var(--accent-d)}
+.btn.on{background:var(--accent-l);border-color:var(--accent);color:var(--accent-d)}
+.lbl{font-size:13px;color:var(--muted)}
+.ro{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}
+.ro div{background:#1c2a3d;color:#bfe0ff;border-radius:9px;padding:6px 8px}
+.ro .k{font-size:11.5px;color:#a9b9cc}
+.ro .v{font-size:21px;font-weight:900}
+.ro .v small{font-size:12px;font-weight:500;margin-left:2px}
+.note{font-size:12.5px;color:var(--muted);line-height:1.55;margin:6px 4px 0}
+.msg{min-height:22px;font-size:14px;font-weight:700;margin:4px 4px 0;color:var(--accent-d)}
+.msg.ok{color:var(--ok)}
+</style>
+</head>
+<body>
+<header>
+  <h1>반투명 거울 실험</h1><span class="sub">평면거울이 만드는 상의 위치와 크기</span>
+  <span class="sp"></span><button id="resetBtn" type="button">↺ 초기화</button>
+</header>
+<main>
+  <div class="intro">눈금종이(한 칸 1 cm)를 위에서 내려다본 모습이다. ① 반투명 거울 앞의 <b>물체 ㉠(빨강)</b>을 끌어 놓고, ② 거울 뒤의 <b>물체 ㉡(파랑)</b>을 끌어 <b>거울에 비친 상과 겹치는 곳</b>에 놓는다. ③ <b>거울 치우기</b>를 눌러 두 물체의 위치를 비교해 보세요.</div>
+  <div class="grid">
+    <div class="card">
+      <canvas id="app" width="640" height="440" aria-label="눈금종이 위의 반투명 거울과 두 물체"></canvas>
+      <div class="row">
+        <button class="btn on" id="mirBtn" type="button">반투명 거울 있음</button>
+        <button class="btn" id="rayBtn" type="button">빛의 경로 보기</button>
+        <span class="lbl" style="margin-left:6px">물체 ㉡의 크기</span>
+        <button class="btn" data-z="0.7" type="button">작은 것</button><button class="btn on" data-z="1" type="button">같은 것</button><button class="btn" data-z="1.4" type="button">큰 것</button>
+      </div>
+      <div class="msg" id="msg"></div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="ro">
+          <div><div class="k">거울 ~ 물체 ㉠</div><div class="v" id="d1">–<small>cm</small></div></div>
+          <div><div class="k">거울 ~ 물체 ㉡</div><div class="v" id="d2">–<small>cm</small></div></div>
+          <div><div class="k">물체 ㉠ ~ 물체 ㉡</div><div class="v" id="d3">–<small>cm</small></div></div>
+        </div>
+        <p class="note">거리는 거울 면에 수직인 방향으로 잰 값이다(눈금 0.5 cm 단위로 놓인다).</p>
+      </div>
+      <div class="card">
+        <h3>그림 카드를 거울에 비추면</h3>
+        <div class="row"><button class="btn on" data-c="→" type="button">→</button><button class="btn" data-c="R" type="button">R</button><button class="btn" data-c="가" type="button">가</button><button class="btn" data-c="5" type="button">5</button></div>
+        <canvas id="card" width="420" height="170" aria-label="카드와 거울에 비친 카드"></canvas>
+        <p class="note"><b>모델의 한계</b> · 거울은 두께가 없고 빛을 모두 반사하는 완전한 평면이라고 보았다(반투명 거울은 상을 보면서 뒤쪽도 볼 수 있게 하려고 쓴다). 물체는 위에서 본 동그란 받침과 깃대로만 나타냈다.</p>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+/* ================================================================
+   평면거울의 상
+   - 상은 거울 면에 대하여 물체와 대칭인 위치에 생긴다: 물체 (x, d) → 상 (x, −d)
+     거울~상 거리 = 거울~물체 거리, 물체~상 거리 = 2 × 거울~물체 거리, 상의 크기 = 물체의 크기
+   - 빛의 경로: 물체에서 나온 빛이 거울에서 반사 법칙(입사각 = 반사각)에 따라 반사되어 눈에 들어온다.
+     반사점 = (눈 ↔ 상)을 잇는 직선과 거울 면의 교점. 눈은 반사한 빛의 연장선이 만나는 곳(상)에 물체가 있다고 인식한다.
+   - 좌표: 1 cm = 20 px, 거울 y = 0 (화면 y = 200 px), 거울 앞(+)은 화면 아래쪽
+   ================================================================ */
+const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
+function fit(cv, w, h) { const r = Math.min(2, window.devicePixelRatio || 1); cv.width = w * r; cv.height = h * r; const x = cv.getContext('2d'); x.setTransform(r, 0, 0, r, 0, 0); return x; }
+const W = 640, H = 440, U = 20, MY = 200, c = fit($('#app'), W, H), cc = fit($('#card'), 420, 170);
+const px = (x, y) => [x * U, MY + y * U];                 // cm → px (y: 거울 앞이 +)
+const snap = v => Math.round(v * 2) / 2;
+let S;
+function newState() { return { o1: { x: 12, y: 6 }, o2: { x: 22, y: -3 }, z2: 1, mirror: true, rays: false, eye: { x: 26, y: 10 }, card: '→' }; }
+const R0 = 0.8;  // 물체 받침 반지름(cm)
+
+function objShape(x, y, scale, fill, stroke, alpha) {   // 위에서 본 물체: 동그란 받침 + 깃대
+  const [X, Y] = px(x, y), r = R0 * U * scale;
+  c.save(); c.globalAlpha = alpha;
+  c.fillStyle = fill; c.strokeStyle = stroke; c.lineWidth = 2;
+  c.beginPath(); c.arc(X, Y, r, 0, 7); c.fill(); c.stroke();
+  c.fillStyle = stroke; c.beginPath(); c.arc(X, Y, r * .32, 0, 7); c.fill();   // 위에서 본 깃대
+  c.restore();
+}
+function render() {
+  c.clearRect(0, 0, W, H); c.fillStyle = '#f4fbff'; c.fillRect(0, 0, W, H);
+  // 눈금종이
+  for (let i = 0; i <= W / U; i++) { c.strokeStyle = i % 5 === 0 ? '#9cc5e8' : '#d3e7f6'; c.lineWidth = i % 5 === 0 ? 1.2 : .7; c.beginPath(); c.moveTo(i * U, 0); c.lineTo(i * U, H); c.stroke(); }
+  for (let j = 0; j <= H / U; j++) { const yy = j * U; c.strokeStyle = (j - MY / U) % 5 === 0 ? '#9cc5e8' : '#d3e7f6'; c.lineWidth = (j - MY / U) % 5 === 0 ? 1.2 : .7; c.beginPath(); c.moveTo(0, yy); c.lineTo(W, yy); c.stroke(); }
+  // 거울(또는 거울이 있던 자리)
+  if (S.mirror) { c.fillStyle = 'rgba(120,170,210,.35)'; c.fillRect(0, MY - 4, W, 8); c.strokeStyle = '#3d6f9e'; c.lineWidth = 3; c.beginPath(); c.moveTo(0, MY); c.lineTo(W, MY); c.stroke(); }
+  else { c.save(); c.setLineDash([8, 6]); c.strokeStyle = '#7e93a8'; c.lineWidth = 2; c.beginPath(); c.moveTo(0, MY); c.lineTo(W, MY); c.stroke(); c.restore(); }
+  c.fillStyle = '#3d6f9e'; c.font = 'bold 13px sans-serif'; c.fillText(S.mirror ? '반투명 거울' : '거울이 있던 자리', 8, MY - 10);
+  c.fillStyle = '#5d6779'; c.font = '12px sans-serif'; c.fillText('거울 뒤쪽', 8, 18); c.fillText('거울 앞쪽 (관찰하는 쪽)', 8, H - 10);
+  // 물체 ㉡ (거울 뒤)
+  objShape(S.o2.x, S.o2.y, S.z2, '#bcd4ff', '#2457b8', 1, true);
+  // 거울에 비친 상 (거울이 있을 때 앞에서 보면 보임)
+  if (S.mirror) objShape(S.o1.x, -S.o1.y, 1, 'rgba(255,170,170,.5)', 'rgba(200,40,50,.7)', .65, true);
+  // 물체 ㉠
+  objShape(S.o1.x, S.o1.y, 1, '#ffc2c2', '#c8323c', 1, false);
+  label(S.o1, '물체 ㉠', '#c8323c'); label(S.o2, '물체 ㉡', '#2457b8', S.z2);
+  if (S.mirror) { const [ix, iy] = px(S.o1.x, -S.o1.y); c.fillStyle = 'rgba(200,40,50,.8)'; c.font = '12px sans-serif'; c.fillText('㉠의 상', ix - 18, iy - 22); }
+  // 거울 치우면 거리 표시
+  if (!S.mirror) { dist(S.o1, '#c8323c'); dist(S.o2, '#2457b8'); }
+  if (S.rays) drawRays();
+}
+function label(o, t, col, z) { const [X, Y] = px(o.x, o.y); c.fillStyle = col; c.font = 'bold 13px sans-serif'; c.fillText(t, X - 22, Y + R0 * U * (z || 1) + 18); }
+function dist(o, col) {
+  const [X, Y] = px(o.x, o.y), d = Math.abs(o.y);
+  c.save(); c.strokeStyle = col; c.fillStyle = col; c.lineWidth = 1.5; c.setLineDash([4, 3]);
+  c.beginPath(); c.moveTo(X - 26, Y); c.lineTo(X - 26, MY); c.stroke(); c.setLineDash([]);
+  c.font = 'bold 13px sans-serif'; c.fillText(d.toFixed(1) + ' cm', X - 80, (Y + MY) / 2 + 4); c.restore();
+}
+function drawRays() {
+  const img = { x: S.o1.x, y: -S.o1.y }, E = S.eye;
+  const [ex, ey] = px(E.x, E.y);
+  [-0.7, 0.7].forEach(off => {
+    const e = { x: E.x + off, y: E.y }, t = (0 - img.y) / (e.y - img.y), m = { x: img.x + (e.x - img.x) * t, y: 0 };
+    const [ox, oy] = px(S.o1.x, S.o1.y), [mx, my] = px(m.x, 0), [qx, qy] = px(e.x, e.y), [ix, iy] = px(img.x, img.y);
+    c.strokeStyle = '#e8303f'; c.lineWidth = 2; c.beginPath(); c.moveTo(ox, oy); c.lineTo(mx, my); c.lineTo(qx, qy); c.stroke();
+    arrowHead((ox + mx) / 2, (oy + my) / 2, Math.atan2(my - oy, mx - ox)); arrowHead((mx + qx) / 2, (my + qy) / 2, Math.atan2(qy - my, qx - mx));
+    c.save(); c.setLineDash([5, 4]); c.strokeStyle = 'rgba(232,48,63,.75)'; c.lineWidth = 1.4; c.beginPath(); c.moveTo(mx, my); c.lineTo(ix, iy); c.stroke(); c.restore();
+  });
+  c.fillStyle = '#fff'; c.strokeStyle = '#333'; c.lineWidth = 1.5; c.beginPath(); c.ellipse(ex, ey, 16, 9, 0, 0, 7); c.fill(); c.stroke();
+  c.fillStyle = '#333'; c.beginPath(); c.arc(ex, ey - 2, 4.5, 0, 7); c.fill(); c.font = 'bold 12px sans-serif'; c.fillText('눈(끌기)', ex + 20, ey + 4);
+}
+function arrowHead(x, y, a) { c.fillStyle = '#e8303f'; c.beginPath(); c.moveTo(x + Math.cos(a) * 8, y + Math.sin(a) * 8); c.lineTo(x + Math.cos(a + 2.5) * 8, y + Math.sin(a + 2.5) * 8); c.lineTo(x + Math.cos(a - 2.5) * 8, y + Math.sin(a - 2.5) * 8); c.fill(); }
+function drawCard() {
+  const g = cc; g.clearRect(0, 0, 420, 170); g.fillStyle = '#f6f8fb'; g.fillRect(0, 0, 420, 170);
+  g.fillStyle = '#9fb7cf'; g.fillRect(208, 10, 6, 150);
+  g.font = '13px sans-serif'; g.fillStyle = '#5d6779'; g.textAlign = 'center'; g.fillText('카드 앞면(거울 쪽을 향함)', 105, 160); g.fillText('거울에 비친 모습', 315, 160);
+  [[105, false], [315, true]].forEach(([x, flip]) => {
+    g.save(); g.translate(x, 75); g.fillStyle = '#fff'; g.strokeStyle = '#555'; g.lineWidth = 2; g.fillRect(-70, -55, 140, 110); g.strokeRect(-70, -55, 140, 110);
+    if (flip) g.scale(-1, 1);
+    g.fillStyle = '#222'; g.font = 'bold 72px "Noto Sans KR",sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(S.card, 0, 4);
+    g.restore();
+  });
+}
+function readouts() {
+  const a = Math.abs(S.o1.y), b = Math.abs(S.o2.y), dx = S.o1.x - S.o2.x, dy = S.o1.y - S.o2.y;
+  $('#d1').innerHTML = a.toFixed(1) + '<small>cm</small>'; $('#d2').innerHTML = b.toFixed(1) + '<small>cm</small>';
+  // 물체 사이 거리: 거울에 수직인 방향 성분(두 물체가 한 직선 위에 있을 때 = 실제 거리)
+  $('#d3').innerHTML = Math.abs(dy).toFixed(1) + '<small>cm</small>';
+  const m = $('#msg');
+  const match = Math.abs(S.o2.x - S.o1.x) < .01 && Math.abs(S.o2.y + S.o1.y) < .01;
+  if (match && S.z2 === 1) { m.className = 'msg ok'; m.textContent = '물체 ㉡이 ㉠의 상과 꼭 겹쳤어요! 크기도 똑같이 맞아요.'; }
+  else if (match) { m.className = 'msg'; m.textContent = '위치는 상과 같지만 크기가 맞지 않아요. 상의 크기는 물체 ㉠과 비교해 어떤가요?'; }
+  else if (Math.abs(dx) > .01 && Math.abs(S.o2.y + S.o1.y) < .01) { m.className = 'msg'; m.textContent = '거울과의 거리는 맞았어요. 좌우 위치도 맞춰 보세요.'; }
+  else { m.className = 'msg'; m.textContent = ''; }
+}
+function refresh() {
+  $('#mirBtn').classList.toggle('on', S.mirror); $('#mirBtn').textContent = S.mirror ? '반투명 거울 있음' : '거울 치움(다시 놓기)';
+  $('#rayBtn').classList.toggle('on', S.rays);
+  $$('[data-z]').forEach(b => b.classList.toggle('on', +b.dataset.z === S.z2));
+  $$('[data-c]').forEach(b => b.classList.toggle('on', b.dataset.c === S.card));
+  render(); readouts(); drawCard();
+}
+/* ---------- 조작 ---------- */
+let drag = null;
+function toCm(e) { const b = $('#app').getBoundingClientRect(); return { x: (e.clientX - b.left) * W / b.width / U, y: ((e.clientY - b.top) * H / b.height - MY) / U }; }
+$('#app').addEventListener('pointerdown', e => {
+  const p = toCm(e), d = o => Math.hypot(o.x - p.x, o.y - p.y);
+  if (S.rays && d(S.eye) < 1.4) drag = 'eye'; else if (d(S.o1) < 1.4) drag = 'o1'; else if (d(S.o2) < 1.4 * S.z2 + .3) drag = 'o2'; else return;
+  $('#app').setPointerCapture(e.pointerId); move(p);
+});
+function move(p) {
+  const x = Math.max(1, Math.min(31, snap(p.x)));
+  if (drag === 'o1') S.o1 = { x, y: Math.max(1, Math.min(11, snap(p.y))) };
+  else if (drag === 'o2') S.o2 = { x, y: Math.max(-9, Math.min(-1, snap(p.y))) };
+  else if (drag === 'eye') S.eye = { x, y: Math.max(2, Math.min(11, snap(p.y))) };
+  refresh();
+}
+$('#app').addEventListener('pointermove', e => { if (drag) move(toCm(e)); });
+['pointerup', 'pointercancel'].forEach(t => $('#app').addEventListener(t, () => { drag = null; }));
+$('#mirBtn').addEventListener('click', () => { S.mirror = !S.mirror; refresh(); });
+$('#rayBtn').addEventListener('click', () => { S.rays = !S.rays; refresh(); });
+$$('[data-z]').forEach(b => b.addEventListener('click', () => { S.z2 = +b.dataset.z; refresh(); }));
+$$('[data-c]').forEach(b => b.addEventListener('click', () => { S.card = b.dataset.c; refresh(); }));
+$('#resetBtn').addEventListener('click', () => { S = newState(); refresh(); });
+S = newState(); refresh();
+</script>
+</body>
+</html>

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<!-- 단원ID: continental_drift · Ⅱ. 지권의 변화 > 3. 지권의 이동 > 01 대륙 이동설 · 활동 1개: 대륙 퍼즐 맞추기와 대륙 이동 증거 -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>대륙 퍼즐 — 대륙 이동설</title>
+<style>
+:root{--bg:#f1f5f8;--card:#fff;--ink:#1f2a30;--muted:#5f6f76;--line:#d6e0e7;--accent:#2a7fb8;--accent-d:#1d5f8c;--accent-l:#e3f1fa}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+header{background:linear-gradient(120deg,#2a7fb8,#3bb39a);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:20px;margin:0;font-weight:900}
+header .sub{font-size:13px;opacity:.92}
+header .sp{flex:1}
+header button{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+main{padding:10px 12px 24px;max-width:1300px;margin:0 auto}
+.intro{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:10px;padding:8px 14px;margin-bottom:10px;font-size:14px;line-height:1.55}
+.intro b{color:var(--accent-d)}
+.grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,1fr);gap:10px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}
+.card h3{margin:0 4px 8px;font-size:15px;color:var(--accent-d)}
+canvas{width:100%;display:block;border-radius:8px;touch-action:none}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0}
+.btn{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;padding:7px 12px;cursor:pointer;min-height:36px}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+label.tg{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer;background:#fff}
+label.tg input{width:18px;height:18px;accent-color:var(--accent)}
+.lbl{font-size:13px;color:var(--muted)}
+input[type=range]{flex:1;min-width:160px;accent-color:var(--accent)}
+.ro{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:6px}
+.ro div{background:#1c2b36;color:#bfe6ff;border-radius:9px;padding:6px 10px}
+.ro .k{font-size:12px;color:#9fb5c4}
+.ro .v{font-size:20px;font-weight:900}
+.ro .v small{font-size:12.5px;font-weight:500;margin-left:2px}
+ul.st{list-style:none;margin:0;padding:0;font-size:14px}
+ul.st li{padding:4px 6px;border-bottom:1px dashed var(--line)}
+ul.st li.ok{color:#1f8a5b;font-weight:700}
+.msg{min-height:20px;font-size:14px;color:var(--accent-d);font-weight:700;margin:4px}
+.note{font-size:12.5px;color:var(--muted);line-height:1.55;margin:6px 4px 0}
+.leg{display:flex;gap:12px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin:2px 4px}
+.leg span{display:flex;align-items:center;gap:4px}
+</style>
+</head>
+<body>
+<header>
+  <h1>대륙 퍼즐</h1><span class="sub">대륙 이동설 · 해안선과 증거를 맞추어 보자</span>
+  <span class="sp"></span><button id="resetBtn" type="button">↺ 처음 위치로</button>
+</header>
+<main>
+  <div class="intro">① 아프리카는 고정되어 있다. 다른 대륙을 <b>끌어서 옮기고</b> <b>⟲ ⟳ 단추로 돌려</b> 해안선이 맞도록 붙인다(가까이 가면 딱 붙는다). ② <b>증거 표시</b>를 켜고 대륙을 붙이기 전과 후를 비교한다. ③ 모두 붙이면 <b>시간 흐르기</b>로 대륙이 갈라져 현재 모습이 되는 과정을 본다.</div>
+  <div class="grid">
+    <div class="card">
+      <canvas id="cv" width="920" height="640" aria-label="대륙 퍼즐 판"></canvas>
+      <div class="leg"><span><svg width="12" height="12"><circle cx="6" cy="6" r="5" fill="#ffd400" stroke="#806a00"/></svg>메소사우루스 화석</span><span><svg width="12" height="12"><circle cx="6" cy="6" r="5" fill="#52b043" stroke="#2c6a24"/></svg>글로소프테리스 화석</span><span><svg width="20" height="12"><line x1="2" y1="6" x2="18" y2="6" stroke="#1d4f7a" stroke-width="2"/><path d="M18 6 l-5 -4 v8z" fill="#1d4f7a"/></svg>빙하가 움직인 방향</span><span><svg width="20" height="12"><rect x="1" y="3" width="18" height="6" rx="3" fill="#8a5a3c"/></svg>산맥</span></div>
+      <div class="row">
+        <span class="lbl">선택한 대륙</span><b id="selName" style="min-width:90px">–</b>
+        <button class="btn" id="rotL" type="button">⟲ 5°</button><button class="btn" id="rotR" type="button">⟳ 5°</button>
+        <span class="lbl" style="margin-left:8px">증거 표시</span>
+        <label class="tg"><input type="checkbox" id="eFossil" checked>화석</label>
+        <label class="tg"><input type="checkbox" id="eGlacier">빙하 흔적</label>
+        <label class="tg"><input type="checkbox" id="eMount">산맥</label>
+        <label class="tg"><input type="checkbox" id="eHint">윤곽 힌트</label>
+      </div>
+      <div class="msg" id="msg"></div>
+    </div>
+    <div>
+      <div class="card">
+        <h3>퍼즐 진행</h3>
+        <ul class="st" id="st"></ul>
+      </div>
+      <div class="card">
+        <h3>시간 흐르기 (모두 붙이면 열림)</h3>
+        <div class="row"><span class="lbl">시간</span><input id="age" type="range" min="0" max="225" step="1" value="225" disabled><b id="ageV" style="min-width:110px">–</b></div>
+        <div class="row"><button class="btn pri" id="playBtn" type="button" disabled>▶ 판게아에서 현재까지</button></div>
+        <div class="ro">
+          <div><div class="k">남아메리카–아프리카 사이 거리</div><div class="v" id="gap">–</div></div>
+          <div><div class="k">평균 멀어지는 빠르기</div><div class="v" id="spd">–</div></div>
+        </div>
+        <p class="note"><b>모델의 한계</b> · 둥근 지구의 대륙을 평면 그림으로 옮겨 모양과 크기가 실제와 조금 다르다. 판게아 가운데 남쪽 대륙(남아메리카, 아프리카, 남극, 인도, 오스트레일리아)만 다루었고, 대륙이 같은 빠르기로 움직인다고 보았다(실제로는 시기마다 다르다). 대륙의 짝은 대륙붕까지 맞춘 연구 결과(Bullard 등)를 바탕으로 하였다.</p>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+/* ================================================================
+   대륙 퍼즐 자료
+   - 해안선: Natural Earth 110m, 판게아(남쪽 부분) 위치: 아프리카 고정, 남아메리카는 Bullard(1965)식 오일러 회전(44°N, 30.6°W, 59°),
+     남극·인도·오스트레일리아는 맞닿는 해안 지점을 짝지어 구에서 회전시킨 뒤, 남위 30°·동경 15°를 가운데로 한 정거 방위 도법으로 그림
+   - 좌표 단위: 지구 반지름(1 = 6371 km)
+   - 거리: 브라질 나탈(35.2°W, 5.8°S)과 카메룬 두알라(9.7°E, 4.0°N)에 해당하는 점 사이 평면 거리
+     검산: 판게아 때 약 400 km(대륙붕 포함 틈) → 현재 약 5100 km, 2억 2500만 년 동안 평균 약 2 cm/년
+   ================================================================ */
+const D = {"pieces": {"africa": {"pts": [[0.3483, 0.9953], [0.3185, 1.0361], [0.3817, 0.912], [0.4073, 0.8902], [0.4203, 0.8283], [0.5289, 0.703], [0.5175, 0.6926], [0.552, 0.6639], [0.6737, 0.6726], [0.6715, 0.647], [0.6032, 0.5403], [0.4565, 0.442], [0.4338, 0.4076], [0.4232, 0.3767], [0.4432, 0.2954], [0.4381, 0.2249], [0.4103, 0.1933], [0.3255, 0.1529], [0.325, 0.075], [0.2756, 0.0542], [0.2623, 0.0022], [0.1936, -0.0599], [0.0662, -0.0855], [0.047, -0.0682], [0.0479, -0.0297], [0.0033, 0.0508], [-0.012, 0.1377], [-0.0536, 0.2076], [-0.023, 0.3362], [-0.0554, 0.4351], [-0.113, 0.502], [-0.1033, 0.5871], [-0.1203, 0.6047], [-0.1682, 0.5937], [-0.1981, 0.6273], [-0.3137, 0.5908], [-0.4436, 0.5779], [-0.5091, 0.6124], [-0.5902, 0.6897], [-0.6098, 0.7339], [-0.5821, 0.8003], [-0.5954, 0.868], [-0.5437, 0.9541], [-0.4488, 1.0293], [-0.4395, 1.0774], [-0.3729, 1.1385], [-0.3069, 1.131], [-0.2401, 1.1588], [-0.0703, 1.1707], [-0.0839, 1.1128], [0.0746, 1.0514], [0.093, 1.0856], [0.1183, 1.0958], [0.2535, 1.0572], [0.3033, 1.0649], [0.3483, 0.9953]], "present": [-4.163336342344337e-17, 1.1102230246251565e-16, -9.565040340969459e-17], "rmsKm": 0}, "mad": {"pts": [[0.5975, 0.2086], [0.5944, 0.1685], [0.5828, 0.1717], [0.5028, 0.0197], [0.4741, 0.0152], [0.4557, 0.0315], [0.4548, 0.086], [0.48, 0.1167], [0.4948, 0.1847], [0.5545, 0.2003], [0.5885, 0.2396], [0.5975, 0.2086]], "present": [-1.1102230246251565e-16, -2.7755575615628914e-17, 2.1195727126198806e-17], "rmsKm": 0}, "sa": {"pts": [[-0.8984, 0.1322], [-0.8855, 0.1765], [-0.8436, 0.211], [-0.8575, 0.269], [-0.8417, 0.3347], [-0.8304, 0.3409], [-0.8299, 0.3203], [-0.7947, 0.2986], [-0.8176, 0.3241], [-0.8177, 0.3604], [-0.7759, 0.3702], [-0.7041, 0.4693], [-0.6998, 0.453], [-0.5829, 0.4867], [-0.5401, 0.5304], [-0.4859, 0.55], [-0.4363, 0.5401], [-0.418, 0.5132], [-0.3931, 0.5354], [-0.3797, 0.5241], [-0.3783, 0.542], [-0.3273, 0.5691], [-0.3085, 0.5596], [-0.2438, 0.6158], [-0.1545, 0.6401], [-0.1157, 0.6217], [-0.1014, 0.5955], [-0.1013, 0.502], [-0.0518, 0.4327], [-0.0248, 0.3614], [-0.0687, 0.2502], [-0.0353, 0.1899], [-0.0131, 0.0681], [-0.0299, 0.0368], [-0.0631, 0.0231], [-0.0081, 0.0075], [-0.0051, -0.0387], [-0.0296, -0.0732], [-0.002, -0.1006], [-0.0198, -0.1263], [-0.0045, -0.1347], [0.0141, -0.1239], [0.0146, -0.1512], [0.034, -0.1705], [0.0296, -0.1931], [0.0387, -0.2032], [0.0653, -0.1929], [0.076, -0.2051], [0.0947, -0.2597], [0.1246, -0.2655], [0.1178, -0.2949], [0.1311, -0.3045], [0.0864, -0.3279], [0.0264, -0.3058], [0.0076, -0.2763], [-0.0056, -0.2899], [-0.0377, -0.2549], [-0.0254, -0.2458], [-0.0538, -0.222], [-0.0511, -0.2472], [-0.1048, -0.2002], [-0.1393, -0.186], [-0.1948, -0.1164], [-0.3922, 0.0336], [-0.4976, -0.0124], [-0.6421, 0.0013], [-0.6712, -0.0123], [-0.6936, -0.0013], [-0.7095, 0.0457], [-0.7267, 0.0304], [-0.744, 0.0428], [-0.7785, 0.1552], [-0.853, 0.1855], [-0.8757, 0.1694], [-0.8644, 0.1291], [-0.8984, 0.1322]], "present": [-0.9008450027782045, -0.41949419540993715, -0.34783380018397947], "rmsKm": 755}, "ind": {"pts": [[0.8072, -0.0859], [0.8125, -0.0595], [0.7952, -0.0604], [0.7763, -0.0046], [0.7517, -0.0028], [0.6541, 0.0859], [0.5584, 0.0697], [0.5079, 0.1], [0.6254, 0.2051], [0.712, 0.2437], [0.6939, 0.279], [0.7517, 0.3743], [0.8986, 0.2651], [0.8703, -0.005], [0.886, -0.0645], [0.8072, -0.0859]], "present": [1.019357942630037, -0.006360997178258665, 1.168074216366823], "rmsKm": 238}, "aus": {"pts": [[1.2385, -0.535], [1.2089, -0.576], [1.1318, -0.5966], [1.0928, -0.6458], [0.9636, -0.7141], [0.8783, -0.6945], [0.7826, -0.6189], [0.7716, -0.558], [0.7971, -0.5415], [0.786, -0.5179], [0.8092, -0.4737], [0.8456, -0.4586], [0.8582, -0.4354], [0.8801, -0.4368], [0.8668, -0.4144], [0.9075, -0.43], [0.8747, -0.4005], [0.9173, -0.3697], [0.9384, -0.3172], [0.9213, -0.231], [0.8874, -0.1963], [0.8759, -0.136], [0.8511, -0.1124], [0.8539, -0.0607], [0.8998, -0.0548], [0.9783, 0.0222], [0.9803, 0.0054], [1.0068, 0.0341], [1.0539, 0.0402], [1.042, 0.0331], [1.0857, 0.0001], [1.1225, -0.0731], [1.2333, -0.1406], [1.2444, -0.1681], [1.2298, -0.2291], [1.2742, -0.2401], [1.2838, -0.2823], [1.3012, -0.2732], [1.2885, -0.3705], [1.2326, -0.3576], [1.1767, -0.4655], [1.2987, -0.5073], [1.2385, -0.535]], "present": [0.2918851378672489, -0.8412097798358206, 0.15628584691449696], "rmsKm": 679}, "ant": {"pts": [[0.5288, -0.4118], [0.4713, -0.4273], [0.4706, -0.4359], [0.4911, -0.4493], [0.4933, -0.479], [0.5063, -0.4932], [0.4771, -0.5121], [0.5078, -0.5305], [0.5259, -0.5659], [0.4961, -0.5632], [0.468, -0.6055], [0.3152, -0.5933], [0.2776, -0.5364], [0.2601, -0.5775], [0.2047, -0.4505], [0.178, -0.4208], [0.1592, -0.4152], [0.1195, -0.4316], [0.0677, -0.433], [0.0237, -0.4082], [-0.0029, -0.3698], [0.0851, -0.4194], [0.1314, -0.3894], [0.184, -0.3786], [0.2432, -0.4118], [0.2528, -0.4368], [0.2685, -0.4162], [0.2954, -0.422], [0.3529, -0.3518], [0.3182, -0.2705], [0.2956, -0.2859], [0.2767, -0.2806], [0.2598, -0.19], [0.2376, -0.1617], [0.2385, -0.101], [0.402, 0.0053], [0.4355, 0.0483], [0.4676, 0.0289], [0.5752, 0.0943], [0.6128, 0.044], [0.6586, 0.0256], [0.6537, 0.0013], [0.6251, -0.0386], [0.6312, -0.0503], [0.671, -0.0222], [0.7827, -0.0258], [0.8037, -0.0849], [0.8576, -0.1088], [0.8479, -0.1455], [0.8849, -0.1899], [0.8721, -0.2455], [0.9103, -0.3621], [0.8786, -0.3805], [0.865, -0.4428], [0.7022, -0.561], [0.6684, -0.4776], [0.625, -0.4623], [0.6307, -0.4425], [0.6081, -0.4202], [0.5536, -0.4096], [0.5337, -0.4133], [0.5288, -0.4118]], "present": [-0.3000655764543035, -0.5370729665809365, -0.40336190980103515], "rmsKm": 277}}, "ev": {"meso": [["sa", -0.0558, 0.1858], ["sa", -0.0591, 0.1057], ["africa", 0.016, 0.1047], ["africa", 0.0616, 0.0339]], "glosso": [["sa", -0.0846, 0.2808], ["sa", -0.0445, 0.0157], ["africa", 0.2037, 0.0587], ["africa", 0.2723, 0.2456], ["ind", 0.7557, 0.1189], ["ind", 0.8021, 0.0393], ["ant", 0.5715, -0.3752], ["ant", 0.4494, -0.1592], ["aus", 0.8783, -0.6382], ["aus", 0.8444, -0.4815]], "glacier": [["sa", -0.0937, 0.2221], ["sa", -0.0898, 0.0152], ["africa", 0.1373, 0.0121], ["africa", 0.243, 0.1249], ["ind", 0.7345, 0.1318], ["aus", 0.9593, -0.4323], ["aus", 0.8131, -0.5431], ["ant", 0.4791, -0.0653], ["ant", 0.7068, -0.1926]], "mount": [["sa", -0.03, -0.0499], ["africa", 0.0728, -0.0627]]}, "ref": {"sa": [-0.141, 0.6364], "africa": [-0.0979, 0.5919]}};
+const RE = 6371, S = 235, OX = 466, OY = 293, AGE0 = 225;   // 화면: 1 단위 = 235 px
+const NAMES = { sa: '남아메리카', ind: '인도', ant: '남극', aus: '오스트레일리아', africa: '아프리카' };
+const COLORS = { africa: '#e3c58f', mad: '#e3c58f', sa: '#9ccf86', ind: '#e9a28a', ant: '#e6eef3', aus: '#d9b26f' };
+const MOV = ['sa', 'ind', 'ant', 'aus'];
+const $ = s => document.querySelector(s);
+let T = {}, fitted = {}, sel = null, age = null, playing = false;
+
+function reset() { MOV.forEach(k => { const p = D.pieces[k].present; T[k] = { x: p[0], y: p[1], th: p[2] }; fitted[k] = false; }); T.africa = T.mad = { x: 0, y: 0, th: 0 }; sel = null; age = null; playing = false; updateUI(); draw(); }
+const tf = (k, x, y) => { const t = T[k], c = Math.cos(t.th), s = Math.sin(t.th); return [c * x - s * y + t.x, s * x + c * y + t.y]; };
+const scr = ([x, y]) => [OX + x * S, OY - y * S];
+const cv = $('#cv'), c = cv.getContext('2d');
+(function () { const r = Math.min(2, devicePixelRatio || 1); cv.width = 920 * r; cv.height = 640 * r; c.setTransform(r, 0, 0, r, 0, 0); })();
+const glacierC = (() => { const g = D.ev.glacier; return [g.reduce((a, p) => a + p[1], 0) / g.length, g.reduce((a, p) => a + p[2], 0) / g.length]; })();
+
+function piecePath(k, tr) { c.beginPath(); D.pieces[k].pts.forEach((p, i) => { const q = scr(tr ? tf(k, p[0], p[1]) : p); i ? c.lineTo(q[0], q[1]) : c.moveTo(q[0], q[1]); }); c.closePath(); }
+function draw() {
+  c.clearRect(0, 0, 920, 640); c.fillStyle = '#9fcbe8'; c.fillRect(0, 0, 920, 640);
+  c.strokeStyle = 'rgba(255,255,255,.35)'; c.lineWidth = 1; for (let x = 0; x < 920; x += 46) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, 640); c.stroke(); } for (let y = 0; y < 640; y += 46) { c.beginPath(); c.moveTo(0, y); c.lineTo(920, y); c.stroke(); }
+  if ($('#eHint').checked) { c.setLineDash([5, 5]); c.strokeStyle = 'rgba(30,60,90,.6)'; c.lineWidth = 1.5; MOV.forEach(k => { if (!fitted[k]) { piecePath(k, false); c.stroke(); } }); c.setLineDash([]); }
+  ['ant', 'africa', 'mad', 'sa', 'ind', 'aus'].forEach(k => {
+    piecePath(k, true); c.fillStyle = COLORS[k]; c.fill(); c.lineWidth = sel === k ? 3 : 1.2; c.strokeStyle = sel === k ? '#d0402f' : (fitted[k] ? '#1f8a5b' : '#5a4a32'); c.stroke();
+  });
+  // 증거
+  const evOn = { fossil: $('#eFossil').checked, glacier: $('#eGlacier').checked, mount: $('#eMount').checked };
+  if (evOn.glacier) D.ev.glacier.forEach(([k, x, y]) => {
+    const [px, py] = scr(tf(k, x, y)); c.fillStyle = 'rgba(255,255,255,.75)'; c.beginPath(); c.arc(px, py, 13, 0, 7); c.fill();
+    const a = Math.atan2(y - glacierC[1], x - glacierC[0]) + T[k].th, L = 16, ex = px + Math.cos(a) * L, ey = py - Math.sin(a) * L;
+    c.strokeStyle = '#1d4f7a'; c.lineWidth = 2.4; c.beginPath(); c.moveTo(px - Math.cos(a) * L * .6, py + Math.sin(a) * L * .6); c.lineTo(ex, ey); c.stroke();
+    c.fillStyle = '#1d4f7a'; c.beginPath(); c.moveTo(ex + Math.cos(a) * 4, ey - Math.sin(a) * 4); c.lineTo(ex - Math.cos(a - .5) * 8, ey + Math.sin(a - .5) * 8); c.lineTo(ex - Math.cos(a + .5) * 8, ey + Math.sin(a + .5) * 8); c.fill();
+  });
+  if (evOn.mount) D.ev.mount.forEach(([k, x, y]) => { const [px, py] = scr(tf(k, x, y)); c.save(); c.translate(px, py); c.rotate(-T[k].th - 0.15); c.fillStyle = '#8a5a3c'; c.beginPath(); c.ellipse(0, 0, 26, 6, 0, 0, 7); c.fill(); c.restore(); });
+  if (evOn.fossil) { [['meso', '#ffd400', '#806a00'], ['glosso', '#52b043', '#2c6a24']].forEach(([key, f, s]) => D.ev[key].forEach(([k, x, y], i) => { const [px, py] = scr(tf(k, x, y)); c.fillStyle = f; c.strokeStyle = s; c.lineWidth = 1.5; c.beginPath(); c.arc(px + (key === 'meso' ? -3 : 3), py, 6, 0, 7); c.fill(); c.stroke(); })); }
+  // 이름
+  c.font = 'bold 14px sans-serif'; c.textAlign = 'center';
+  ['africa', ...MOV].forEach(k => { const pts = D.pieces[k].pts, cx = pts.reduce((a, p) => a + p[0], 0) / pts.length, cy = pts.reduce((a, p) => a + p[1], 0) / pts.length, [px, py] = scr(tf(k, cx, cy)); c.lineWidth = 3; c.strokeStyle = 'rgba(255,255,255,.9)'; c.strokeText(NAMES[k], px, py); c.fillStyle = '#2b2b2b'; c.fillText(NAMES[k] + (fitted[k] && age === null ? ' ✓' : ''), px, py); });
+  c.textAlign = 'left';
+  if (age !== null) { c.fillStyle = 'rgba(28,43,54,.85)'; c.fillRect(12, 12, 230, 34); c.fillStyle = '#fff'; c.font = 'bold 17px sans-serif'; c.fillText(ageText(age), 22, 35); }
+}
+function ageText(a) { if (a <= 0) return '현재'; const e = Math.floor(a / 100), m = Math.round(a % 100); return '약 ' + (e ? e + '억 ' : '') + (m ? (m >= 10 ? Math.floor(m / 10) + '천' + (m % 10 ? m % 10 + '백' : '') + '만 ' : m + '백만 ') : '') + '년 전'; }
+// 대서양 거리
+function gapKm() { const a = tf('sa', ...D.ref.sa), b = tf('africa', ...D.ref.africa); return Math.hypot(a[0] - b[0], a[1] - b[1]) * RE; }
+
+// 판게아 때와 현재의 거리(평균 빠르기 계산용)
+const GAP_0 = (() => { const a = D.ref.sa, b = D.ref.africa; return Math.hypot(a[0] - b[0], a[1] - b[1]) * RE; })();
+const GAP_NOW = (() => { const p = D.pieces.sa.present, c = Math.cos(p[2]), s = Math.sin(p[2]), [x, y] = D.ref.sa; return Math.hypot(c * x - s * y + p[0] - D.ref.africa[0], s * x + c * y + p[1] - D.ref.africa[1]) * RE; })();
+function updateUI() {
+  $('#st').innerHTML = MOV.map(k => `<li class="${fitted[k] ? 'ok' : ''}">${fitted[k] ? '✓' : '○'} ${NAMES[k]}${fitted[k] ? ' — 맞춤' : ''}</li>`).join('') + `<li>맞춘 대륙: <b>${MOV.filter(k => fitted[k]).length} / 4</b></li>`;
+  $('#selName').textContent = sel ? NAMES[sel] : '–';
+  const all = MOV.every(k => fitted[k]);
+  $('#age').disabled = $('#playBtn').disabled = !all;
+  $('#gap').innerHTML = Math.round(gapKm()).toLocaleString() + '<small>km</small>';
+  $('#spd').innerHTML = all ? ((GAP_NOW - GAP_0) * 1e5 / (AGE0 * 1e6)).toFixed(1) + '<small>cm/년</small>' : '–';   // km → cm: ×10⁵
+  $('#ageV').textContent = age === null ? '–' : ageText(age);
+}
+function trySnap(k) {
+  const t = T[k];
+  if (Math.abs(t.x) < 0.07 && Math.abs(t.y) < 0.07 && Math.abs(normAng(t.th)) < 0.13) {
+    T[k] = { x: 0, y: 0, th: 0 }; if (!fitted[k]) { fitted[k] = true; say(NAMES[k] + ' 맞춤! ' + (MOV.every(q => fitted[q]) ? '모든 대륙을 붙였어요. 증거를 켜서 이어지는지 보고, 시간 흐르기를 눌러 보세요.' : '증거 표시가 이어지는지 확인해 보세요.')); }
+  } else if (fitted[k]) fitted[k] = false;
+}
+const normAng = a => Math.atan2(Math.sin(a), Math.cos(a));
+function say(s) { $('#msg').textContent = s; }
+// 끌기
+function hit(px, py) {
+  for (const k of ['aus', 'ind', 'sa', 'ant']) {
+    const t = T[k], x = (px - OX) / S - t.x, y = (OY - py) / S - t.y, cs = Math.cos(-t.th), sn = Math.sin(-t.th), lx = cs * x - sn * y, ly = sn * x + cs * y;
+    const pts = D.pieces[k].pts; let inside = false;
+    for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, yi] = pts[i], [xj, yj] = pts[j]; if ((yi > ly) !== (yj > ly) && lx < (xj - xi) * (ly - yi) / (yj - yi) + xi) inside = !inside; }
+    if (inside) return k;
+  }
+  return null;
+}
+let drag = null;
+function pos(e) { const b = cv.getBoundingClientRect(); return [(e.clientX - b.left) * 920 / b.width, (e.clientY - b.top) * 640 / b.height]; }
+cv.addEventListener('pointerdown', e => { if (age !== null && age < AGE0) { say('시간 흐르기 중에는 대륙을 옮길 수 없어요. 처음 위치로 돌아가려면 ↺ 단추를 누르세요.'); return; } const [x, y] = pos(e), k = hit(x, y); sel = k; if (k) { drag = { k, x, y, tx: T[k].x, ty: T[k].y }; cv.setPointerCapture(e.pointerId); } updateUI(); draw(); });
+cv.addEventListener('pointermove', e => { if (!drag) return; const [x, y] = pos(e); T[drag.k].x = drag.tx + (x - drag.x) / S; T[drag.k].y = drag.ty - (y - drag.y) / S; draw(); });
+cv.addEventListener('pointerup', () => { if (!drag) return; trySnap(drag.k); drag = null; updateUI(); draw(); });
+function rotate(d) {
+  if (!sel) { say('먼저 돌릴 대륙을 눌러 고르세요.'); return; } if (age !== null && age < AGE0) return;
+  const t = T[sel], pts = D.pieces[sel].pts, cx = pts.reduce((a, p) => a + p[0], 0) / pts.length, cy = pts.reduce((a, p) => a + p[1], 0) / pts.length;
+  const before = tf(sel, cx, cy); t.th += d; const after = tf(sel, cx, cy); t.x += before[0] - after[0]; t.y += before[1] - after[1];   // 대륙 가운데를 축으로 돌린다
+  trySnap(sel); updateUI(); draw();
+}
+$('#rotL').addEventListener('click', () => rotate(5 * Math.PI / 180));
+$('#rotR').addEventListener('click', () => rotate(-5 * Math.PI / 180));
+['#eFossil', '#eGlacier', '#eMount', '#eHint'].forEach(id => $(id).addEventListener('change', draw));
+// 시간 흐르기: 판게아(나이 225) → 현재(0), 각 대륙의 위치를 고르게 바꾼다
+function setAge(a) {
+  age = a; const f = 1 - a / AGE0;
+  MOV.forEach(k => { const p = D.pieces[k].present; T[k] = { x: p[0] * f, y: p[1] * f, th: p[2] * f }; });
+  $('#age').value = a; updateUI(); draw();
+}
+$('#age').addEventListener('input', e => setAge(+e.target.value));
+$('#playBtn').addEventListener('click', () => {
+  if (playing) return; playing = true; let a = AGE0, last = performance.now();
+  const step = now => { a = Math.max(0, a - (now - last) / 1000 * 45); last = now; setAge(Math.round(a)); if (a > 0) requestAnimationFrame(step); else { playing = false; say('현재의 대륙 분포가 되었어요. 대서양이 어떻게 변했는지 거리를 확인해 보세요.'); } };
+  requestAnimationFrame(step);
+});
+$('#resetBtn').addEventListener('click', () => { reset(); say('대륙을 현재 위치로 돌렸어요.'); });
+reset();
+</script>
+</body>
+</html>

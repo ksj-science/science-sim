@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<!-- 단원ID: matter_prop · 물질의 특성(밀도·녹는점과 끓는점·용해도·순물질과 혼합물) · 정답은 화면에 넣지 않고 웹앱 문제 패널에서 서버 채점 -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>물질의 특성 실험실</title>
+<style>
+:root{
+  --bg:#0b1630; --panel:#112045; --panel2:#17295a; --line:#29407a;
+  --text:#e9effc; --muted:#a3b3d8; --accent:#5cc8ff; --warm:#ffb347; --red:#ff6b6b; --ok:#4fd18b; --blue:#4da3ff;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);
+  font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;}
+header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 16px;border-bottom:1px solid var(--line);
+  background:linear-gradient(90deg,#0d1b3d,#16306a);}
+header h1{font-size:20px;margin:0;letter-spacing:-0.5px}
+header h1 small{font-size:12.5px;color:var(--muted);font-weight:400;margin-left:6px}
+.tabs{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.tab{border:1px solid var(--line);background:var(--panel);color:var(--text);padding:7px 14px;border-radius:999px;cursor:pointer;font-size:14.5px;font-weight:600}
+.tab.on{background:var(--accent);color:#04203a;border-color:var(--accent)}
+.btn{border:1px solid var(--line);background:#1b3570;color:var(--text);padding:7px 11px;border-radius:9px;cursor:pointer;font-size:14px;font-weight:600;touch-action:manipulation}
+.btn:hover{filter:brightness(1.18)}
+.btn.on,.btn.primary{background:var(--accent);color:#04203a;border-color:var(--accent)}
+.btn.hot{background:#7a2a14;border-color:#b5482a;color:#ffe0d2}
+.btn.cold{background:#13506e;border-color:#2b7fa8;color:#d6f1ff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+main{padding:12px;max-width:1500px;margin:0 auto}
+.page{display:none;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.page.on{display:grid}
+@media (max-width:980px){.page.on{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.card.full{grid-column:1/-1}
+.card h2{font-size:15px;margin:0;padding:9px 13px;background:var(--panel2);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.card h2 .sub{font-weight:400;color:var(--muted);font-size:12.5px}
+canvas{display:block;width:100%;touch-action:none}
+.controls{padding:9px 13px;display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--line)}
+.row{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.row .lbl{font-size:13.5px;color:var(--muted);min-width:56px}
+.readout{display:flex;gap:8px;flex-wrap:wrap;padding:8px 13px;border-top:1px solid var(--line);font-size:14px}
+.pill{padding:5px 10px;border-radius:999px;background:#0a1734;border:1px solid var(--line)}
+.pill b{color:#fff;font-variant-numeric:tabular-nums}
+.note{font-size:12.5px;color:var(--muted);padding:7px 13px;border-top:1px solid var(--line);line-height:1.55}
+.note b{color:#d8e4ff}
+.guide{font-size:13px;color:#cfe0ff;padding:7px 13px;background:#0d1d42;border-bottom:1px solid var(--line);line-height:1.5}
+input[type=range]{accent-color:var(--accent);flex:1;min-width:140px;height:26px}
+input[type=number]{width:86px;background:#0a1734;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:6px;font-size:14px}
+table.t{width:calc(100% - 26px);margin:9px 13px;border-collapse:collapse;font-size:13.5px;font-variant-numeric:tabular-nums}
+table.t th,table.t td{border:1px solid var(--line);padding:6px 7px;text-align:center}
+table.t th{background:var(--panel2);font-weight:600}
+table.t td.h{background:#0d1d42;font-weight:600}
+table.t td.empty{color:#5d6f9c}
+.badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12.5px;font-weight:700}
+.s-solid{background:#3a4f86;color:#dfe8ff}
+.s-liquid{background:#1d6e9e;color:#e0f5ff}
+.s-gas{background:#8a5a12;color:#ffe9c2}
+.s-mix{background:#5b3d86;color:#f0e2ff}
+.legend{display:flex;gap:10px;flex-wrap:wrap;padding:6px 13px;font-size:12.5px;color:var(--muted)}
+.legend i{display:inline-block;width:14px;height:4px;border-radius:2px;margin-right:4px;vertical-align:middle}
+/* 분류 놀이 */
+.chips{display:flex;gap:7px;flex-wrap:wrap;padding:10px 13px;min-height:52px}
+.chip{border:1px solid var(--line);background:#1b3570;color:var(--text);padding:7px 12px;border-radius:999px;cursor:pointer;font-size:14px;user-select:none}
+.chip.sel{outline:3px solid var(--warm)}
+.chip.right{background:#145c3a;border-color:var(--ok)}
+.chip.wrong{background:#5c1b1b;border-color:#e05050}
+.bins{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 13px 10px}
+.bin{border:2px dashed var(--line);border-radius:12px;min-height:110px;cursor:pointer}
+.bin h3{margin:0;padding:6px 10px;font-size:14px;border-radius:10px 10px 0 0}
+.bin.pure h3{background:#2f6b2a}
+.bin.mix h3{background:#1c5f86}
+.bin .chips{min-height:60px}
+.bin.hint{border-color:var(--warm)}
+.msg{font-size:13.5px;padding:0 13px 10px;color:#ffe0a8;min-height:18px}
+</style>
+</head>
+<body>
+<header>
+  <h1>물질의 특성 실험실 <small>밀도 · 녹는점과 끓는점 · 용해도 · 순물질과 혼합물</small></h1>
+  <div class="tabs" id="tabs">
+    <button class="tab on" data-p="0">① 밀도</button>
+    <button class="tab" data-p="1">② 녹는점과 끓는점</button>
+    <button class="tab" data-p="2">③ 용해도</button>
+    <button class="tab" data-p="3">④ 순물질과 혼합물</button>
+  </div>
+  <button class="btn" id="resetBtn" title="지금 보고 있는 탭을 처음 상태로">↺ 초기화</button>
+</header>
+<main>
+<!-- ───────────── ① 밀도 ───────────── -->
+<section class="page on" id="p0">
+  <div class="card">
+    <h2>부피에 따른 고체의 질량 비교하기 <span class="sub">정육면체 조각을 눌러 저울에 올리고, 자로 한 모서리를 재 보자.</span></h2>
+    <canvas id="labCv"></canvas>
+    <div class="controls">
+      <div class="row">
+        <button class="btn" data-cube="0">큰 알루미늄 조각</button>
+        <button class="btn" data-cube="1">작은 알루미늄 조각</button>
+        <button class="btn" data-cube="2">큰 철 조각</button>
+        <button class="btn" data-cube="3">작은 철 조각</button>
+      </div>
+      <div class="row">
+        <button class="btn primary" id="rulerBtn">📏 자로 한 모서리 재기</button>
+        <button class="btn" id="offBtn">저울에서 내리기</button>
+      </div>
+    </div>
+    <table class="t" id="denTable">
+      <tr><th></th><th>큰 알루미늄 조각</th><th>작은 알루미늄 조각</th><th>큰 철 조각</th><th>작은 철 조각</th></tr>
+      <tr><td class="h">질량(g)</td><td></td><td></td><td></td><td></td></tr>
+      <tr><td class="h">한 모서리(cm)</td><td></td><td></td><td></td><td></td></tr>
+      <tr><td class="h">부피(cm³)</td><td></td><td></td><td></td><td></td></tr>
+      <tr><td class="h">1 cm³당 질량(g/cm³)</td><td></td><td></td><td></td><td></td></tr>
+    </table>
+    <div class="note">정육면체의 부피 = (한 모서리의 길이)³ · 밀도 = 질량 ÷ 부피 (단위: g/cm³, g/mL) · 1 mL = 1 cm³<br>
+      <b>모델의 한계</b> 조각은 완전한 정육면체, 속이 빈 곳 없음, 온도는 20 ℃로 일정하다고 본다. 저울은 0.01 g까지 표시한다.</div>
+  </div>
+  <div class="card">
+    <h2>뜨고 가라앉기 <span class="sub">물체를 넣어 어느 층에 머무르는지 관찰하자.</span></h2>
+    <canvas id="floatCv"></canvas>
+    <div class="controls">
+      <div class="row">
+        <button class="btn" data-obj="0">나무 조각</button>
+        <button class="btn" data-obj="1">플라스틱 조각</button>
+        <button class="btn" data-obj="2">고무 조각</button>
+        <button class="btn" data-obj="3">돌</button>
+        <button class="btn" data-obj="4">알루미늄 조각</button>
+      </div>
+      <div class="row"><button class="btn" id="floatClear">모두 꺼내기</button></div>
+    </div>
+    <div class="note">액체의 밀도(20 ℃): 식용유 0.92 g/mL, 물 1.00 g/mL, 글리세린 1.26 g/mL. 물체의 밀도는 표시하지 않았다. <b>머무르는 위치로 짐작해 보자.</b><br>
+      물질보다 밀도가 작은 액체에서는 가라앉고, 밀도가 큰 액체에서는 뜬다.<br>
+      <b>모델의 한계</b> 액체 층은 서로 섞이지 않고, 물체는 액체를 흡수하지 않는다고 본다.</div>
+  </div>
+</section>
+
+<!-- ───────────── ② 녹는점과 끓는점 ───────────── -->
+<section class="page" id="p1">
+  <div class="card">
+    <h2>고체의 녹는점 비교하기 <span class="sub">물중탕으로 가열하며 온도 센서 값을 기록한다.</span></h2>
+    <div class="guide">① 물질을 고르고 <b>가열 시작</b> → ② 온도가 일정한 구간을 찾자 → ③ 다 녹으면 <b>가열 끄기</b>로 식히며 어는점도 확인</div>
+    <canvas id="meltCv"></canvas>
+    <div class="controls">
+      <div class="row"><span class="lbl">물질</span>
+        <button class="btn on" data-sub="0">팔미트산 3 g</button>
+        <button class="btn" data-sub="1">팔미트산 5 g</button>
+        <button class="btn" data-sub="2">스테아르산 3 g</button>
+        <button class="btn" data-sub="3">스테아르산 5 g</button>
+      </div>
+      <div class="row">
+        <button class="btn hot" id="meltHeat">🔥 가열 시작</button>
+        <button class="btn cold" id="meltCool">❄ 가열 끄기(식히기)</button>
+        <button class="btn" id="meltPause">⏸ 일시정지</button>
+        <button class="btn" id="meltSpeed">속도 ×30</button>
+        <button class="btn" id="meltNew">새 실험(그래프 남기기)</button>
+      </div>
+    </div>
+    <div class="readout">
+      <span class="pill">시간 <b id="mTime">0:00</b></span>
+      <span class="pill">온도 센서 <b id="mTemp">25.0 ℃</b></span>
+      <span class="pill">물중탕 <b id="mBath">25.0 ℃</b></span>
+      <span class="pill">상태 <b id="mState">고체</b></span>
+    </div>
+  </div>
+  <div class="card">
+    <h2>시간에 따른 온도 변화 그래프 <span class="sub">그래프 위를 누르면 그 점의 시간·온도를 읽을 수 있다.</span></h2>
+    <canvas id="meltGraph"></canvas>
+    <div class="legend" id="meltLegend"></div>
+    <div class="note">상태가 변하는 동안(고체+액체)에는 가해 준 열이 상태 변화에 쓰여 온도가 일정하게 유지된다. 물질이 액체에서 고체로 변할 때의 온도(어는점)는 녹는점과 같다.<br>
+      <b>모델의 한계</b> 녹는점은 팔미트산 63 ℃, 스테아르산 69 ℃로 두었다(실제 시약은 순도에 따라 조금 다를 수 있다). 시험관 속 온도는 균일하고 과냉각은 일어나지 않는다고 본다.</div>
+  </div>
+  <div class="card full">
+    <h2>여러 가지 물질의 녹는점과 끓는점 (1 기압) <span class="sub">온도를 바꾸며 각 물질의 상태를 확인하자.</span></h2>
+    <div class="controls" style="border-top:none">
+      <div class="row"><span class="lbl">온도</span>
+        <button class="btn" data-dt="-100">−100</button><button class="btn" data-dt="-10">−10</button><button class="btn" data-dt="-1">−1</button>
+        <input type="number" id="stT" value="25" min="-273" max="2700" step="1"> <span>℃</span>
+        <button class="btn" data-dt="1">+1</button><button class="btn" data-dt="10">+10</button><button class="btn" data-dt="100">+100</button>
+      </div>
+      <div class="row"><input type="range" id="stR" min="-273" max="2700" step="1" value="25"></div>
+    </div>
+    <table class="t" id="stTable"></table>
+    <div class="note">자료 출처: CRC Handbook of Chemistry and Physics(교과서 그림 Ⅰ-5와 같은 값). 녹는점이 끓는점보다 높은 칸은 없다.</div>
+  </div>
+</section>
+
+<!-- ───────────── ③ 용해도 ───────────── -->
+<section class="page" id="p2">
+  <div class="card">
+    <h2>용질의 녹는 양 비교하기 <span class="sub">물 10 mL(10 g)가 든 시험관 3개에 용질 3 g, 5 g, 7 g</span></h2>
+    <div class="guide">① 용질 선택 → ② <b>가열하기</b>로 모두 녹인다 → ③ <b>식히기</b> → ④ 시험관에 고체(결정)가 생기기 시작할 때 <b>기록</b> 버튼</div>
+    <canvas id="solCv"></canvas>
+    <div class="controls">
+      <div class="row"><span class="lbl">용질</span>
+        <button class="btn on" data-solute="kno3">질산 칼륨</button>
+        <button class="btn" data-solute="cuso4">황산 구리(Ⅱ)</button>
+      </div>
+      <div class="row">
+        <button class="btn hot" id="solHeat">🔥 가열하기</button>
+        <button class="btn" id="solRoom">실온(20 ℃)에서 식히기</button>
+        <button class="btn cold" id="solIce">❄ 얼음물로 식히기</button>
+        <button class="btn" id="solPause">⏸ 일시정지</button>
+        <button class="btn" id="solSpeed">속도 ×20</button>
+      </div>
+      <div class="row"><span class="lbl">기록</span>
+        <button class="btn primary" data-rec="0">3 g 시험관 온도 기록</button>
+        <button class="btn primary" data-rec="1">5 g 시험관 온도 기록</button>
+        <button class="btn primary" data-rec="2">7 g 시험관 온도 기록</button>
+      </div>
+    </div>
+    <div class="readout">
+      <span class="pill">시간 <b id="sTime">0:00</b></span>
+      <span class="pill">디지털 온도계 <b id="sTemp">20.0 ℃</b></span>
+    </div>
+    <table class="t" id="solTable">
+      <tr><th rowspan="2">용질의 질량(g)</th><th colspan="2">고체가 생기기 시작한 온도(℃)</th></tr>
+      <tr><th>질산 칼륨</th><th>황산 구리(Ⅱ)</th></tr>
+      <tr><td class="h">3</td><td></td><td></td></tr>
+      <tr><td class="h">5</td><td></td><td></td></tr>
+      <tr><td class="h">7</td><td></td><td></td></tr>
+    </table>
+    <div class="note"><b>모델의 한계</b> 용해도 곡선(CRC 자료)을 따라 녹고 석출되며 과포화는 일어나지 않는다고 본다. 황산 구리(Ⅱ)는 물이 붙지 않은 형태로 계산하였다. 물의 증발은 무시한다.</div>
+  </div>
+  <div class="card">
+    <h2>용해도 곡선 (물 100 g) <span class="sub">온도를 바꾸며 용해도를 읽어 보자. ● 내 실험 결과</span></h2>
+    <canvas id="curveCv"></canvas>
+    <div class="controls">
+      <div class="row"><span class="lbl">온도</span><input type="range" id="curveT" min="0" max="100" step="1" value="20"><b id="curveTv" style="min-width:52px">20 ℃</b></div>
+    </div>
+    <div class="readout" id="curveRead"></div>
+    <div class="note">용해도: 어떤 온도에서 용매 100 g에 최대로 녹을 수 있는 용질의 질량(g). 물 10 g에 녹인 결과는 10배 하면 물 100 g 기준이 된다.</div>
+    <h2 style="border-top:1px solid var(--line)">기체의 용해도 <span class="sub">탄산음료에서 나오는 기포의 양</span></h2>
+    <canvas id="gasCv"></canvas>
+    <div class="controls">
+      <div class="row"><span class="lbl">온도</span><input type="range" id="gasT" min="5" max="50" step="1" value="10"><b id="gasTv" style="min-width:52px">10 ℃</b></div>
+      <div class="row"><span class="lbl">압력</span>
+        <button class="btn on" data-gp="closed">뚜껑 닫음</button>
+        <button class="btn" data-gp="open">뚜껑 엶</button>
+        <button class="btn" data-gp="vac">감압 용기(공기 빼기)</button>
+      </div>
+    </div>
+    <div class="note">기체의 용해도는 온도가 높을수록, 압력이 낮을수록 작아진다. 녹아 있던 기체 중 더 이상 녹아 있을 수 없는 만큼이 기포로 나온다.<br><b>모델의 한계</b> 기포 발생 정도는 비교용 상대값이다.</div>
+  </div>
+</section>
+
+<!-- ───────────── ④ 순물질과 혼합물 ───────────── -->
+<section class="page" id="p3">
+  <div class="card">
+    <h2>소금물의 밀도와 달걀 <span class="sub">물 400 g에 소금을 녹여 보자.</span></h2>
+    <canvas id="eggCv"></canvas>
+    <div class="controls">
+      <div class="row"><span class="lbl">소금</span><input type="range" id="saltR" min="0" max="80" step="1" value="0"><b id="saltV" style="min-width:52px">0 g</b></div>
+      <div class="row">
+        <button class="btn" data-salt="-5">−5 g</button><button class="btn" data-salt="-1">−1 g</button>
+        <button class="btn" data-salt="1">+1 g</button><button class="btn" data-salt="5">+5 g</button>
+        <button class="btn" id="saltZero">맹물로</button>
+      </div>
+    </div>
+    <div class="readout">
+      <span class="pill">소금물 질량 <b id="eM">400 g</b></span>
+      <span class="pill">부피 <b id="eV">400.8 mL</b></span>
+      <span class="pill">밀도 <b id="eD">1.00 g/mL</b></span>
+      <span class="pill">달걀 <b id="eS">가라앉음</b></span>
+    </div>
+    <div class="note">순물질은 밀도가 일정하지만, 혼합물은 성분 물질의 혼합 비율에 따라 밀도가 달라진다.<br>
+      <b>모델의 한계</b> 20 ℃ 소금물 밀도 ≈ 0.998 + 0.71 × (소금 질량 ÷ 소금물 질량), 달걀의 밀도는 1.03 g/cm³로 일정하다고 본다.</div>
+  </div>
+  <div class="card">
+    <h2>물과 소금물의 가열 곡선·냉각 곡선 <span class="sub">빨간 선: 물(순물질) · 파란 선: 소금물(혼합물)</span></h2>
+    <canvas id="bpCv"></canvas>
+    <div class="controls">
+      <div class="row"><span class="lbl">소금물</span>물 100 g에 소금 <input type="range" id="bpSalt" min="2" max="30" step="1" value="10"><b id="bpSaltV" style="min-width:40px">10 g</b></div>
+      <div class="row">
+        <button class="btn hot" id="bpHeat">🔥 가열 곡선 그리기</button>
+        <button class="btn cold" id="bpCool">❄ 냉각 곡선 그리기</button>
+        <button class="btn" id="bpPause">⏸ 일시정지</button>
+      </div>
+    </div>
+    <div class="readout">
+      <span class="pill">시간 <b id="bTime">0:00</b></span>
+      <span class="pill" style="border-color:#ff6b6b">물 <b id="bW">20.0 ℃</b></span>
+      <span class="pill" style="border-color:#4da3ff">소금물 <b id="bS">20.0 ℃</b></span>
+      <span class="pill">남은 물(소금물 속) <b id="bLeft">100 g</b></span>
+    </div>
+    <div class="note">소금물은 물보다 높은 온도에서 끓기 시작하고, 끓는 동안 물만 증발해 소금물이 진해지므로 온도가 계속 높아진다. 냉각할 때는 물보다 낮은 온도에서 얼기 시작하고, 어는 동안 온도가 계속 낮아진다.<br>
+      <b>모델의 한계</b> 가열 장치는 200 W로 일정, 냉각은 −20 ℃ 냉동실에 둔 것으로 보았다. 끓는점 오름·어는점 내림은 묽은 용액 식으로 계산한 근삿값이다.</div>
+  </div>
+  <div class="card full">
+    <h2>순물질과 혼합물로 분류하기 <span class="sub">물질 이름을 누른 뒤 상자를 누르면 옮겨진다.</span></h2>
+    <div class="chips" id="pool"></div>
+    <div class="bins">
+      <div class="bin pure" data-bin="pure"><h3>순물질 — 한 가지 물질로만 이루어진 것</h3><div class="chips"></div></div>
+      <div class="bin mix" data-bin="mix"><h3>혼합물 — 두 가지 이상의 순물질이 섞여 있는 것</h3><div class="chips"></div></div>
+    </div>
+    <div class="row" style="padding:0 13px 8px"><button class="btn primary" id="clsCheck">확인해 보기</button><button class="btn" id="clsReset">다시 하기</button></div>
+    <div class="msg" id="clsMsg"></div>
+  </div>
+</section>
+</main>
+
+<script>
+/* ===================== 공통 ===================== */
+'use strict';
+const DPR = Math.min(window.devicePixelRatio || 1, 2);
+function setupCanvas(cv, w, h) {
+  cv.width = Math.round(w * DPR); cv.height = Math.round(h * DPR);
+  cv.style.aspectRatio = w + ' / ' + h;
+  const ctx = cv.getContext('2d'); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  cv._w = w; cv._h = h; return ctx;
+}
+function evPos(cv, e) {
+  const r = cv.getBoundingClientRect();
+  return { x: (e.clientX - r.left) * cv._w / r.width, y: (e.clientY - r.top) * cv._h / r.height };
+}
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const fmt = (v, d) => (Math.round(v * Math.pow(10, d)) / Math.pow(10, d)).toFixed(d);
+const mmss = s => Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+function rr(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y, w, h, r) : ctx.rect(x, y, w, h); }
+function txt(ctx, s, x, y, o) {
+  o = o || {}; ctx.font = (o.bold ? '700 ' : '') + (o.size || 13) + 'px "Pretendard","Malgun Gothic",sans-serif';
+  ctx.fillStyle = o.color || '#e9effc'; ctx.textAlign = o.align || 'left'; ctx.textBaseline = o.base || 'middle';
+  ctx.fillText(s, x, y);
+}
+function setOn(btns, el) { btns.forEach(b => b.classList.toggle('on', b === el)); }
+/** 그래프 축 그리기: box={x,y,w,h}, 눈금 배열, 축 이름 */
+function drawAxes(ctx, b, xr, yr, xt, yt, xl, yl) {
+  ctx.fillStyle = '#0a1734'; ctx.fillRect(b.x, b.y, b.w, b.h);
+  ctx.strokeStyle = '#1f3368'; ctx.lineWidth = 1;
+  xt.forEach(v => { const X = b.x + (v - xr[0]) / (xr[1] - xr[0]) * b.w; ctx.beginPath(); ctx.moveTo(X, b.y); ctx.lineTo(X, b.y + b.h); ctx.stroke(); txt(ctx, String(v), X, b.y + b.h + 12, { align: 'center', size: 12, color: '#a3b3d8' }); });
+  yt.forEach(v => { const Y = b.y + b.h - (v - yr[0]) / (yr[1] - yr[0]) * b.h; ctx.beginPath(); ctx.moveTo(b.x, Y); ctx.lineTo(b.x + b.w, Y); ctx.stroke(); txt(ctx, String(v), b.x - 6, Y, { align: 'right', size: 12, color: '#a3b3d8' }); });
+  ctx.strokeStyle = '#8ea3d4'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(b.x, b.y + b.h); ctx.lineTo(b.x + b.w, b.y + b.h); ctx.stroke();
+  txt(ctx, xl, b.x + b.w, b.y + b.h + 28, { align: 'right', size: 12.5, color: '#cfe0ff' });
+  txt(ctx, yl, b.x - 2, b.y - 12, { align: 'left', size: 12.5, color: '#cfe0ff' });
+}
+function mapper(b, xr, yr) {
+  return { X: v => b.x + (v - xr[0]) / (xr[1] - xr[0]) * b.w, Y: v => b.y + b.h - (v - yr[0]) / (yr[1] - yr[0]) * b.h };
+}
+
+let current = 0;
+$$('#tabs .tab').forEach(t => t.onclick = () => {
+  current = +t.dataset.p; setOn($$('#tabs .tab'), t);
+  $$('.page').forEach((p, i) => p.classList.toggle('on', i === current));
+  drawAll();
+});
+$('#resetBtn').onclick = () => { [resetDensity, resetMelt, resetSol, resetMix][current](); drawAll(); };
+
+/* ===================== ① 밀도 ===================== */
+// 밀도(20 ℃, g/cm³): 알루미늄 2.70, 철 7.87 (CRC)
+const RHO = { al: 2.70, fe: 7.87 };
+const CUBES = [
+  { name: '큰 알루미늄 조각', mat: 'al', edge: 3.0 },
+  { name: '작은 알루미늄 조각', mat: 'al', edge: 2.0 },
+  { name: '큰 철 조각', mat: 'fe', edge: 2.5 },
+  { name: '작은 철 조각', mat: 'fe', edge: 1.5 },
+];
+const PX_CM = 28;              // 화면에서 1 cm = 28 px
+const labCv = $('#labCv'), labCtx = setupCanvas(labCv, 760, 360);
+const den = { onPan: -1, anim: 0, settle: 0, ruler: false, rec: [] };
+function cubeHome(i) { return { x: 28 + i * 106, y: 300 }; }   // 바닥 왼쪽 위치(x), 바닥 높이(y)
+const PAN = { x: 585, y: 222 };
+function resetDensity() {
+  den.onPan = -1; den.anim = 0; den.settle = 0; den.ruler = false;
+  den.rec = CUBES.map(() => ({ m: null, e: null }));
+  fillDenTable();
+}
+function cubeMass(c) { return RHO[c.mat] * Math.pow(c.edge, 3); }
+function putOnPan(i) {
+  if (den.onPan === i) return;
+  den.onPan = i; den.anim = 0; den.settle = 0; den.ruler = false;
+}
+function fillDenTable() {
+  const rows = $('#denTable').rows;
+  den.rec.forEach((r, i) => {
+    const m = r.m, e = r.e, c = i + 1;
+    const set = (row, v) => { const td = rows[row].cells[c]; td.textContent = v == null ? '' : v; };
+    set(1, m == null ? null : fmt(m, 2));
+    set(2, e == null ? null : fmt(e, 1));
+    set(3, e == null ? null : fmt(Math.pow(e, 3), 3).replace(/\.?0+$/, ''));
+    set(4, (m == null || e == null) ? null : fmt(m / Math.pow(e, 3), 2));
+  });
+}
+function drawLab() {
+  const c = labCtx, W = 760, H = 360;
+  c.clearRect(0, 0, W, H);
+  const g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#dfe7f2'); g.addColorStop(1, '#c4cfdf');
+  c.fillStyle = g; c.fillRect(0, 0, W, H);
+  c.fillStyle = '#b3bfd1'; c.fillRect(0, 300, W, 60);
+  // 전자저울
+  rr(c, 455, 236, 260, 92, 14); c.fillStyle = '#f4f6fa'; c.fill(); c.strokeStyle = '#9aa7bb'; c.lineWidth = 2; c.stroke();
+  c.fillStyle = '#c9d2df'; c.beginPath(); c.ellipse(PAN.x, PAN.y + 10, 95, 16, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#e6ebf2'; c.beginPath(); c.ellipse(PAN.x, PAN.y + 6, 92, 14, 0, 0, Math.PI * 2); c.fill(); c.strokeStyle = '#9aa7bb'; c.stroke();
+  rr(c, 475, 258, 220, 56, 8); c.fillStyle = '#2b5fae'; c.fill();
+  rr(c, 490, 266, 130, 40, 5); c.fillStyle = '#c9e7c3'; c.fill();
+  let shown = 0;
+  if (den.onPan >= 0 && den.anim >= 1) {
+    const m = cubeMass(CUBES[den.onPan]);
+    shown = den.settle >= 1 ? m : m * (0.6 + 0.4 * den.settle) + Math.sin(den.settle * 20) * 0.3;
+  }
+  txt(c, fmt(Math.max(0, shown), 2), 612, 287, { align: 'right', size: 26, bold: true, color: '#1d3a1d' });
+  txt(c, 'g', 640, 287, { size: 16, bold: true, color: '#fff' });
+  if (den.onPan >= 0 && den.settle >= 1) txt(c, '● 안정', 660, 270, { size: 11, color: '#c9ffcf' });
+  txt(c, '전자저울', 585, 336, { align: 'center', size: 12, color: '#4a5870' });
+  // 조각들
+  CUBES.forEach((cb, i) => {
+    const s = cb.edge * PX_CM, home = cubeHome(i);
+    let x = home.x + (80 - s) / 2, y = home.y - s;
+    if (den.onPan === i) {
+      const tx = PAN.x - s / 2, ty = PAN.y + 2 - s, t = den.anim, e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+      x = x + (tx - x) * e; y = y + (ty - y) * e - Math.sin(Math.PI * t) * 60;
+    }
+    drawCube(c, x, y, s, cb.mat);
+    if (den.onPan !== i) txt(c, cb.name, home.x + 40, 318, { align: 'center', size: 11, color: '#33415a', bold: true });
+    cb._hit = { x: x, y: y - s * 0.3, w: s * 1.3, h: s * 1.3 };
+  });
+  // 자
+  if (den.ruler && den.onPan >= 0 && den.anim >= 1) {
+    const cb = CUBES[den.onPan], s = cb.edge * PX_CM, x0 = PAN.x - s / 2, yb = PAN.y + 2;
+    const rx = x0 - 6, len = 4 * PX_CM + 10;
+    c.save(); c.fillStyle = 'rgba(255,236,150,.95)'; c.strokeStyle = '#a88b2a'; c.lineWidth = 1;
+    rr(c, rx, yb + 4, len + 6, 26, 3); c.fill(); c.stroke();
+    for (let k = 0; k <= 40; k++) {
+      const X = x0 + k * PX_CM / 10; if (X > rx + len) break;
+      const hh = k % 10 === 0 ? 12 : (k % 5 === 0 ? 8 : 5);
+      c.beginPath(); c.moveTo(X, yb + 4); c.lineTo(X, yb + 4 + hh); c.strokeStyle = '#5a4a10'; c.stroke();
+      if (k % 10 === 0) txt(c, String(k / 10), X, yb + 23, { align: 'center', size: 10, color: '#5a4a10' });
+    }
+    c.restore();
+    c.strokeStyle = '#ff4d4d'; c.lineWidth = 2; c.setLineDash([4, 3]);
+    c.beginPath(); c.moveTo(x0, yb - s - 6); c.lineTo(x0, yb + 6); c.moveTo(x0 + s, yb - s - 6); c.lineTo(x0 + s, yb + 6); c.stroke(); c.setLineDash([]);
+    rr(c, PAN.x - 70, 40, 140, 30, 8); c.fillStyle = 'rgba(17,32,69,.92)'; c.fill();
+    txt(c, '한 모서리 ' + fmt(cb.edge, 1) + ' cm', PAN.x, 55, { align: 'center', size: 15, bold: true });
+  }
+  if (den.onPan < 0) txt(c, '조각을 눌러 저울에 올려 보자', 585, 150, { align: 'center', size: 15, color: '#33415a', bold: true });
+}
+function drawCube(c, x, y, s, mat) {
+  const d = s * 0.28, top = mat === 'al' ? '#eef2f7' : '#9aa1ab', front = mat === 'al' ? '#cfd7e2' : '#7a818b', side = mat === 'al' ? '#aeb8c6' : '#5d636c';
+  c.fillStyle = front; c.fillRect(x, y, s, s);
+  c.fillStyle = top; c.beginPath(); c.moveTo(x, y); c.lineTo(x + d, y - d); c.lineTo(x + s + d, y - d); c.lineTo(x + s, y); c.closePath(); c.fill();
+  c.fillStyle = side; c.beginPath(); c.moveTo(x + s, y); c.lineTo(x + s + d, y - d); c.lineTo(x + s + d, y + s - d); c.lineTo(x + s, y + s); c.closePath(); c.fill();
+  c.strokeStyle = 'rgba(0,0,0,.35)'; c.lineWidth = 1; c.strokeRect(x, y, s, s);
+}
+function stepDensity(dt) {
+  let dirty = false;
+  if (den.onPan >= 0 && den.anim < 1) { den.anim = Math.min(1, den.anim + dt / 0.7); dirty = true; }
+  else if (den.onPan >= 0 && den.settle < 1) {
+    den.settle = Math.min(1, den.settle + dt / 0.8); dirty = true;
+    if (den.settle >= 1) { den.rec[den.onPan].m = cubeMass(CUBES[den.onPan]); fillDenTable(); }
+  }
+  return dirty;
+}
+$$('[data-cube]').forEach(b => b.onclick = () => { putOnPan(+b.dataset.cube); drawLab(); });
+$('#offBtn').onclick = () => { den.onPan = -1; den.ruler = false; drawLab(); };
+$('#rulerBtn').onclick = () => {
+  if (den.onPan < 0) { alert('먼저 조각을 저울에 올려 주세요.'); return; }
+  den.ruler = true; den.rec[den.onPan].e = CUBES[den.onPan].edge; fillDenTable(); drawLab();
+};
+labCv.addEventListener('pointerdown', e => {
+  const p = evPos(labCv, e);
+  CUBES.forEach((cb, i) => { const h = cb._hit; if (h && p.x >= h.x && p.x <= h.x + h.w && p.y >= h.y && p.y <= h.y + h.h) putOnPan(i); });
+});
+
+/* ── 뜨고 가라앉기: 층마다 밀도가 다른 액체 속 물체의 평형 위치 ── */
+const LAYERS = [ // 위에서부터, 밀도 g/mL
+  { name: '식용유', rho: 0.92, color: 'rgba(244,206,96,.75)' },
+  { name: '물', rho: 1.00, color: 'rgba(120,190,240,.55)' },
+  { name: '글리세린', rho: 1.26, color: 'rgba(200,230,215,.75)' },
+];
+const OBJS = [ // 밀도(g/cm³): 나무 0.60, 플라스틱(PP 계열) 0.95, 고무 1.15, 돌 2.60, 알루미늄 2.70
+  { name: '나무', rho: 0.60, w: 46, h: 30, color: '#c98b4b' },
+  { name: '플라스틱', rho: 0.95, w: 38, h: 26, color: '#e2463b' },
+  { name: '고무', rho: 1.15, w: 34, h: 26, color: '#3d3d46' },
+  { name: '돌', rho: 2.60, w: 40, h: 30, color: '#8d8478' },
+  { name: '알루미늄', rho: 2.70, w: 30, h: 30, color: '#cfd7e2' },
+];
+const floatCv = $('#floatCv'), floatCtx = setupCanvas(floatCv, 640, 400);
+const GL = { x: 190, w: 250, top: 110, bottom: 380 };   // 액체 표면 top, 바닥 bottom
+const LH = (GL.bottom - GL.top) / 3;
+const fl = { items: [] };
+function resetFloat() { fl.items = []; }
+// 물체 위쪽이 표면 아래 y(px)일 때 물체가 밀어낸 액체의 '밀도×길이' 적분
+function displaced(y, h) {
+  let sum = 0;
+  for (let k = 0; k < 3; k++) {
+    const a = Math.max(y, k * LH), b = Math.min(y + h, (k + 1) * LH);
+    if (b > a) sum += LAYERS[k].rho * (b - a);
+  }
+  return sum;
+}
+function eqTop(o) {
+  const H = GL.bottom - GL.top, maxY = H - o.h;
+  if (displaced(maxY, o.h) < o.rho * o.h) return maxY;       // 끝까지 가라앉아 바닥에 닿음
+  let lo = -o.h, hi = maxY;
+  for (let i = 0; i < 40; i++) { const m = (lo + hi) / 2; if (displaced(m, o.h) < o.rho * o.h) lo = m; else hi = m; }
+  return (lo + hi) / 2;
+}
+function toggleObj(i) {
+  const k = fl.items.findIndex(it => it.i === i);
+  if (k >= 0) { fl.items.splice(k, 1); return; }
+  const o = OBJS[i];
+  fl.items.push({ i: i, y: -120, v: 0, target: eqTop(o) });
+}
+function stepFloat(dt) {
+  let dirty = false;
+  fl.items.forEach(it => {
+    const d = it.target - it.y;
+    if (Math.abs(d) > 0.3 || Math.abs(it.v) > 0.5) {
+      const inLiquid = it.y > -OBJS[it.i].h;
+      it.v += (inLiquid ? d * 6 : 600) * dt; it.v *= inLiquid ? Math.pow(0.04, dt) : 1;
+      it.y += it.v * dt; if (it.y > it.target && !inLiquid) it.y = Math.min(it.y, it.target);
+      dirty = true;
+    } else { it.y = it.target; it.v = 0; }
+  });
+  return dirty;
+}
+function drawFloat() {
+  const c = floatCtx; c.clearRect(0, 0, 640, 400);
+  c.fillStyle = '#e4ebf5'; c.fillRect(0, 0, 640, 400);
+  LAYERS.forEach((L, k) => {
+    c.fillStyle = L.color; c.fillRect(GL.x, GL.top + k * LH, GL.w, LH);
+    txt(c, L.name + ' ' + L.rho.toFixed(2) + ' g/mL', GL.x + GL.w + 10, GL.top + k * LH + LH / 2, { size: 11.5, color: '#33415a', bold: true });
+  });
+  // 물체
+  const slot = [0, 1, 2, 3, 4];
+  fl.items.forEach(it => {
+    const o = OBJS[it.i], cx = GL.x + 28 + slot.indexOf(it.i) * 48, y = GL.top + it.y;
+    c.fillStyle = o.color; rr(c, cx - o.w / 2, y, o.w, o.h, it.i === 3 ? 10 : 4); c.fill();
+    c.strokeStyle = 'rgba(0,0,0,.35)'; c.stroke();
+    txt(c, o.name, cx, y - 9, { align: 'center', size: 11, bold: true, color: '#1d2840' });
+  });
+  // 유리컵
+  c.strokeStyle = '#7f8ea8'; c.lineWidth = 4; c.beginPath();
+  c.moveTo(GL.x - 4, 30); c.lineTo(GL.x - 4, GL.bottom + 4); c.lineTo(GL.x + GL.w + 4, GL.bottom + 4); c.lineTo(GL.x + GL.w + 4, 30); c.stroke();
+  c.strokeStyle = 'rgba(255,255,255,.6)'; c.lineWidth = 3; c.beginPath(); c.moveTo(GL.x + 10, 60); c.lineTo(GL.x + 10, GL.bottom - 20); c.stroke();
+  if (!fl.items.length) txt(c, '아래 버튼으로 물체를 넣어 보자', GL.x + GL.w / 2, 70, { align: 'center', size: 14, bold: true, color: '#33415a' });
+}
+$$('[data-obj]').forEach(b => b.onclick = () => { toggleObj(+b.dataset.obj); b.classList.toggle('on', fl.items.some(it => it.i === +b.dataset.obj)); });
+$('#floatClear').onclick = () => { resetFloat(); $$('[data-obj]').forEach(b => b.classList.remove('on')); drawFloat(); };
+
+/* ===================== ② 녹는점과 끓는점 ===================== */
+// 물중탕 가열 모델(엔탈피 방법). 시료 m g, 비열(고체 1.8 / 액체 2.3 J/(g·℃)), 융해열 200 J/g
+// 물중탕 → 시료 열 흐름 P = k·(T물중탕 − T시료), k = 0.2 W/℃
+const SUBS = [
+  { name: '팔미트산 3 g', mp: 63, m: 3, color: '#ff8a5c' },
+  { name: '팔미트산 5 g', mp: 63, m: 5, color: '#ffd166' },
+  { name: '스테아르산 3 g', mp: 69, m: 3, color: '#7bdff2' },
+  { name: '스테아르산 5 g', mp: 69, m: 5, color: '#b388ff' },
+];
+const CS = 1.8, CL = 2.3, LF = 200, KH = 0.2, T0 = 25, TMAX = 25 * 60;
+const meltCv = $('#meltCv'), meltCtx = setupCanvas(meltCv, 620, 380);
+const meltG = $('#meltGraph'), meltGCtx = setupCanvas(meltG, 640, 400);
+const mt = {};
+function resetMelt(keep) {
+  Object.assign(mt, { sub: mt.sub || 0, t: 0, Tb: T0, H: null, heater: false, cooling: false, paused: false, data: [], running: false, nextRec: 0, noise: 0 });
+  if (!keep) mt.saved = [];
+  mt.speed = mt.speed || 30; mt.pick = null;
+  mt.H = enthalpyFromT(T0, SUBS[mt.sub]);
+  $('#meltPause').textContent = '⏸ 일시정지';
+}
+function enthalpyFromT(T, s) { return T < s.mp ? s.m * CS * (T - s.mp) : s.m * LF + s.m * CL * (T - s.mp); }
+function sampleState(H, s) {
+  if (H < 0) return { T: s.mp + H / (s.m * CS), f: 0 };
+  if (H <= s.m * LF) return { T: s.mp, f: H / (s.m * LF) };
+  return { T: s.mp + (H - s.m * LF) / (s.m * CL), f: 1 };
+}
+function stepMelt(dtReal) {
+  if (!mt.running || mt.paused) return false;
+  let simDt = dtReal * mt.speed; const s = SUBS[mt.sub];
+  while (simDt > 0 && mt.t < TMAX) {
+    const h = Math.min(0.5, simDt); simDt -= h;
+    if (mt.heater) mt.Tb = Math.min(85, mt.Tb + 4 / 60 * h);            // 가열판: 분당 4 ℃, 85 ℃에서 유지
+    else mt.Tb += (T0 - mt.Tb) * h / 600;                                  // 끄면 실온으로 식음(시간 상수 10분)
+    const st = sampleState(mt.H, s);
+    mt.H += KH * (mt.Tb - st.T) * h;
+    mt.t += h;
+    if (mt.t >= mt.nextRec) {                                               // 센서: 5초마다 기록
+      mt.noise = mt.noise * 0.6 + (Math.random() - 0.5) * 0.08;
+      mt.data.push([mt.t, sampleState(mt.H, s).T + mt.noise]); mt.nextRec += 5;
+    }
+  }
+  if (mt.t >= TMAX) { mt.running = false; }
+  return true;
+}
+function meltReadout() {
+  const s = SUBS[mt.sub], st = sampleState(mt.H, s), last = mt.data.length ? mt.data[mt.data.length - 1][1] : st.T;
+  $('#mTime').textContent = mmss(mt.t);
+  $('#mTemp').textContent = fmt(last, 1) + ' ℃';
+  $('#mBath').textContent = fmt(mt.Tb, 1) + ' ℃';
+  $('#mState').textContent = st.f <= 0 ? '고체' : st.f >= 1 ? '액체' : '고체 + 액체';
+}
+function drawMeltApp() {
+  const c = meltCtx, W = 620, H = 380, s = SUBS[mt.sub], st = sampleState(mt.H, s);
+  c.setTransform(DPR, 0, 0, DPR, 0, 0); c.clearRect(0, 0, W, H);
+  c.fillStyle = '#dfe6f0'; c.fillRect(0, 0, W, H);
+  c.fillStyle = '#b8c3d4'; c.fillRect(0, 340, W, 40);
+  c.translate(80, 0);
+  // 스탠드
+  c.fillStyle = '#3a3f48'; c.fillRect(40, 330, 140, 12); c.fillRect(72, 30, 8, 302);
+  c.fillRect(76, 70, 150, 6); c.fillRect(76, 170, 135, 6);
+  // 가열판
+  rr(c, 160, 290, 200, 50, 8); c.fillStyle = '#eef1f5'; c.fill(); c.strokeStyle = '#9aa7bb'; c.stroke();
+  c.fillStyle = mt.heater ? '#ff5a3c' : '#7a8496'; c.beginPath(); c.arc(330, 315, 6, 0, 7); c.fill();
+  txt(c, mt.heater ? '가열 중' : '꺼짐', 300, 315, { align: 'right', size: 11, color: mt.heater ? '#c0311a' : '#55627a', bold: true });
+  // 비커(물중탕)
+  const bx = 190, bw = 140, btop = 160, bb = 288;
+  const wc = mt.Tb, warm = clamp((wc - 25) / 60, 0, 1);
+  c.fillStyle = `rgba(${150 + 90 * warm},${200 - 60 * warm},${240 - 120 * warm},.45)`; c.fillRect(bx, btop + 30, bw, bb - btop - 30);
+  c.strokeStyle = '#7f8ea8'; c.lineWidth = 3; c.beginPath(); c.moveTo(bx, btop); c.lineTo(bx, bb); c.lineTo(bx + bw, bb); c.lineTo(bx + bw, btop); c.stroke();
+  // 자석 젓개
+  c.fillStyle = '#fff'; rr(c, 240, 278, 40, 7, 3); c.fill();
+  // 시험관
+  const tx = 246, tw = 28, ttop = 120, tb = 260;
+  c.fillStyle = 'rgba(255,255,255,.35)'; c.fillRect(tx, ttop, tw, tb - ttop);
+  const lvl = 46;                               // 시료 높이
+  const solidH = lvl * (1 - st.f), liqH = lvl * st.f;
+  c.fillStyle = 'rgba(235,240,250,.95)';
+  c.fillRect(tx + 2, tb - solidH, tw - 4, solidH);
+  for (let k = 0; k < solidH / 6; k++) { c.fillStyle = 'rgba(190,200,215,.9)'; c.fillRect(tx + 4 + (k * 7) % 18, tb - 4 - k * 6, 5, 3); }
+  c.fillStyle = 'rgba(255,248,215,.7)'; c.fillRect(tx + 2, tb - solidH - liqH, tw - 4, liqH);
+  c.strokeStyle = '#7f8ea8'; c.lineWidth = 2; c.beginPath(); c.moveTo(tx, ttop); c.lineTo(tx, tb - 6); c.quadraticCurveTo(tx, tb + 6, tx + tw / 2, tb + 6); c.quadraticCurveTo(tx + tw, tb + 6, tx + tw, tb - 6); c.lineTo(tx + tw, ttop); c.stroke();
+  // 온도 센서
+  c.fillStyle = '#2b62c6'; rr(c, tx - 2, 62, 32, 34, 6); c.fill();
+  c.fillStyle = '#1e3b74'; c.fillRect(tx + 11, 96, 6, 150);
+  txt(c, '무선 온도 센서', tx + 40, 78, { size: 12, color: '#1d2840', bold: true });
+  txt(c, s.name, tx + tw + 8, 230, { size: 12, color: '#1d2840', bold: true });
+  txt(c, '물', bx + bw - 8, 270, { align: 'right', size: 12, color: '#1d2840' });
+  // 센서 화면
+  rr(c, 300, 110, 120, 52, 8); c.fillStyle = '#10204a'; c.fill();
+  const last = mt.data.length ? mt.data[mt.data.length - 1][1] : st.T;
+  txt(c, fmt(last, 1) + ' ℃', 410, 136, { align: 'right', size: 24, bold: true, color: '#9ff0ff' });
+  c.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+const MG = { x: 54, y: 30, w: 566, h: 318 };
+function drawMeltGraph() {
+  const c = meltGCtx; c.clearRect(0, 0, 640, 400);
+  drawAxes(c, MG, [0, 25], [20, 90], [0, 5, 10, 15, 20, 25], [20, 30, 40, 50, 60, 70, 80, 90], '가열 시간(분)', '온도(℃)');
+  const M = mapper(MG, [0, 25], [20, 90]);
+  const runs = mt.saved.concat(mt.data.length ? [{ sub: mt.sub, data: mt.data, live: true }] : []);
+  runs.forEach(r => {
+    c.strokeStyle = SUBS[r.sub].color; c.lineWidth = r.live ? 2.6 : 1.8; c.globalAlpha = r.live ? 1 : 0.8;
+    c.beginPath(); r.data.forEach((p, i) => { const X = M.X(p[0] / 60), Y = M.Y(p[1]); i ? c.lineTo(X, Y) : c.moveTo(X, Y); }); c.stroke(); c.globalAlpha = 1;
+  });
+  if (mt.pick) {
+    const X = M.X(mt.pick[0] / 60), Y = M.Y(mt.pick[1]);
+    c.strokeStyle = '#ffffff88'; c.setLineDash([4, 4]); c.beginPath(); c.moveTo(MG.x, Y); c.lineTo(X, Y); c.lineTo(X, MG.y + MG.h); c.stroke(); c.setLineDash([]);
+    c.fillStyle = '#fff'; c.beginPath(); c.arc(X, Y, 4, 0, 7); c.fill();
+    rr(c, clamp(X + 8, 60, 520), Y - 34, 112, 26, 6); c.fillStyle = 'rgba(10,23,52,.92)'; c.fill();
+    txt(c, mmss(mt.pick[0]) + ' · ' + fmt(mt.pick[1], 1) + ' ℃', clamp(X + 8, 60, 520) + 56, Y - 21, { align: 'center', size: 12.5, bold: true });
+  }
+  $('#meltLegend').innerHTML = runs.map(r => `<span><i style="background:${SUBS[r.sub].color}"></i>${SUBS[r.sub].name}${r.live ? ' (지금)' : ''}</span>`).join('');
+}
+meltG.addEventListener('pointerdown', e => {
+  const p = evPos(meltG, e), M = mapper(MG, [0, 25], [20, 90]);
+  let best = null, bd = 1e9;
+  const runs = mt.saved.concat([{ data: mt.data }]);
+  runs.forEach(r => r.data.forEach(q => { const d = Math.hypot(M.X(q[0] / 60) - p.x, M.Y(q[1]) - p.y); if (d < bd) { bd = d; best = q; } }));
+  mt.pick = bd < 30 ? best : null; drawMeltGraph();
+});
+$$('[data-sub]').forEach(b => b.onclick = () => {
+  if (mt.data.length) saveRun();
+  mt.sub = +b.dataset.sub; setOn($$('[data-sub]'), b); resetMelt(true); drawAll();
+});
+function saveRun() { if (mt.data.length > 2) { mt.saved.push({ sub: mt.sub, data: mt.data.slice() }); if (mt.saved.length > 4) mt.saved.shift(); } }
+$('#meltHeat').onclick = () => { if (mt.t >= TMAX) { saveRun(); resetMelt(true); } mt.heater = true; mt.running = true; mt.paused = false; $('#meltPause').textContent = '⏸ 일시정지'; if (!mt.data.length) { mt.data.push([0, T0]); mt.nextRec = 5; } };
+$('#meltCool').onclick = () => { if (!mt.running && !mt.data.length) return; mt.heater = false; mt.running = mt.t < TMAX; };
+$('#meltPause').onclick = () => { mt.paused = !mt.paused; $('#meltPause').textContent = mt.paused ? '▶ 계속' : '⏸ 일시정지'; };
+$('#meltSpeed').onclick = () => { mt.speed = mt.speed === 30 ? 60 : mt.speed === 60 ? 10 : 30; $('#meltSpeed').textContent = '속도 ×' + mt.speed; };
+$('#meltNew').onclick = () => { saveRun(); resetMelt(true); drawAll(); };
+
+/* 여러 물질의 상태 (1 기압, ℃) — 교과서 그림 Ⅰ-5 (CRC 2024) */
+const STATE_DATA = [
+  { n: '구리', mp: 1085, bp: 2562 }, { n: '염화 나트륨', mp: 802, bp: 1465 }, { n: '물', mp: 0, bp: 100 },
+  { n: '에탄올', mp: -114, bp: 78 }, { n: '산소', mp: -219, bp: -183 }, { n: '질소', mp: -210, bp: -196 },
+];
+function renderStates() {
+  const T = +$('#stT').value;
+  let h = '<tr><th>물질</th><th>녹는점(℃)</th><th>끓는점(℃)</th><th>' + T + ' ℃에서의 상태</th></tr>';
+  STATE_DATA.forEach(d => {
+    const s = T < d.mp ? ['고체', 's-solid'] : T === d.mp ? ['고체 + 액체', 's-mix'] : T < d.bp ? ['액체', 's-liquid'] : T === d.bp ? ['액체 + 기체', 's-mix'] : ['기체', 's-gas'];
+    h += `<tr><td class="h">${d.n}</td><td>${d.mp}</td><td>${d.bp}</td><td><span class="badge ${s[1]}">${s[0]}</span></td></tr>`;
+  });
+  $('#stTable').innerHTML = h;
+}
+function setStateT(v) { v = clamp(Math.round(+v || 0), -273, 2700); $('#stT').value = v; $('#stR').value = v; renderStates(); }
+$('#stT').oninput = () => setStateT($('#stT').value);
+$('#stR').oninput = () => setStateT($('#stR').value);
+$$('[data-dt]').forEach(b => b.onclick = () => setStateT(+$('#stT').value + +b.dataset.dt));
+
+/* ===================== ③ 용해도 ===================== */
+// 물 100 g에 대한 용해도(g), 0~100 ℃ 10 ℃ 간격 (CRC Handbook). 황산 구리(Ⅱ)는 무수물 기준
+const SOL = {
+  kno3: { name: '질산 칼륨', color: '#ff5c7a', v: [13.3, 20.9, 31.6, 45.8, 63.9, 85.5, 110, 138, 169, 202, 246] },
+  nano3: { name: '질산 나트륨', color: '#4da3ff', v: [73, 80, 88, 96, 104, 114, 124, 136, 148, 163, 180] },
+  cuso4: { name: '황산 구리(Ⅱ)', color: '#4fd18b', v: [14.3, 17.4, 20.7, 25.0, 28.5, 33.3, 40.0, 47.0, 55.0, 64.0, 75.4] },
+  nacl: { name: '염화 나트륨', color: '#ffc04d', v: [35.7, 35.8, 35.9, 36.1, 36.4, 36.7, 37.1, 37.5, 38.0, 38.5, 39.2] },
+};
+function solubility(key, T) {               // 10 ℃ 간격 사이는 직선으로 잇는다
+  const v = SOL[key].v, t = clamp(T, 0, 100), i = Math.min(9, Math.floor(t / 10)), f = (t - i * 10) / 10;
+  return v[i] + (v[i + 1] - v[i]) * f;
+}
+const MASSES = [3, 5, 7];
+const solCv = $('#solCv'), solCtx = setupCanvas(solCv, 520, 340);
+const so = {};
+function resetSol() {
+  Object.assign(so, { solute: so.solute || 'kno3', t: 0, Tb: 20, Tt: 20, mode: 'idle', paused: false, d: [0, 0, 0], full: [false, false, false], rec: so.rec || { kno3: [null, null, null], cuso4: [null, null, null] } });
+  so.speed = so.speed || 20;
+  // 처음: 20 ℃에서 녹을 수 있는 만큼은 이미 녹아 있다
+  MASSES.forEach((m, i) => { so.d[i] = Math.min(m, solubility(so.solute, so.Tt) / 10); so.full[i] = so.d[i] >= m - 1e-6; });
+  $('#solPause').textContent = '⏸ 일시정지';
+  fillSolTable();
+}
+function stepSol(dtReal) {
+  if (so.mode === 'idle' || so.paused) return false;
+  let simDt = dtReal * so.speed;
+  while (simDt > 0) {
+    const h = Math.min(0.5, simDt); simDt -= h;
+    if (so.mode === 'heat') so.Tb = Math.min(98, so.Tb + 4 / 60 * h);          // 분당 4 ℃, 최고 98 ℃
+    else if (so.mode === 'room') so.Tb += (20 - so.Tb) * h / 480;               // 실온, 시간 상수 8분
+    else if (so.mode === 'ice') so.Tb += (2 - so.Tb) * h / 240;                 // 얼음물, 시간 상수 4분
+    so.Tt += (so.Tb - so.Tt) * h / 5;
+    const cap = solubility(so.solute, so.Tt) / 10;                             // 물 10 g에 녹을 수 있는 양
+    MASSES.forEach((m, i) => {
+      const target = Math.min(m, cap);
+      if (so.d[i] < target) so.d[i] += (target - so.d[i]) * Math.min(1, h / 20);   // 녹는 데 시간이 걸림
+      else if (so.d[i] > cap) so.d[i] -= (so.d[i] - cap) * Math.min(1, h / 2);    // 넘치는 만큼 석출
+      if (so.d[i] >= m - 0.002) { so.d[i] = Math.max(so.d[i], m - 0.001); so.full[i] = true; }
+    });
+    so.t += h;
+  }
+  return true;
+}
+function crystalsShown(i) { return so.full[i] && so.d[i] < MASSES[i] - 0.008; }
+function drawSol() {
+  const c = solCtx, W = 520, H = 340; c.clearRect(0, 0, W, H);
+  c.fillStyle = '#dfe6f0'; c.fillRect(0, 0, W, H); c.fillStyle = '#b8c3d4'; c.fillRect(0, 300, W, 40);
+  rr(c, 90, 262, 300, 40, 8); c.fillStyle = '#eef1f5'; c.fill(); c.strokeStyle = '#9aa7bb'; c.stroke();
+  c.fillStyle = so.mode === 'heat' ? '#ff5a3c' : '#7a8496'; c.beginPath(); c.arc(360, 282, 6, 0, 7); c.fill();
+  const bx = 120, bw = 240, btop = 70, bb = 258;
+  const warm = clamp((so.Tb - 20) / 70, -0.3, 1);
+  if (so.mode === 'ice') { c.fillStyle = 'rgba(200,235,255,.6)'; } else c.fillStyle = `rgba(${150 + 90 * Math.max(0, warm)},${200 - 50 * Math.max(0, warm)},${240 - 110 * Math.max(0, warm)},.45)`;
+  c.fillRect(bx, btop + 40, bw, bb - btop - 40);
+  if (so.mode === 'ice') for (let k = 0; k < 7; k++) { c.fillStyle = 'rgba(255,255,255,.85)'; rr(c, bx + 12 + k * 32, btop + 44 + (k % 3) * 12, 20, 16, 4); c.fill(); }
+  c.strokeStyle = '#7f8ea8'; c.lineWidth = 3; c.beginPath(); c.moveTo(bx, btop); c.lineTo(bx, bb); c.lineTo(bx + bw, bb); c.lineTo(bx + bw, btop); c.stroke();
+  const cu = so.solute === 'cuso4';
+  MASSES.forEach((m, i) => {
+    const tx = 150 + i * 62, tw = 30, ttop = 30, tb = 238, liqTop = 170;
+    // 용액
+    const conc = so.d[i] / 10;
+    c.fillStyle = cu ? `rgba(40,130,230,${0.15 + 0.6 * clamp(conc / 0.7, 0, 1)})` : 'rgba(235,245,255,.75)';
+    c.fillRect(tx + 2, liqTop, tw - 4, tb - liqTop);
+    // 녹지 않은 고체 / 석출된 결정
+    const und = Math.max(0, m - so.d[i]);
+    if (und > 0.005) {
+      const ph = Math.min(40, und * 7), cr = crystalsShown(i);
+      if (cr) {
+        for (let k = 0; k < Math.min(26, und * 9); k++) {
+          const xx = tx + 4 + ((k * 13) % 20), yy = tb - 3 - ((k * 7) % Math.max(4, ph)) - (k % 4) * 3;
+          c.save(); c.translate(xx, yy); c.rotate((k * 0.9) % 3);
+          c.fillStyle = cu ? '#1f6fd6' : '#ffffff'; c.strokeStyle = cu ? '#0d3f8a' : '#8fa0bb';
+          c.beginPath(); c.moveTo(-5, 0); c.lineTo(0, -2.5); c.lineTo(5, 0); c.lineTo(0, 2.5); c.closePath(); c.fill(); c.stroke(); c.restore();
+        }
+      } else {
+        c.fillStyle = cu ? '#3f8fe8' : '#f7f9fc';
+        c.beginPath(); c.moveTo(tx + 3, tb - 2); c.quadraticCurveTo(tx + tw / 2, tb - 2 - ph * 1.4, tx + tw - 3, tb - 2); c.fill();
+      }
+    }
+    c.strokeStyle = '#7f8ea8'; c.lineWidth = 2; c.beginPath(); c.moveTo(tx, ttop); c.lineTo(tx, tb - 8); c.quadraticCurveTo(tx, tb + 6, tx + tw / 2, tb + 6); c.quadraticCurveTo(tx + tw, tb + 6, tx + tw, tb - 8); c.lineTo(tx + tw, ttop); c.stroke();
+    rr(c, tx - 2, ttop - 2, tw + 4, 18, 4); c.fillStyle = '#fff'; c.fill(); c.strokeStyle = '#7f8ea8'; c.stroke();
+    txt(c, m + ' g', tx + tw / 2, ttop + 7, { align: 'center', size: 11.5, bold: true, color: '#1d2840' });
+    if (crystalsShown(i)) { rr(c, tx - 8, 6, tw + 16, 18, 9); c.fillStyle = '#ffb347'; c.fill(); txt(c, '결정!', tx + tw / 2, 15, { align: 'center', size: 11, bold: true, color: '#3a2000' }); }
+  });
+  // 디지털 온도계
+  c.fillStyle = '#2a2f3a'; c.fillRect(398, 60, 6, 170);
+  rr(c, 380, 20, 120, 46, 8); c.fillStyle = '#c4e05a'; c.fill(); c.strokeStyle = '#6b8a12'; c.stroke();
+  rr(c, 390, 28, 100, 30, 4); c.fillStyle = '#e9f7c9'; c.fill();
+  txt(c, fmt(so.Tt, 1) + ' ℃', 484, 43, { align: 'right', size: 18, bold: true, color: '#1d2a0a' });
+  txt(c, '디지털 온도계', 440, 80, { align: 'center', size: 11, color: '#1d2840' });
+  txt(c, SOL[so.solute].name + ' · 물 10 mL', 14, 16, { size: 12, bold: true, color: '#1d2840' });
+  const lbl = { idle: '대기', heat: '가열 중', room: '실온에서 식히는 중', ice: '얼음물로 식히는 중' }[so.mode];
+  txt(c, lbl, 240, 320, { align: 'center', size: 12.5, bold: true, color: '#33415a' });
+}
+function fillSolTable() {
+  const rows = $('#solTable').rows;
+  [0, 1, 2].forEach(i => {
+    ['kno3', 'cuso4'].forEach((k, j) => { const v = so.rec[k][i]; const td = rows[2 + i].cells[1 + j]; td.textContent = v == null ? '' : fmt(v, 1); });
+  });
+}
+$$('[data-solute]').forEach(b => b.onclick = () => { so.solute = b.dataset.solute; setOn($$('[data-solute]'), b); so.mode = 'idle'; resetSol(); drawAll(); });
+$('#solHeat').onclick = () => { so.mode = 'heat'; so.paused = false; $('#solPause').textContent = '⏸ 일시정지'; };
+$('#solRoom').onclick = () => { so.mode = 'room'; so.paused = false; $('#solPause').textContent = '⏸ 일시정지'; };
+$('#solIce').onclick = () => { so.mode = 'ice'; so.paused = false; $('#solPause').textContent = '⏸ 일시정지'; };
+$('#solPause').onclick = () => { so.paused = !so.paused; $('#solPause').textContent = so.paused ? '▶ 계속' : '⏸ 일시정지'; };
+$('#solSpeed').onclick = () => { so.speed = so.speed === 20 ? 60 : so.speed === 60 ? 5 : 20; $('#solSpeed').textContent = '속도 ×' + so.speed; };
+$$('[data-rec]').forEach(b => b.onclick = () => { so.rec[so.solute][+b.dataset.rec] = so.Tt; fillSolTable(); drawCurve(); });
+
+/* 용해도 곡선 그래프 */
+const curveCv = $('#curveCv'), curveCtx = setupCanvas(curveCv, 560, 330);
+const CB = { x: 50, y: 24, w: 490, h: 266 };
+function drawCurve() {
+  const c = curveCtx; c.clearRect(0, 0, 560, 330);
+  drawAxes(c, CB, [0, 100], [0, 180], [0, 20, 40, 60, 80, 100], [0, 20, 40, 60, 80, 100, 120, 140, 160, 180], '온도(℃)', '용해도(g/물 100 g)');
+  const M = mapper(CB, [0, 100], [0, 180]), T = +$('#curveT').value;
+  c.save(); c.beginPath(); c.rect(CB.x, CB.y, CB.w, CB.h); c.clip();
+  Object.keys(SOL).forEach(k => {
+    c.strokeStyle = SOL[k].color; c.lineWidth = 2.4; c.beginPath();
+    for (let t = 0; t <= 100; t += 1) { const X = M.X(t), Y = M.Y(solubility(k, t)); t ? c.lineTo(X, Y) : c.moveTo(X, Y); }
+    c.stroke();
+  });
+  c.restore();
+  const lab = { kno3: [70, 150], nano3: [22, 96], cuso4: [84, 40], nacl: [20, 26] };
+  Object.keys(SOL).forEach(k => { const p = lab[k]; txt(c, SOL[k].name, M.X(p[0]), M.Y(p[1]), { size: 12, bold: true, color: SOL[k].color }); });
+  // 기준선
+  c.strokeStyle = '#ffffffaa'; c.setLineDash([5, 4]); c.beginPath(); c.moveTo(M.X(T), CB.y); c.lineTo(M.X(T), CB.y + CB.h); c.stroke(); c.setLineDash([]);
+  Object.keys(SOL).forEach(k => { const v = solubility(k, T); if (v <= 180) { c.fillStyle = SOL[k].color; c.beginPath(); c.arc(M.X(T), M.Y(v), 4.5, 0, 7); c.fill(); } });
+  // 내 실험 결과(물 10 g → ×10)
+  ['kno3', 'cuso4'].forEach(k => so.rec && so.rec[k].forEach((t, i) => {
+    if (t == null) return; const X = M.X(t), Y = M.Y(MASSES[i] * 10);
+    c.fillStyle = '#fff'; c.beginPath(); c.arc(X, Y, 6, 0, 7); c.fill(); c.fillStyle = SOL[k].color; c.beginPath(); c.arc(X, Y, 4, 0, 7); c.fill();
+  }));
+  $('#curveTv').textContent = T + ' ℃';
+  $('#curveRead').innerHTML = Object.keys(SOL).map(k => `<span class="pill" style="border-color:${SOL[k].color}">${SOL[k].name} <b>${fmt(solubility(k, T), 1)} g</b></span>`).join('');
+}
+$('#curveT').oninput = drawCurve;
+
+/* 기체의 용해도: 상대 모델 — 포화 농도 ∝ 압력 × e^(−0.0335·T) (CO₂: 0 ℃→25 ℃에서 약 절반 이하) */
+const gasCv = $('#gasCv'), gasCtx = setupCanvas(gasCv, 560, 210);
+const gs = { P: 'closed', bubbles: [] };
+function gasExcess() {
+  if (gs.P === 'closed') return 0;                                              // 닫힌 병: 압력이 유지되어 기포가 거의 없음
+  const T = +$('#gasT').value, P = { open: 1, vac: 0.3 }[gs.P];
+  const csat = P * Math.exp(-0.0335 * T), c0 = 4 * Math.exp(-0.0335 * 5) * 0.75;  // 5 ℃, 4 기압 병입 뒤 일부 빠진 상태
+  return clamp((c0 - csat) / c0, 0, 1);
+}
+function stepGas(dt) {
+  const ex = gasExcess(), rate = ex * 90;
+  if (Math.random() < rate * dt) gs.bubbles.push({ x: 60 + Math.random() * 140, y: 190, r: 1.5 + Math.random() * 2.5, v: 30 + Math.random() * 40 });
+  if (Math.random() < rate * dt) gs.bubbles.push({ x: 330 + Math.random() * 80, y: 190, r: 1.5 + Math.random() * 2.5, v: 30 + Math.random() * 40, b: 1 });
+  gs.bubbles.forEach(b => { b.y -= b.v * dt; b.r += dt * 0.6; });
+  gs.bubbles = gs.bubbles.filter(b => b.y > (b.b ? 70 : 60));
+  return true;
+}
+function drawGas() {
+  const c = gasCtx; c.clearRect(0, 0, 560, 210); c.fillStyle = '#e4ebf5'; c.fillRect(0, 0, 560, 210);
+  // 컵
+  c.fillStyle = 'rgba(210,180,120,.35)'; c.fillRect(50, 60, 160, 136);
+  c.strokeStyle = '#7f8ea8'; c.lineWidth = 3; c.beginPath(); c.moveTo(46, 30); c.lineTo(50, 198); c.lineTo(210, 198); c.lineTo(214, 30); c.stroke();
+  // 병
+  c.fillStyle = 'rgba(210,180,120,.35)'; rr(c, 320, 70, 100, 128, 14); c.fill();
+  c.strokeStyle = '#7f8ea8'; rr(c, 320, 50, 100, 150, 16); c.stroke(); c.fillRect(352, 30, 36, 22);
+  if (gs.P === 'closed') { c.fillStyle = '#2e6fd8'; c.fillRect(348, 22, 44, 14); }
+  if (gs.P === 'vac') { c.strokeStyle = '#33415a'; c.lineWidth = 2; rr(c, 300, 14, 140, 190, 18); c.stroke(); txt(c, '감압 용기', 370, 10 + 2, { align: 'center', size: 11, bold: true, color: '#33415a' }); }
+  gs.bubbles.forEach(b => { c.strokeStyle = 'rgba(255,255,255,.95)'; c.lineWidth = 1.2; c.beginPath(); c.arc(b.x, b.y, b.r, 0, 7); c.stroke(); });
+  txt(c, '컵: ' + $('#gasT').value + ' ℃ 탄산음료', 130, 20, { align: 'center', size: 12, bold: true, color: '#33415a' });
+  // 기포 막대
+  const ex = gasExcess();
+  txt(c, '기포 발생 정도', 460, 40, { size: 12, bold: true, color: '#33415a' });
+  rr(c, 470, 54, 30, 140, 6); c.fillStyle = '#c7d2e4'; c.fill();
+  rr(c, 470, 194 - 140 * ex, 30, 140 * ex, 6); c.fillStyle = '#ff9f43'; c.fill();
+  txt(c, ex < 0.02 ? '거의 없음' : ex < 0.4 ? '적음' : ex < 0.75 ? '보통' : '많음', 512, 194 - 140 * ex, { size: 12, bold: true, color: '#33415a' });
+}
+$('#gasT').oninput = () => { $('#gasTv').textContent = $('#gasT').value + ' ℃'; };
+$$('[data-gp]').forEach(b => b.onclick = () => { gs.P = b.dataset.gp; setOn($$('[data-gp]'), b); });
+
+/* ===================== ④ 순물질과 혼합물 ===================== */
+// 소금물 밀도(20 ℃) ≈ 0.998 + 0.71·w (w = 소금 질량 / 소금물 질량, 포화 농도까지 오차 1 % 이내)
+const EGG_RHO = 1.03, WATER = 400;
+const eggCv = $('#eggCv'), eggCtx = setupCanvas(eggCv, 600, 380);
+const eg = { salt: 0, y: null };
+function brine(salt) { const m = WATER + salt, w = salt / m, rho = 0.998 + 0.71 * w; return { m, rho, V: m / rho }; }
+function eggTargetY(rho) {   // 0 = 바닥, 1 = 떠오름 / 그 사이는 물속에 떠 있음
+  if (rho < EGG_RHO - 0.0015) return 0;
+  if (rho <= EGG_RHO + 0.0015) return 0.5;
+  return 1;
+}
+function resetMix() {
+  eg.salt = 0; eg.y = 0; $('#saltR').value = 0; eggUI();
+  bp.t = 0; bp.run = null; bp.data = [[], []]; bp.paused = false; $('#bpPause').textContent = '⏸ 일시정지';
+  bpReadout();
+  initCls();
+}
+function eggUI() {
+  const b = brine(eg.salt), tg = eggTargetY(b.rho);
+  $('#saltV').textContent = eg.salt + ' g';
+  $('#eM').textContent = fmt(b.m, 0) + ' g';
+  $('#eV').textContent = fmt(b.V, 1) + ' mL';
+  $('#eD').textContent = fmt(b.rho, 2) + ' g/mL';
+  $('#eS').textContent = tg === 0 ? '가라앉음' : tg === 0.5 ? '물속에 떠 있음' : '위로 떠오름';
+}
+function stepEgg(dt) {
+  const b = brine(eg.salt), tg = eggTargetY(b.rho);
+  if (eg.y == null) eg.y = tg;
+  const d = tg - eg.y; if (Math.abs(d) < 0.002) { eg.y = tg; return false; }
+  eg.y += d * Math.min(1, dt * 2.2); return true;
+}
+function drawEgg() {
+  const c = eggCtx, b = brine(eg.salt); c.setTransform(DPR, 0, 0, DPR, 0, 0); c.clearRect(0, 0, 600, 380);
+  c.fillStyle = '#e4ebf5'; c.fillRect(0, 0, 600, 380); c.translate(100, 0);
+  const bx = 100, bw = 200, bb = 350, top = 60;
+  const level = bb - b.V / 500 * (bb - top);          // 500 mL 비커
+  c.fillStyle = 'rgba(150,200,240,.5)'; c.fillRect(bx, level, bw, bb - level);
+  // 눈금
+  for (let v = 100; v <= 500; v += 100) { const Y = bb - v / 500 * (bb - top); c.strokeStyle = '#7f8ea8'; c.lineWidth = 1; c.beginPath(); c.moveTo(bx + 4, Y); c.lineTo(bx + 22, Y); c.stroke(); txt(c, String(v), bx + 26, Y, { size: 10.5, color: '#55627a' }); }
+  txt(c, 'mL', bx + 26, top - 10, { size: 10.5, color: '#55627a' });
+  // 달걀 (반지름 34×44)
+  const ry = 34, yBottom = bb - ry - 2, ySurf = level + ry * 0.55;   // 떠오르면 윗부분이 살짝 나옴
+  const ey = yBottom + (ySurf - yBottom) * eg.y;
+  const gr = c.createRadialGradient(190, ey - 12, 6, 200, ey, 46); gr.addColorStop(0, '#f6c08f'); gr.addColorStop(1, '#d97c3b');
+  c.fillStyle = gr; c.beginPath(); c.ellipse(200, ey, 44, ry, -0.15, 0, 7); c.fill();
+  c.fillStyle = 'rgba(150,200,240,.25)'; if (ey - ry < level) c.fillRect(bx, level, bw, 0);
+  c.strokeStyle = '#7f8ea8'; c.lineWidth = 3; c.beginPath(); c.moveTo(bx, top - 20); c.lineTo(bx, bb); c.lineTo(bx + bw, bb); c.lineTo(bx + bw, top - 20); c.stroke();
+  if (eg.salt > 0) { const n = Math.min(40, eg.salt); for (let k = 0; k < n; k++) { c.fillStyle = 'rgba(255,255,255,.7)'; c.fillRect(bx + 10 + (k * 37) % 180, level + 8 + (k * 53) % Math.max(10, bb - level - 16), 2, 2); } }
+  txt(c, '소금 ' + eg.salt + ' g', 200, 24, { align: 'center', size: 15, bold: true, color: '#1d2840' });
+  c.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+$('#saltR').oninput = () => { eg.salt = +$('#saltR').value; eggUI(); };
+$$('[data-salt]').forEach(b => b.onclick = () => { eg.salt = clamp(eg.salt + +b.dataset.salt, 0, 80); $('#saltR').value = eg.salt; eggUI(); });
+$('#saltZero').onclick = () => { eg.salt = 0; $('#saltR').value = 0; eggUI(); };
+
+/* 물과 소금물의 가열·냉각 곡선
+ * 가열: 200 W 일정. 끓는점 Tb = 100 + 0.512·2·(소금 mol / 물 kg), 끓는 동안 물이 2257 J/g로 증발
+ * 냉각: −20 ℃ 냉동실, 방출 열 = 4 W/℃ × (T + 20). 어는점 Tf = −1.86·2·(소금 mol / 물 kg), 얼음이 생길 때 334 J/g
+ */
+const bp = { t: 0, run: null, data: [[], []], paused: false, st: null };
+const bpCv = $('#bpCv'), bpCtx = setupCanvas(bpCv, 640, 400);
+const BPG = { x: 54, y: 30, w: 566, h: 318 };
+function molal(salt, mw) { return (salt / 58.44) / (mw / 1000); }
+function startBp(mode) {
+  const salt = +$('#bpSalt').value;
+  bp.run = mode; bp.t = 0; bp.paused = false; $('#bpPause').textContent = '⏸ 일시정지';
+  bp.st = [{ T: 20, mw: 100, ice: 0, salt: 0 }, { T: 20, mw: 100, ice: 0, salt: salt }];
+  bp.data = [[[0, 20]], [[0, 20]]]; bp.nextRec = 3;
+}
+function bpStepOne(s, h) {
+  const C = 4.18 * s.mw + 2.1 * s.ice + 0.86 * s.salt;
+  if (bp.run === 'heat') {
+    const Tb = 100 + 0.512 * 2 * molal(s.salt || 0, s.mw);
+    let Q = 200 * h;
+    if (s.T < Tb) { const need = (Tb - s.T) * C; if (Q <= need) { s.T += Q / C; return; } s.T = Tb; Q -= need; }
+    const dm = Math.min(s.mw - 20, Q / 2257); s.mw -= Math.max(0, dm);                      // 물 20 g 남을 때까지만
+    s.T = 100 + 0.512 * 2 * molal(s.salt || 0, s.mw);
+  } else {
+    const Tf = -1.86 * 2 * molal(s.salt || 0, Math.max(s.mw, 1e-6));
+    const minW = s.salt > 0 ? s.salt * (1 - 0.233) / 0.233 : 0;                              // 공융 농도(23.3 %)까지만 언다
+    let Q = 4 * (s.T + 20) * h;
+    if (Q <= 0) return;
+    if (s.T > Tf + 1e-9 || s.mw <= minW + 1e-6) { const can = s.mw <= minW + 1e-6 ? Q : Math.min(Q, (s.T - Tf) * C); s.T -= can / C; Q -= can; if (Q <= 0) return; }
+    const dm = Math.min(s.mw - minW, Q / 334); s.mw -= dm; s.ice += dm;
+    if (s.mw > minW + 1e-6) s.T = -1.86 * 2 * molal(s.salt || 0, s.mw);
+  }
+}
+const BP_MAX = { heat: 12 * 60, cool: 15 * 60 };
+function stepBp(dtReal) {
+  if (!bp.run || bp.paused || bp.t >= BP_MAX[bp.run]) return false;
+  let simDt = dtReal * 30;
+  while (simDt > 0 && bp.t < BP_MAX[bp.run]) {
+    const h = Math.min(0.5, simDt); simDt -= h;
+    bp.st.forEach(s => bpStepOne(s, h)); bp.t += h;
+    if (bp.t >= bp.nextRec) { bp.data[0].push([bp.t, bp.st[0].T]); bp.data[1].push([bp.t, bp.st[1].T]); bp.nextRec += 3; }
+  }
+  bpReadout(); return true;
+}
+function bpReadout() {
+  $('#bTime').textContent = mmss(bp.t);
+  $('#bW').textContent = bp.st ? fmt(bp.st[0].T, 1) + ' ℃' : '20.0 ℃';
+  $('#bS').textContent = bp.st ? fmt(bp.st[1].T, 1) + ' ℃' : '20.0 ℃';
+  $('#bLeft').textContent = bp.st ? fmt(bp.st[1].mw, 0) + ' g' + (bp.st[1].ice > 0.5 ? ' (얼음 ' + fmt(bp.st[1].ice, 0) + ' g)' : '') : '100 g';
+}
+function drawBp() {
+  const c = bpCtx; c.clearRect(0, 0, 640, 400);
+  const heat = bp.run !== 'cool';
+  const xr = heat ? [0, 12] : [0, 15], yr = heat ? [20, 110] : [-25, 25];
+  drawAxes(c, BPG, xr, yr, heat ? [0, 2, 4, 6, 8, 10, 12] : [0, 3, 6, 9, 12, 15], heat ? [20, 40, 60, 80, 100] : [-20, -10, 0, 10, 20], heat ? '가열 시간(분)' : '냉각 시간(분)', '온도(℃)');
+  const M = mapper(BPG, xr, yr);
+  const ref = heat ? 100 : 0;
+  c.strokeStyle = '#ffffff55'; c.setLineDash([3, 4]); c.beginPath(); c.moveTo(BPG.x, M.Y(ref)); c.lineTo(BPG.x + BPG.w, M.Y(ref)); c.stroke(); c.setLineDash([]);
+  ['#ff6b6b', '#4da3ff'].forEach((col, k) => {
+    c.strokeStyle = col; c.lineWidth = 2.6; c.beginPath();
+    bp.data[k].forEach((p, i) => { const X = M.X(p[0] / 60), Y = M.Y(clamp(p[1], yr[0], yr[1])); i ? c.lineTo(X, Y) : c.moveTo(X, Y); }); c.stroke();
+  });
+  if (!bp.run) txt(c, '가열 곡선 또는 냉각 곡선 버튼을 눌러 보자', BPG.x + BPG.w / 2, BPG.y + BPG.h / 2, { align: 'center', size: 15, bold: true, color: '#a3b3d8' });
+  else { const lw = bp.data[0][bp.data[0].length - 1], ls = bp.data[1][bp.data[1].length - 1];
+    txt(c, '물(순물질)', M.X(lw[0] / 60) - 4, M.Y(clamp(lw[1], yr[0], yr[1])) + (heat ? 14 : -14), { align: 'right', size: 12, bold: true, color: '#ff6b6b' });
+    txt(c, '소금물(혼합물)', M.X(ls[0] / 60) - 4, M.Y(clamp(ls[1], yr[0], yr[1])) + (heat ? -14 : 14), { align: 'right', size: 12, bold: true, color: '#4da3ff' }); }
+}
+$('#bpSalt').oninput = () => { $('#bpSaltV').textContent = $('#bpSalt').value + ' g'; };
+$('#bpHeat').onclick = () => startBp('heat');
+$('#bpCool').onclick = () => startBp('cool');
+$('#bpPause').onclick = () => { bp.paused = !bp.paused; $('#bpPause').textContent = bp.paused ? '▶ 계속' : '⏸ 일시정지'; };
+
+/* 분류 놀이 (연습용, 채점하지 않음) */
+const CLS = [['다이아몬드', 'pure'], ['모래', 'mix'], ['구리 선', 'pure'], ['휘발유', 'mix'], ['에탄올', 'pure'], ['식초', 'mix'], ['공기', 'mix'], ['증류수', 'pure'], ['산소', 'pure'], ['우유', 'mix']];
+let clsSel = null;
+function initCls() {
+  clsSel = null; $('#clsMsg').textContent = '';
+  const pool = $('#pool'); pool.innerHTML = ''; $$('.bin .chips').forEach(b => b.innerHTML = '');
+  CLS.slice().sort(() => Math.random() - 0.5).forEach(([n, k]) => {
+    const ch = document.createElement('span'); ch.className = 'chip'; ch.textContent = n; ch.dataset.k = k;
+    ch.onclick = ev => { ev.stopPropagation(); $$('.chip').forEach(x => x.classList.remove('sel', 'right', 'wrong')); clsSel = ch; ch.classList.add('sel'); $$('.bin').forEach(b => b.classList.add('hint')); };
+    pool.appendChild(ch);
+  });
+}
+$$('.bin').forEach(bin => bin.onclick = () => { if (!clsSel) return; bin.querySelector('.chips').appendChild(clsSel); clsSel.classList.remove('sel'); clsSel = null; $$('.bin').forEach(b => b.classList.remove('hint')); });
+$('#pool').onclick = () => { if (clsSel) { $('#pool').appendChild(clsSel); clsSel.classList.remove('sel'); clsSel = null; $$('.bin').forEach(b => b.classList.remove('hint')); } };
+$('#clsCheck').onclick = () => {
+  let ok = 0, placed = 0;
+  $$('.bin').forEach(bin => bin.querySelectorAll('.chip').forEach(ch => { placed++; const r = ch.dataset.k === bin.dataset.bin; ch.classList.toggle('right', r); ch.classList.toggle('wrong', !r); if (r) ok++; }));
+  $('#clsMsg').textContent = placed < CLS.length ? `아직 ${CLS.length - placed}개가 남았어요. (옮긴 것 중 ${ok}/${placed}개 맞음)` : (ok === CLS.length ? '모두 맞았어요! 순물질은 한 가지 물질로만 이루어져 녹는점·끓는점·밀도가 일정해요.' : `${ok}/${CLS.length}개 맞음 — 빨간 것을 다시 생각해 보자.`);
+};
+$('#clsReset').onclick = initCls;
+
+/* ===================== 반복 루프 ===================== */
+function drawAll() {
+  if (current === 0) { drawLab(); drawFloat(); }
+  if (current === 1) { drawMeltApp(); drawMeltGraph(); meltReadout(); }
+  if (current === 2) { drawSol(); drawCurve(); drawGas(); $('#sTime').textContent = mmss(so.t); $('#sTemp').textContent = fmt(so.Tt, 1) + ' ℃'; }
+  if (current === 3) { drawEgg(); drawBp(); }
+}
+let lastTs = performance.now();
+function loop(ts) {
+  const dt = Math.min(0.1, (ts - lastTs) / 1000); lastTs = ts;
+  // 보이지 않는 탭도 실험 시간은 흐르게 하고, 그리기는 지금 탭만
+  const d0 = stepDensity(dt) | stepFloat(dt);
+  const d1 = stepMelt(dt);
+  const d2 = stepSol(dt) | (current === 2 && stepGas(dt));
+  const d3 = stepEgg(dt) | stepBp(dt);
+  if (current === 0 && d0) { drawLab(); drawFloat(); }
+  if (current === 1 && d1) { drawMeltApp(); drawMeltGraph(); meltReadout(); }
+  if (current === 2 && d2) { drawSol(); drawGas(); $('#sTime').textContent = mmss(so.t); $('#sTemp').textContent = fmt(so.Tt, 1) + ' ℃'; }
+  if (current === 3 && d3) { drawEgg(); drawBp(); }
+  requestAnimationFrame(loop);
+}
+/* 차시별 단원: 웹앱이 넣어 준 window.SIM_UNIT에 따라 해당 탭만 보인다(matter_prop 등 다른 값이면 네 탭 모두) */
+const UNIT_TABS = { density: [0, '밀도'], melt_boil: [1, '녹는점과 끓는점'], solubility: [2, '용해도'], pure_mix: [3, '순물질과 혼합물'] };
+const unitTab = UNIT_TABS[window.SIM_UNIT];
+if (unitTab) {
+  current = unitTab[0];
+  $$('#tabs .tab').forEach(t => { t.style.display = +t.dataset.p === current ? '' : 'none'; });
+  setOn($$('#tabs .tab'), $$('#tabs .tab')[current]);
+  $$('.page').forEach((p, i) => p.classList.toggle('on', i === current));
+  $('header h1').innerHTML = '물질의 특성 실험실 <small>' + unitTab[1] + '</small>';
+}
+resetDensity(); resetFloat(); resetMelt(); resetSol(); resetMix(); renderStates();
+drawAll(); requestAnimationFrame(loop);
+</script>
+</body>
+</html>

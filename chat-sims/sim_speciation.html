@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<!-- 단원ID: speciation · 원본의 확인 문제(정답 포함)·교사용 안내는 빼고 웹앱 문제 패널에서 서버 채점 -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>토끼의 종류가 다양해지는 과정 시뮬레이터</title>
+<style>
+:root{
+  --bg:#f4f7f2; --panel:#ffffff; --ink:#1f2a24; --sub:#5b6b62; --line:#dde5df;
+  --accent:#2f7d5b; --accent2:#e8743b; --purple:#7a3fb0; --A:#7a3fb0; --B:#e8743b;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;background:var(--bg);color:var(--ink)}
+header{display:flex;align-items:center;gap:16px;padding:10px 18px;background:#fff;border-bottom:1px solid var(--line);flex-wrap:wrap}
+header h1{font-size:18px;margin:0;font-weight:800;letter-spacing:-.3px}
+header h1 small{font-weight:500;color:var(--sub);font-size:13px;margin-left:6px}
+.tabs{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
+.tab{border:1px solid var(--line);background:#fff;padding:7px 14px;border-radius:999px;cursor:pointer;font-size:14px;font-weight:600;color:var(--sub)}
+.tab.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+main{max-width:1440px;margin:0 auto;padding:14px}
+.view{display:none}.view.on{display:block}
+.simwrap{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:14px;align-items:start}
+@media(max-width:1050px){.simwrap{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px}
+#stage{position:relative;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#bfe8f5}
+#cv{display:block;width:100%;height:auto;aspect-ratio:1000/560}
+#banner{position:absolute;left:14px;top:12px;right:14px;display:flex;gap:10px;align-items:flex-start;pointer-events:none}
+#banner .cap{background:rgba(255,255,255,.92);border-radius:10px;padding:7px 12px;font-weight:700;font-size:15px;box-shadow:0 1px 4px rgba(0,0,0,.1)}
+#banner .cap b{color:var(--purple);font-size:19px;margin-right:6px}
+#genBadge{margin-left:auto;background:rgba(31,42,36,.82);color:#fff;border-radius:10px;padding:6px 11px;font-size:13px;font-weight:700;white-space:nowrap}
+#toast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(255,255,255,.96);border-radius:14px;padding:16px 22px;font-size:18px;font-weight:800;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.2);display:none;max-width:80%}
+.charts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:12px}
+@media(max-width:800px){.charts{grid-template-columns:1fr}}
+.chart h4{margin:0 0 6px;font-size:13.5px;display:flex;justify-content:space-between;align-items:center}
+.chart h4 span{font-weight:500;color:var(--sub);font-size:12px}
+.chart canvas{width:100%;height:150px;display:block}
+.legend{display:flex;gap:10px;font-size:12px;color:var(--sub);margin-top:5px;flex-wrap:wrap}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:4px;vertical-align:-1px;border:1px solid #999}
+.side h3{margin:0 0 8px;font-size:16px}
+.side p{margin:6px 0;line-height:1.6;font-size:14.5px}
+.steps{display:flex;gap:6px;margin-bottom:10px}
+.steps button{flex:1;border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 0;font-weight:800;color:var(--sub);cursor:pointer}
+.steps button.on{background:var(--purple);color:#fff;border-color:var(--purple)}
+.steps button.done{background:#efe6f7;color:var(--purple)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:none;background:var(--accent);color:#fff;font-weight:700;font-size:14px;padding:9px 14px;border-radius:9px;cursor:pointer;font-family:inherit}
+.btn.sec{background:#eef3ef;color:var(--ink);border:1px solid var(--line)}
+.btn.warn{background:#c2493d}
+.btn.orange{background:var(--accent2)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.row .btn{flex:1}
+.q{background:#fff5ec;border:1px solid #f6d6bd;border-radius:10px;padding:9px 11px;font-size:14px;margin:8px 0;line-height:1.55}
+.box{background:#f6f9f7;border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:13.5px;margin:8px 0;line-height:1.6}
+.ctl{margin:10px 0}
+.ctl label{display:flex;justify-content:space-between;font-size:13.5px;font-weight:700;margin-bottom:4px}
+.ctl label span{font-weight:600;color:var(--accent)}
+.ctl input[type=range]{width:100%}
+select{font-family:inherit;font-size:14px;padding:6px 8px;border-radius:8px;border:1px solid var(--line);width:100%}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pred{display:grid;grid-template-columns:auto 1fr;gap:6px 10px;align-items:center;font-size:14px;margin:8px 0}
+.pred .opts{display:flex;gap:4px}
+.pred .opts label{flex:1;border:1px solid var(--line);border-radius:8px;text-align:center;padding:5px 0;cursor:pointer;font-size:13px}
+.pred input{display:none}
+.pred input:checked+label{background:var(--accent);color:#fff;border-color:var(--accent)}
+table.res{width:100%;border-collapse:collapse;font-size:13px;margin:6px 0}
+table.res th,table.res td{border:1px solid var(--line);padding:4px 5px;text-align:center}
+table.res th{background:#f0f4f1}
+.verdict{border-radius:10px;padding:10px 12px;font-weight:800;margin:8px 0;font-size:15px;line-height:1.5}
+.verdict.diff{background:#f1e8fa;color:#5a2690;border:1px solid #d8c3ee}
+.verdict.mid{background:#fff4e0;color:#8a5a00;border:1px solid #f1d9a8}
+.verdict.same{background:#e6f4ec;color:#1d6b46;border:1px solid #bfe1cd}
+hr{border:none;border-top:1px solid var(--line);margin:12px 0}
+.small{font-size:12.5px;color:var(--sub);line-height:1.55}
+.chk{display:flex;align-items:center;gap:6px;font-size:13.5px;margin:6px 0}
+/* quiz */
+.quiz{max-width:820px;margin:0 auto}
+.qitem{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px}
+.qitem h4{margin:0 0 10px;font-size:16px;line-height:1.5}
+.qitem .opt{display:block;width:100%;text-align:left;border:1px solid var(--line);background:#fff;padding:9px 12px;border-radius:9px;margin:6px 0;cursor:pointer;font-size:14.5px;font-family:inherit}
+.qitem .opt.right{background:#e3f4ea;border-color:#62b38a}
+.qitem .opt.wrong{background:#fbe6e3;border-color:#d77e70}
+.qitem .exp{display:none;margin-top:8px;font-size:14px;background:#f6f9f7;border-radius:9px;padding:9px 12px;line-height:1.6}
+#score{font-weight:800;font-size:17px;text-align:center;margin:10px 0}
+/* sheet */
+.sheetbar{max-width:820px;margin:0 auto 10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+#sheet{max-width:820px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:6px;padding:34px 40px;font-size:14.5px;line-height:1.7}
+#sheet h2{text-align:center;margin:0 0 4px;font-size:22px}
+#sheet .meta{display:flex;justify-content:flex-end;gap:18px;margin:10px 0 16px}
+#sheet .meta span{border-bottom:1px solid #555;min-width:110px;display:inline-block}
+#sheet h3{font-size:16px;margin:20px 0 8px;border-left:4px solid var(--accent);padding-left:8px}
+#sheet table{width:100%;border-collapse:collapse;margin:6px 0}
+#sheet td,#sheet th{border:1px solid #888;padding:6px;text-align:center;height:30px}
+#sheet th{background:#eef3ef}
+.lines div{border-bottom:1px solid #aaa;height:30px}
+@media print{
+  header,.sheetbar,#v-sim,#v-quiz,#v-guide{display:none!important}
+  body{background:#fff}
+  main{padding:0}
+  #v-sheet{display:block!important}
+  #sheet{border:none;padding:0;max-width:none}
+}
+.guide{max-width:880px;margin:0 auto}
+.guide .card{margin-bottom:12px}
+.guide h3{margin:0 0 8px}
+.guide p,.guide li{line-height:1.7;font-size:14.5px}
+</style>
+</head>
+<body>
+<header>
+  <h1>🐇 토끼의 종류가 다양해지는 과정 <small>변이 · 자연에서의 생존 · 종 분화 시뮬레이터</small></h1>
+  <div class="tabs">
+    <button class="tab on" data-v="sim">시뮬레이터</button>
+    <button class="tab" data-v="sheet">활동지</button>
+  </div>
+</header>
+<main>
+<!-- ============ SIM ============ -->
+<section id="v-sim" class="view on">
+  <div class="simwrap">
+    <div>
+      <div id="stage">
+        <canvas id="cv" width="1000" height="560"></canvas>
+        <div id="banner"><div class="cap" id="cap"></div><div id="genBadge">0세대</div></div>
+        <div id="toast"></div>
+      </div>
+      <div class="charts">
+        <div class="card chart"><h4>왼쪽 무리 털색 비율 <span id="nL">0마리</span></h4><canvas id="chL" width="400" height="150"></canvas>
+          <div class="legend"><span><i style="background:#f4f4ef"></i>흰색</span><span><i style="background:#a7aca8"></i>회색</span><span><i style="background:#97714f"></i>갈색</span></div></div>
+        <div class="card chart"><h4>오른쪽 무리 털색 비율 <span id="nR">0마리</span></h4><canvas id="chR" width="400" height="150"></canvas>
+          <div class="legend"><span>가로축: 세대 · 세로축: 비율(%)</span></div></div>
+        <div class="card chart"><h4>짝짓기 시기 분포 <span id="compat">-</span></h4><canvas id="chS" width="400" height="150"></canvas>
+          <div class="legend"><span><i style="background:var(--A)"></i>왼쪽 무리</span><span><i style="background:var(--B)"></i>오른쪽 무리</span></div></div>
+      </div>
+    </div>
+    <div class="card side">
+      <div class="tabs" style="margin:0 0 12px;justify-content:stretch">
+        <button class="tab on" id="mStory" style="flex:1">이야기 모드</button>
+        <button class="tab" id="mFree" style="flex:1">자유 실험</button>
+      </div>
+      <div id="storyPanel"></div>
+      <div id="freePanel" style="display:none">
+        <h3>실험 조건</h3>
+        <div class="two">
+          <div class="ctl"><label>왼쪽 서식지</label><select id="habL"></select></div>
+          <div class="ctl"><label>오른쪽 서식지</label><select id="habR"></select></div>
+        </div>
+        <div class="ctl"><label>천적(매) 사냥 강도 <span id="hawkV"></span></label><input type="range" id="hawk" min="0" max="100" step="5"></div>
+        <div class="ctl"><label>처음 무리의 털색 비율 <span id="ratioV"></span></label>
+          <div class="two" style="grid-template-columns:auto 1fr;font-size:13px;align-items:center;gap:2px 8px">
+            <span>흰색</span><input type="range" id="rW" min="0" max="10">
+            <span>회색</span><input type="range" id="rG" min="0" max="10">
+            <span>갈색</span><input type="range" id="rB" min="0" max="10">
+          </div></div>
+        <div class="ctl"><label>질병 저항성 변이를 가진 토끼 <span id="resV"></span></label><input type="range" id="res" min="0" max="50" step="5"></div>
+        <div class="row"><button class="btn sec" id="fReset">↺ 이 조건으로 처음부터</button></div>
+        <hr>
+        <div class="row">
+          <button class="btn" id="fRiver">🌊 강 생기기</button>
+        </div>
+        <div class="row">
+          <button class="btn" id="f1">▶ 1세대</button>
+          <button class="btn" id="f10">▶▶ 10세대</button>
+          <button class="btn" id="fAuto">⏯ 자동</button>
+        </div>
+        <label class="chk"><input type="checkbox" id="anim" checked> 1세대 진행 때 매 사냥·번식 장면 보기</label>
+        <hr>
+        <h3 style="font-size:15px">갑작스러운 사건</h3>
+        <div class="row">
+          <button class="btn warn" id="fSnow">❄ 폭설 (환경 급변)</button>
+          <button class="btn warn" id="fSick">🦠 전염병</button>
+        </div>
+        <p class="small">사건은 다음 세대를 진행할 때 일어납니다. 폭설이 오면 양쪽 서식지가 눈밭으로 바뀝니다(서식지는 위에서 다시 바꿀 수 있어요).</p>
+        <hr>
+        <div class="row"><button class="btn orange" id="fMeet">💞 두 무리 만나게 하기 (같은 종일까?)</button></div>
+        <label class="chk"><input type="checkbox" id="mark"> 토끼 위에 출신 무리 표시</label>
+        <div id="freeResult"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SHEET ============ -->
+<section id="v-sheet" class="view">
+  <div class="sheetbar">
+    <button class="btn" id="sFill">현재 실험 결과로 표 채우기</button>
+    <button class="btn sec" id="sBlank">빈 활동지</button>
+    <button class="btn sec" id="sPrint">🖨 인쇄</button>
+    <span class="small" id="printHint">링크 화면에서 인쇄가 안 되면 내려받은 HTML 파일을 브라우저로 열어 인쇄하세요.</span>
+  </div>
+  <div id="sheet"></div>
+</section>
+
+</main>
+
+<script>
+"use strict";
+/* ================== 설정 ================== */
+const W = 1000, H = 560, GROUND_Y = 172;
+const COLORS = [
+  {name:'흰색', body:'#f6f6f1', stroke:'#a9a9a0', ear:'#f3a6b2'},
+  {name:'회색', body:'#a9aeaa', stroke:'#666d68', ear:'#ee9fac'},
+  {name:'갈색', body:'#98724f', stroke:'#5a412b', ear:'#5e4330'}
+];
+const HABS = [
+  {name:'풀밭', vis:[0.9,0.22,0.55], opt:3.5},
+  {name:'메마른 모래땅', vis:[0.85,0.55,0.2], opt:9.5},
+  {name:'눈밭', vis:[0.1,0.6,0.95], opt:6.5}
+];
+const K_SIDE = 24, MUT = 0.02, TOL = 2.0, PULL = 0.05, NOISE = 0.33;
+const S = {
+  rabbits:[], gen:0, river:false, riverW:0, hab:[0,0], prevHab:[0,0], habT:[1,1],
+  hawk:60, ratio:[4,3,3], res:15, busy:false, auto:false, mode:'story',
+  pendingSnow:false, pendingSick:false, hist:[[],[]], seasonHist:[], groupsSet:false,
+  extinct:false, snowParticles:[], effects:[], showMark:false, sickFog:0
+};
+let nextId = 1;
+const rand = (a,b)=>a+Math.random()*(b-a);
+const gauss = ()=>{let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const sleep = ms=>new Promise(r=>setTimeout(r,ms));
+const pick = arr=>arr[Math.floor(Math.random()*arr.length)];
+
+/* ================== 지형 ================== */
+const riverX = y => 520 + 45*Math.sin((y-GROUND_Y)/62) + (y-GROUND_Y)*0.08;
+function sideOf(x,y){return x < riverX(y) ? 0 : 1}
+function randPos(side, free){
+  for(let t=0;t<50;t++){
+    const y = rand(222, 540);
+    const rx = riverX(y);
+    const gap = S.river ? S.riverW/2+26 : 12;
+    let x;
+    if(free) x = rand(30, 970);
+    else if(side===0) x = rand(30, rx-gap);
+    else x = rand(rx+gap, 970);
+    if(free || !S.river) return {x,y};
+    if((side===0 && x<rx-gap) || (side===1 && x>rx+gap)) return {x,y};
+  }
+  return {x: side===0?120:880, y:400};
+}
+
+/* 배경 장식(고정) */
+const deco = (()=>{
+  let seed = 7; const r=()=>{seed=(seed*16807)%2147483647;return seed/2147483647};
+  const items=[];
+  for(let i=0;i<70;i++){const y=GROUND_Y+20+r()*370;items.push({x:r()*1000,y,k:r(),s:0.6+(y-GROUND_Y)/400})}
+  const trees=[];for(let i=0;i<14;i++)trees.push({x:20+r()*960,y:GROUND_Y-4+r()*14,s:0.7+r()*0.6});
+  return {items,trees};
+})();
+
+/* ================== 토끼 생성 ================== */
+function makeRabbit(color, season, res, side, pos, group){
+  const p = pos || randPos(side, !S.river);
+  return {id:nextId++, color, season, res, side: p? sideOf(p.x,p.y):side, group: group??null,
+    x:p.x, y:p.y, tx:p.x, ty:p.y, dir:Math.random()<.5?-1:1, hop:0, idle:rand(0,2),
+    alpha:1, scale:1, born:0, dying:false, dieAt:0, carried:false, locked:false, sick:false, fading:false};
+}
+function initPop(n=40){
+  S.rabbits=[]; S.gen=0; S.hist=[[],[]]; S.extinct=false; S.groupsSet=false; S.effects=[];
+  S.pendingSnow=S.pendingSick=false;
+  const tot = S.ratio[0]+S.ratio[1]+S.ratio[2] || 1;
+  for(let i=0;i<n;i++){
+    let r=Math.random()*tot, c=0;
+    if(r<S.ratio[0])c=0; else if(r<S.ratio[0]+S.ratio[1])c=1; else c=2;
+    if(S.ratio[0]+S.ratio[1]+S.ratio[2]===0) c=1;
+    const res = Math.random()*100 < S.res;
+    S.rabbits.push(makeRabbit(c, 6.5+gauss()*0.4, res, null, randPos(0,true)));
+  }
+  if(S.river) setGroups();
+  record(); hideToast(); updateUI();
+}
+function setGroups(){S.rabbits.forEach(r=>{r.side=sideOf(r.x,r.y); r.group=r.side}); S.groupsSet=true}
+
+/* ================== 기록 ================== */
+function alive(){return S.rabbits.filter(r=>!r.dying && !r.fading)}
+function record(){
+  for(let s=0;s<2;s++){
+    const pop = alive().filter(r=>r.side===s);
+    const c=[0,0,0]; pop.forEach(r=>c[r.color]++);
+    S.hist[s].push({gen:S.gen, n:pop.length, c});
+  }
+}
+
+/* ================== 세대 진행 ================== */
+function huntProb(r, mult){
+  const hab = HABS[S.hab[r.side]];
+  return clamp(S.hawk/100 * mult * hab.vis[r.color] * 0.95, 0, 0.97);
+}
+async function hunt(animated){
+  let mult = 1;
+  if(S.pendingSnow){
+    S.pendingSnow=false; S.prevHab=[...S.hab]; S.hab=[2,2]; S.habT=[0,0];
+    mult = 1.5; showCap('❄','갑자기 폭설이 내려 서식지가 눈밭으로 바뀌었다! 먹이가 부족하고 천적의 눈에 띄기 쉬워졌다.');
+    if(animated) for(let i=0;i<140;i++) S.snowParticles.push({x:rand(0,1000),y:rand(-560,0),v:rand(40,90),r:rand(1.5,3.5)});
+    if(animated) await sleep(1200);
+  }
+  const sick = S.pendingSick; S.pendingSick=false;
+  const pop = alive();
+  const victims=[], sickV=[];
+  pop.forEach(r=>{
+    if(sick && Math.random() < (r.res?0.05:0.95)){ sickV.push(r); return; }
+    if(Math.random() < huntProb(r,mult)) victims.push(r);
+  });
+  if(sick){ showCap('🦠','전염병이 돌았다! 질병 저항성 변이가 없는 토끼는 대부분 쓰러졌다.'); }
+  if(!animated){
+    const dead=new Set([...victims,...sickV]);
+    S.rabbits = S.rabbits.filter(r=>!dead.has(r));
+    return;
+  }
+  if(sick){
+    S.sickFog=1;
+    sickV.forEach((r,i)=>{r.sick=true; r.dying=true; r.dieAt=performance.now()+600+i*25});
+    await sleep(1500);
+  }
+  if(victims.length){
+    const shown = victims.slice().sort(()=>Math.random()-.5).slice(0, Math.min(3, victims.length));
+    const others = victims.filter(v=>!shown.includes(v));
+    const now = performance.now();
+    others.forEach((r,i)=>{r.dying=true; r.dieAt=now+500+i*120; r.shadow=true});
+    for(const v of shown) await hawkCatch(v);
+    await sleep(Math.max(0, others.length*120+900 - shown.length*1500));
+  }
+  await sleep(400);
+  const dead=new Set([...victims,...sickV]);
+  S.rabbits = S.rabbits.filter(r=>!dead.has(r));
+  S.sickFog=0;
+}
+function makeChild(m,f){
+  const pr = Math.random()<.5?m:f;
+  let color = pr.color;
+  if(Math.random()<MUT){ const o=[0,1,2].filter(c=>c!==color); color=pick(o); }
+  const side = m.side;
+  const avg = (m.season+f.season)/2;
+  const opt = HABS[S.hab[side]].opt;
+  const season = clamp(avg + PULL*(opt-avg) + gauss()*NOISE*0.5, 1, 12.9);
+  let res = (Math.random()<.5?m:f).res; if(Math.random()<0.005) res=!res;
+  let group = m.group===f.group ? m.group : (m.group===null?f.group:(f.group===null?m.group:'H'));
+  let pos;
+  if(S.river){ pos = {x:clamp(m.x+rand(-40,40),30,970), y:clamp(m.y+rand(-30,30),222,540)};
+    const rx=riverX(pos.y), gap=S.riverW/2+26;
+    if(side===0 && pos.x>rx-gap) pos=randPos(0); if(side===1 && pos.x<rx+gap) pos=randPos(1);
+  } else pos = Math.random()<.5 ? randPos(0,true) : {x:clamp(m.x+rand(-50,50),30,970), y:clamp(m.y+rand(-30,30),222,540)};
+  const c = makeRabbit(color, season, res, side, pos, group);
+  return c;
+}
+function breedPlan(){
+  const pop = alive();
+  const kids=[];
+  const groups = S.river ? [pop.filter(r=>r.side===0), pop.filter(r=>r.side===1)] : [pop];
+  const K = S.river ? K_SIDE : K_SIDE*2;
+  groups.forEach(g=>{
+    if(g.length<2) return;
+    const target = Math.min(K, Math.round(g.length*2.4));
+    let made=0, tries=0;
+    while(made<target && tries<target*12){
+      tries++;
+      const m = pick(g);
+      const cands = g.filter(o=>o!==m && Math.abs(o.season-m.season)<TOL);
+      if(!cands.length) continue;
+      const f = pick(cands);
+      kids.push(makeChild(m,f)); made++;
+    }
+  });
+  return kids;
+}
+async function breed(animated){
+  const parents = alive();
+  const kids = breedPlan();
+  if(!animated){ S.rabbits = kids; return; }
+  const now = performance.now();
+  kids.forEach((k,i)=>{k.born = now + i*35; k.scale=0});
+  S.rabbits.push(...kids);
+  kids.slice(0,10).forEach((k,i)=>setTimeout(()=>addFx(k.x,k.y-30,'heart'),i*35));
+  await sleep(kids.length*35+800);
+  parents.forEach(p=>p.fading=true);
+  await sleep(700);
+  S.rabbits = S.rabbits.filter(r=>!parents.includes(r));
+}
+function afterGen(){
+  S.gen++;
+  S.rabbits.forEach(r=>{ if(!S.river) r.side=sideOf(r.x,r.y); });
+  record();
+  if(alive().length===0){ S.extinct=true; S.auto=false; showToast('💀 모든 토끼가 사라졌습니다 (멸종)<br><span style="font-size:14px;font-weight:600">변이가 다양하지 않으면 급격한 변화에 적응할 개체가 없어요.</span>'); }
+  updateUI();
+}
+async function runGen(animated){
+  if(S.extinct) return;
+  await hunt(animated);
+  await breed(animated);
+  afterGen();
+}
+
+/* ================== 매 애니메이션 ================== */
+const hawk = {on:false,x:0,y:0,flap:0,prey:null,dir:1};
+function tween(dur, fn){return new Promise(res=>{const t0=performance.now();
+  const step=()=>{const t=Math.min(1,(performance.now()-t0)/dur);fn(t);if(t<1)requestAnimationFrame(step);else res()};requestAnimationFrame(step)})}
+async function hawkCatch(r){
+  r.locked=true;
+  const fromLeft = Math.random()<.5;
+  const sx = fromLeft?-80:1080, sy = rand(20,80);
+  hawk.on=true; hawk.prey=null; hawk.dir = fromLeft?1:-1;
+  const tx=r.x, ty=r.y-28;
+  await tween(800, t=>{const e=t*t; hawk.x=sx+(tx-sx)*t; hawk.y=sy+(ty-sy)*e;});
+  hawk.prey=r; r.carried=true;
+  const ex = fromLeft? tx+500 : tx-500, ey=-90;
+  await tween(700, t=>{const e=t*t; hawk.x=tx+(ex-tx)*t; hawk.y=ty+(ey-ty)*e; r.x=hawk.x; r.y=hawk.y+30;});
+  hawk.on=false; hawk.prey=null; r.alpha=0; r.dying=true; r.dieAt=0;
+}
+
+/* ================== 효과 ================== */
+function addFx(x,y,type,text){S.effects.push({x,y,type,text,t0:performance.now()})}
+
+/* ================== 그리기 ================== */
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+function fitCanvas(c,w,h){const d=window.devicePixelRatio||1;c.width=w*d;c.height=h*d;c.getContext('2d').setTransform(d,0,0,d,0,0)}
+fitCanvas(cv,W,H);
+
+function drawSky(){
+  const g=ctx.createLinearGradient(0,0,0,GROUND_Y);g.addColorStop(0,'#aee3f5');g.addColorStop(1,'#d4f0f7');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,GROUND_Y+5);
+  // mountains
+  const layers=[['#8fcfba',[0,120,120,95,260,125,380,85,520,118,640,80,800,112,930,88,1000,105]],
+                ['#72b9a2',[0,140,90,118,210,138,330,112,470,140,600,110,720,138,860,115,1000,135]]];
+  layers.forEach(([c,p])=>{ctx.fillStyle=c;ctx.beginPath();ctx.moveTo(0,GROUND_Y+5);
+    for(let i=0;i<p.length;i+=2)ctx.lineTo(p[i],p[i+1]);ctx.lineTo(1000,GROUND_Y+5);ctx.fill()});
+}
+function groundPath(side){
+  ctx.beginPath();
+  if(side===0){ctx.moveTo(0,GROUND_Y);for(let y=GROUND_Y;y<=H;y+=8)ctx.lineTo(riverX(y),y);ctx.lineTo(0,H);}
+  else{ctx.moveTo(1000,GROUND_Y);for(let y=GROUND_Y;y<=H;y+=8)ctx.lineTo(riverX(y),y);ctx.lineTo(1000,H);}
+  ctx.closePath();
+}
+function drawHab(side,h,alpha){
+  ctx.save();ctx.globalAlpha=alpha;groundPath(side);ctx.clip();
+  const g=ctx.createLinearGradient(0,GROUND_Y,0,H);
+  if(h===0){g.addColorStop(0,'#8cc865');g.addColorStop(1,'#b3db83');}
+  else if(h===1){g.addColorStop(0,'#cfbd8c');g.addColorStop(1,'#e6d6a8');}
+  else {g.addColorStop(0,'#e4edf3');g.addColorStop(1,'#fbfdff');}
+  ctx.fillStyle=g;ctx.fillRect(0,GROUND_Y,W,H-GROUND_Y);
+  // trees (background) for grass
+  deco.trees.forEach(t=>{
+    if(h===0){ctx.fillStyle='#5a3f2a';ctx.fillRect(t.x-2,t.y-4,4,10*t.s);ctx.fillStyle='#4fa257';ctx.beginPath();ctx.arc(t.x,t.y-10*t.s,10*t.s,0,7);ctx.fill();ctx.fillStyle='#62b66a';ctx.beginPath();ctx.arc(t.x-4*t.s,t.y-13*t.s,6*t.s,0,7);ctx.fill();}
+    else if(h===1){ctx.strokeStyle='#6b5a3e';ctx.lineWidth=1.5;ctx.beginPath();for(let k=-2;k<=2;k++){ctx.moveTo(t.x,t.y+4);ctx.lineTo(t.x+k*4*t.s,t.y-8*t.s-Math.abs(k)*-2)}ctx.stroke();}
+    else {ctx.fillStyle='#3f6d5a';ctx.beginPath();ctx.moveTo(t.x,t.y-22*t.s);ctx.lineTo(t.x-9*t.s,t.y+4);ctx.lineTo(t.x+9*t.s,t.y+4);ctx.fill();ctx.fillStyle='#fff';ctx.beginPath();ctx.moveTo(t.x,t.y-22*t.s);ctx.lineTo(t.x-5*t.s,t.y-10*t.s);ctx.lineTo(t.x+5*t.s,t.y-10*t.s);ctx.fill();}
+  });
+  deco.items.forEach(d=>{
+    const s=d.s;
+    if(h===0){ctx.strokeStyle=d.k<.5?'#5e9e45':'#76b257';ctx.lineWidth=1.4;ctx.beginPath();
+      for(let k=-1;k<=1;k++){ctx.moveTo(d.x+k*3*s,d.y);ctx.lineTo(d.x+k*5*s,d.y-7*s)}ctx.stroke();
+      if(d.k>.8){ctx.fillStyle='#5aa648';ctx.beginPath();ctx.ellipse(d.x+10,d.y,14*s,7*s,0,Math.PI,0);ctx.fill();}}
+    else if(h===1){
+      if(d.k<.25){ctx.fillStyle='#a49b8c';ctx.beginPath();ctx.ellipse(d.x,d.y,9*s,5*s,0,Math.PI,0);ctx.fill();}
+      else{ctx.fillStyle='#bba776';for(let k=0;k<4;k++){ctx.beginPath();ctx.arc(d.x+k*4*s,d.y+(k%2)*2,1.6*s,0,7);ctx.fill();}
+        if(d.k>.85){ctx.strokeStyle='#9aab6a';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(d.x,d.y);ctx.lineTo(d.x-3,d.y-6*s);ctx.moveTo(d.x,d.y);ctx.lineTo(d.x+3,d.y-6*s);ctx.stroke();}}}
+    else {ctx.fillStyle='rgba(170,195,215,.35)';ctx.beginPath();ctx.ellipse(d.x,d.y,16*s,4*s,0,0,7);ctx.fill();}
+  });
+  ctx.restore();
+}
+function drawGround(){
+  for(let s=0;s<2;s++){
+    if(S.habT[s]<1){drawHab(s,S.prevHab[s],1); drawHab(s,S.hab[s],S.habT[s]);}
+    else drawHab(s,S.hab[s],1);
+  }
+}
+let flow=0;
+function drawRiver(){
+  const w=S.riverW; if(w<1) return;
+  ctx.save();
+  // banks
+  ctx.beginPath();
+  for(let y=GROUND_Y;y<=H;y+=6)ctx.lineTo(riverX(y)-w/2-6,y);
+  for(let y=H;y>=GROUND_Y;y-=6)ctx.lineTo(riverX(y)+w/2+6,y);
+  ctx.closePath();ctx.fillStyle='#a07a52';ctx.fill();
+  ctx.beginPath();
+  for(let y=GROUND_Y;y<=H;y+=6)ctx.lineTo(riverX(y)-w/2,y);
+  for(let y=H;y>=GROUND_Y;y-=6)ctx.lineTo(riverX(y)+w/2,y);
+  ctx.closePath();
+  const g=ctx.createLinearGradient(0,GROUND_Y,0,H);g.addColorStop(0,'#7fd0e3');g.addColorStop(1,'#4fb5d4');
+  ctx.fillStyle=g;ctx.fill();ctx.clip();
+  ctx.strokeStyle='rgba(255,255,255,.7)';ctx.lineWidth=1.6;
+  for(let k=0;k<26;k++){
+    const y=GROUND_Y+((k*23+flow*30)%(H-GROUND_Y));const off=((k*37)%Math.max(1,w))-w/2;
+    ctx.beginPath();ctx.moveTo(riverX(y)+off*0.8,y);ctx.lineTo(riverX(y+12)+off*0.8,y+12);ctx.stroke();
+  }
+  ctx.restore();
+}
+function drawRabbit(r, now){
+  if(r.born>now) return;
+  let sc=r.scale;
+  if(r.scale<1){sc=Math.min(1,(now-r.born)/300); if(sc>=1) r.scale=1;}
+  let a=r.alpha;
+  if(a<=0) return;
+  const persp = 0.62 + (r.y-GROUND_Y)/(H-GROUND_Y)*0.6;
+  const s = persp*sc*1.15;
+  const c = COLORS[r.color];
+  const hopY = r.carried?0:-Math.abs(Math.sin(r.hop))*7*s;
+  ctx.save();ctx.globalAlpha=a;ctx.translate(r.x,r.y);
+  // shadow
+  if(!r.carried){ctx.fillStyle='rgba(0,0,0,.15)';ctx.beginPath();ctx.ellipse(0,1,14*s,3.5*s,0,0,7);ctx.fill();}
+  if(r.shadow && r.dying){ // hawk shadow
+    const k = clamp((now-(r.dieAt-500))/500,0,1);
+    ctx.fillStyle=`rgba(40,30,20,${0.35*k})`;ctx.beginPath();ctx.ellipse(0,-8*s,30*s*(1.6-k*0.6),10*s,0,0,7);ctx.fill();
+  }
+  ctx.translate(0,hopY);ctx.scale(r.dir*s,s);
+  ctx.lineWidth=1.3/s*persp; ctx.strokeStyle=c.stroke; ctx.fillStyle=c.body;
+  // tail
+  ctx.beginPath();ctx.arc(-13,-9,4,0,7);ctx.fillStyle=r.color===2?'#c9a98a':'#fff';ctx.fill();ctx.stroke();
+  ctx.fillStyle=c.body;
+  // body
+  ctx.beginPath();ctx.ellipse(-2,-11,13,10,0,0,7);ctx.fill();ctx.stroke();
+  // ears
+  for(const [ex,ang] of [[6,-0.25],[11,0.15]]){
+    ctx.save();ctx.translate(ex,-28);ctx.rotate(ang);
+    ctx.beginPath();ctx.ellipse(0,-9,3.6,10,0,0,7);ctx.fillStyle=c.body;ctx.fill();ctx.stroke();
+    ctx.beginPath();ctx.ellipse(0,-9,1.8,7,0,0,7);ctx.fillStyle=c.ear;ctx.fill();
+    ctx.restore();
+  }
+  // head
+  ctx.beginPath();ctx.arc(9,-22,8,0,7);ctx.fillStyle=c.body;ctx.fill();ctx.stroke();
+  // eye/nose
+  ctx.fillStyle='#1a1a1a';ctx.beginPath();ctx.arc(12,-23.5,1.6,0,7);ctx.fill();
+  ctx.fillStyle='#e58a9a';ctx.beginPath();ctx.arc(16.5,-20.5,1.2,0,7);ctx.fill();
+  // feet
+  ctx.fillStyle=c.body;ctx.beginPath();ctx.ellipse(4,-1.5,4.5,2.2,0,0,7);ctx.fill();ctx.stroke();
+  if(r.sick){ctx.fillStyle='rgba(110,160,40,.55)';ctx.beginPath();ctx.ellipse(-2,-14,14,14,0,0,7);ctx.fill();}
+  ctx.restore();
+  if(S.showMark && r.group!==null && a>0.3){
+    ctx.save();ctx.globalAlpha=a;
+    const col = r.group===0?'#7a3fb0':r.group===1?'#e8743b':'#777';
+    ctx.fillStyle=col;ctx.beginPath();ctx.arc(r.x,r.y-50*s+hopY,5*persp+1,0,7);ctx.fill();
+    ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();ctx.restore();
+  }
+}
+function drawHawk(){
+  if(!hawk.on) return;
+  hawk.flap+=0.35;
+  const f=Math.sin(hawk.flap);
+  ctx.save();ctx.translate(hawk.x,hawk.y);ctx.scale(hawk.dir*1.25,1.25);
+  ctx.fillStyle='#7a5b45';ctx.strokeStyle='#4a3626';ctx.lineWidth=1.2;
+  // wings
+  for(const side of [-1,1]){
+    ctx.beginPath();ctx.moveTo(-4,0);
+    ctx.quadraticCurveTo(-18,-20*f*side-6, -48, -26*f*side-(side>0?4:0));
+    ctx.lineTo(-30,-6*f*side+4);ctx.lineTo(-8,6);ctx.closePath();ctx.fill();ctx.stroke();
+  }
+  ctx.beginPath();ctx.ellipse(0,2,18,8,-0.15,0,7);ctx.fill();ctx.stroke();
+  ctx.beginPath();ctx.moveTo(-16,2);ctx.lineTo(-30,-2);ctx.lineTo(-30,9);ctx.closePath();ctx.fillStyle='#5e4533';ctx.fill();
+  ctx.beginPath();ctx.arc(16,-3,6.5,0,7);ctx.fillStyle='#6b4f3b';ctx.fill();ctx.stroke();
+  ctx.fillStyle='#f5c518';ctx.beginPath();ctx.moveTo(21,-4);ctx.lineTo(27,-1);ctx.lineTo(21,0);ctx.fill();
+  ctx.fillStyle='#111';ctx.beginPath();ctx.arc(18,-5,1.3,0,7);ctx.fill();
+  ctx.restore();
+}
+function drawEffects(now){
+  S.effects = S.effects.filter(e=>now-e.t0<1600);
+  S.effects.forEach(e=>{
+    const t=(now-e.t0)/1600;
+    ctx.save();ctx.globalAlpha=1-t;ctx.textAlign='center';
+    if(e.type==='heart'){ctx.font='bold 20px sans-serif';ctx.fillStyle='#e8466b';ctx.fillText('♥',e.x,e.y-t*25);}
+    else if(e.type==='x'){ctx.font='bold 24px sans-serif';ctx.fillStyle='#555';ctx.fillText('✕',e.x,e.y-t*15);}
+    if(e.text){ctx.font='bold 13px sans-serif';ctx.fillStyle='#222';ctx.strokeStyle='#fff';ctx.lineWidth=3;ctx.strokeText(e.text,e.x,e.y+16-t*15);ctx.fillText(e.text,e.x,e.y+16-t*15);}
+    ctx.restore();
+  });
+}
+// 짝짓기 확인 결과 표시(고정)
+let pairMarks=[];
+function drawPairMarks(){
+  pairMarks.forEach(p=>{
+    ctx.save();ctx.textAlign='center';
+    ctx.font='bold 26px sans-serif';
+    ctx.fillStyle=p.ok?'#e8466b':'#444';
+    ctx.fillText(p.ok?'♥':'✕',p.x,p.y-52);
+    ctx.font='bold 12.5px sans-serif';ctx.lineWidth=3;ctx.strokeStyle='#fff';
+    const tx=p.ok?'자손 ○':'짝짓기 ✕';
+    ctx.strokeText(tx,p.x,p.y-34);ctx.fillStyle=p.ok?'#b0213f':'#333';ctx.fillText(tx,p.x,p.y-34);
+    ctx.restore();
+  });
+}
+
+/* ================== 움직임 ================== */
+let last=performance.now();
+function update(dt, now){
+  flow+=dt;
+  for(let s=0;s<2;s++) if(S.habT[s]<1) S.habT[s]=Math.min(1,S.habT[s]+dt*0.8);
+  S.rabbits.forEach(r=>{
+    if(r.dying && now>=r.dieAt && !r.carried) r.alpha=Math.max(0,r.alpha-dt*2.2);
+    if(r.fading) r.alpha=Math.max(0,r.alpha-dt*1.6);
+    if(r.locked || r.carried || r.dying) { if(r.locked && !r.carried){ moveTo(r,dt,90); } return; }
+    // stay on side when river exists
+    if(S.river && S.riverW>4){
+      const rx=riverX(r.y), gap=S.riverW/2+20;
+      const ok = r.side===0 ? r.x<rx-gap : r.x>rx+gap;
+      if(!ok && Math.abs(r.tx-r.x)<3){const p=randPos(r.side);r.tx=p.x;r.ty=p.y;}
+    }
+    if(Math.hypot(r.tx-r.x,r.ty-r.y)<2){
+      r.hop=0; r.idle-=dt;
+      if(r.idle<=0){ r.idle=rand(1,4);
+        const p = S.river? randPos(r.side) : (Math.random()<.85? {x:clamp(r.x+rand(-120,120),30,970),y:clamp(r.y+rand(-60,60),222,540)} : randPos(0,true));
+        r.tx=p.x; r.ty=p.y; }
+    } else moveTo(r,dt,45);
+  });
+  S.snowParticles.forEach(p=>{p.y+=p.v*dt;p.x+=Math.sin(p.y/30)*0.4});
+  S.snowParticles=S.snowParticles.filter(p=>p.y<H);
+}
+function moveTo(r,dt,speed){
+  const dx=r.tx-r.x, dy=r.ty-r.y, d=Math.hypot(dx,dy);
+  if(d<2){r.hop=0;return}
+  const st=Math.min(d,speed*dt);
+  r.x+=dx/d*st; r.y+=dy/d*st; r.hop+=dt*9; if(Math.abs(dx)>1) r.dir=dx>0?1:-1;
+}
+function frame(now){
+  const dt=Math.min(0.05,(now-last)/1000); last=now;
+  update(dt,now);
+  ctx.clearRect(0,0,W,H);
+  drawSky(); drawGround(); drawRiver();
+  const list=S.rabbits.slice().sort((a,b)=>a.y-b.y);
+  list.forEach(r=>{ if(!r.carried) drawRabbit(r,now)});
+  drawPairMarks();
+  drawHawk();
+  if(hawk.prey){ drawRabbit(hawk.prey,now); }
+  drawEffects(now);
+  if(S.snowParticles.length){ctx.fillStyle='#fff';S.snowParticles.forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill()})}
+  if(S.sickFog){ctx.fillStyle='rgba(120,160,60,.12)';ctx.fillRect(0,0,W,H)}
+  // 서식지 라벨
+  ctx.save();ctx.font='bold 13px sans-serif';
+  const labels = S.river||S.hab[0]!==S.hab[1] ? [[18,'왼쪽: '+HABS[S.hab[0]].name,'left'],[982,'오른쪽: '+HABS[S.hab[1]].name,'right']] : [[18,HABS[S.hab[0]].name,'left']];
+  labels.forEach(([x,t,al])=>{ctx.textAlign=al;ctx.fillStyle='rgba(255,255,255,.85)';const w=ctx.measureText(t).width+14;ctx.fillRect(al==='left'?x-4:x-w+4,H-30,w,22);ctx.fillStyle='#24332b';ctx.fillText(t,al==='left'?x+3:x-3,H-14)});
+  ctx.restore();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* ================== 강 ================== */
+async function setRiver(on, animated=true){
+  if(on===S.river) return;
+  if(on){
+    S.river=true; setGroups();
+    if(animated) await tween(1400,t=>S.riverW=70*t); else S.riverW=70;
+    S.rabbits.forEach(r=>{const p=randPos(r.side);r.tx=p.x;r.ty=p.y;r.idle=0});
+  } else {
+    if(animated) await tween(1400,t=>S.riverW=70*(1-t)); else S.riverW=0;
+    S.river=false;
+  }
+  updateUI();
+}
+
+/* ================== 그래프 ================== */
+const chL=document.getElementById('chL'), chR=document.getElementById('chR'), chS=document.getElementById('chS');
+[chL,chR,chS].forEach(c=>fitCanvas(c,400,150));
+const CC=['#f1f1ea','#a7aca8','#97714f'];
+function drawStack(c, hist){
+  const g=c.getContext('2d'); g.clearRect(0,0,400,150);
+  const L=30,R=392,T=8,B=128;
+  g.strokeStyle='#ccd5cf';g.lineWidth=1;g.font='10px sans-serif';g.fillStyle='#6b7a71';
+  [0,50,100].forEach(p=>{const y=B-(B-T)*p/100;g.beginPath();g.moveTo(L,y);g.lineTo(R,y);g.stroke();g.fillText(p+'%',2,y+3)});
+  if(!hist.length){return}
+  const maxG=Math.max(10,hist[hist.length-1].gen);
+  const X=gn=>L+(R-L)*gn/maxG;
+  const pts=hist.map(h=>{const n=h.n||1;return{gen:h.gen,p:h.c.map(v=>v/n),n:h.n}});
+  // stacked areas
+  for(let k=2;k>=0;k--){
+    g.beginPath();
+    pts.forEach((p,i)=>{let cum=0;for(let j=0;j<=k;j++)cum+=p.p[j];if(p.n===0)cum=0;const y=B-(B-T)*cum;i?g.lineTo(X(p.gen),y):g.moveTo(X(p.gen),y)});
+    for(let i=pts.length-1;i>=0;i--){const p=pts[i];let cum=0;for(let j=0;j<k;j++)cum+=p.p[j];if(p.n===0)cum=0;g.lineTo(X(p.gen),B-(B-T)*cum)}
+    g.closePath();g.fillStyle=CC[k];g.fill();
+    if(k===0){g.strokeStyle='#bdbdb3';g.stroke();}
+  }
+  // extinct marks
+  pts.forEach(p=>{if(p.n===0){g.fillStyle='rgba(200,60,50,.15)';g.fillRect(X(p.gen)-1,T,2,B-T)}});
+  g.fillStyle='#6b7a71';g.textAlign='center';
+  const step=maxG<=20?5:maxG<=50?10:20;
+  for(let i=0;i<=maxG;i+=step)g.fillText(i,X(i),B+12);
+  g.textAlign='right';g.fillText('세대',R,B+22);g.textAlign='left';
+}
+function compatInfo(){
+  const pop=alive();
+  let A,B;
+  if(S.groupsSet){A=pop.filter(r=>r.group===0);B=pop.filter(r=>r.group===1);}
+  else {A=pop.filter(r=>r.side===0);B=pop.filter(r=>r.side===1);}
+  if(!A.length||!B.length) return {A,B,p:null};
+  let ok=0,n=0;
+  A.forEach(a=>B.forEach(b=>{n++; if(Math.abs(a.season-b.season)<TOL) ok++;}));
+  return {A,B,p:ok/n};
+}
+function drawSeason(){
+  const g=chS.getContext('2d');g.clearRect(0,0,400,150);
+  const L=10,R=392,T=8,B=118;
+  const {A,B:Bb,p}=compatInfo();
+  const bins=24, cnt=[new Array(bins).fill(0),new Array(bins).fill(0)];
+  A.forEach(r=>cnt[0][Math.min(bins-1,Math.floor((r.season-1)/12*bins))]++);
+  Bb.forEach(r=>cnt[1][Math.min(bins-1,Math.floor((r.season-1)/12*bins))]++);
+  const mx=Math.max(4,...cnt[0],...cnt[1]);
+  const bw=(R-L)/bins;
+  g.strokeStyle='#ccd5cf';g.beginPath();g.moveTo(L,B);g.lineTo(R,B);g.stroke();
+  [[0,'rgba(122,63,176,.65)'],[1,'rgba(232,116,59,.65)']].forEach(([k,col])=>{
+    g.fillStyle=col;cnt[k].forEach((v,i)=>{if(!v)return;const h=(B-T)*v/mx;g.fillRect(L+i*bw+1,B-h,bw-2,h)});
+  });
+  g.fillStyle='#6b7a71';g.font='10px sans-serif';g.textAlign='center';
+  for(let m=1;m<=12;m++)g.fillText(m+'월',L+(m-1)/12*(R-L)+bw,B+12);
+  g.textAlign='left';
+  const el=document.getElementById('compat');
+  if(p===null) el.textContent='두 무리 간 짝짓기 가능성: -';
+  else el.innerHTML='두 무리 간 짝짓기 가능성 <b style="color:'+(p<.2?'#7a3fb0':p<.7?'#b07a00':'#2f7d5b')+'">'+Math.round(p*100)+'%</b>';
+}
+function updateCharts(){
+  drawStack(chL,S.hist[0]);drawStack(chR,S.hist[1]);drawSeason();
+  const pop=alive();
+  document.getElementById('nL').textContent=pop.filter(r=>r.side===0).length+'마리';
+  document.getElementById('nR').textContent=pop.filter(r=>r.side===1).length+'마리';
+}
+
+/* ================== UI 공통 ================== */
+function showCap(num,text){document.getElementById('cap').innerHTML=(num?'<b>'+num+'</b>':'')+text}
+function showToast(h){const t=document.getElementById('toast');t.innerHTML=h;t.style.display='block'}
+function hideToast(){document.getElementById('toast').style.display='none'}
+function updateUI(){
+  document.getElementById('genBadge').textContent=S.gen+'세대 · '+alive().length+'마리';
+  updateCharts();
+  if(S.mode==='free') updateFree();
+}
+function counts(side){const c=[0,0,0];alive().filter(r=>side===undefined||r.side===side).forEach(r=>c[r.color]++);return c}
+
+/* ================== 짝짓기 확인(만남) ================== */
+async function meetTest(resultEl){
+  pairMarks=[];
+  if(S.river){ showCap('','강이 사라지고 있다…'); await setRiver(false,true); }
+  S.showMark=true; document.getElementById('mark').checked=true;
+  showCap('','두 무리가 한곳에서 만났다. 서로 짝짓기를 하여 자손을 남길 수 있을까?');
+  // mingle
+  alive().forEach(r=>{const p=randPos(0,true);r.tx=p.x;r.ty=p.y;r.idle=3});
+  await sleep(2200);
+  const pop=alive();
+  const A=pop.filter(r=>r.group===0), B=pop.filter(r=>r.group===1);
+  const pairs=[];
+  const used=new Set();
+  const take=(arr)=>{const f=arr.filter(r=>!used.has(r));if(!f.length)return null;const r=pick(f);used.add(r);return r};
+  const plan = (A.length&&B.length) ? ['AB','AB','AB','AB','AA','BB','AB','AA'] : ['XX','XX','XX','XX','XX','XX'];
+  plan.forEach(t=>{
+    let a,b;
+    if(t==='AB'){a=take(A);b=take(B);} else if(t==='AA'){a=take(A);b=take(A);} else if(t==='BB'){a=take(B);b=take(B);} else {a=take(pop);b=take(pop);}
+    if(a&&b) pairs.push({a,b,t});
+  });
+  const spots=[];
+  const cols=4;
+  pairs.forEach((p,i)=>{const cx=150+(i%cols)*235, cy=300+Math.floor(i/cols)*160;spots.push([cx,cy])});
+  pairs.forEach((p,i)=>{const [cx,cy]=spots[i];p.a.locked=true;p.b.locked=true;p.a.tx=cx-22;p.a.ty=cy;p.b.tx=cx+22;p.b.ty=cy;});
+  await sleep(2300);
+  pairs.forEach(p=>{p.a.dir=1;p.b.dir=-1});
+  let same=[0,0],cross=[0,0];
+  for(let i=0;i<pairs.length;i++){
+    const p=pairs[i]; const ok=Math.abs(p.a.season-p.b.season)<TOL;
+    pairMarks.push({x:spots[i][0],y:spots[i][1],ok});
+    if(p.t==='AB'){cross[1]++;if(ok)cross[0]++;} else {same[1]++;if(ok)same[0]++;}
+    await sleep(450);
+  }
+  const ci=compatInfo();
+  const pct = ci.p===null?null:Math.round(ci.p*100);
+  let html='<table class="res"><tr><th>짝</th><th>짝짓기 성공</th></tr>';
+  if(A.length&&B.length){
+    html+=`<tr><td>같은 무리끼리</td><td>${same[0]} / ${same[1]}</td></tr><tr><td>다른 무리끼리</td><td>${cross[0]} / ${cross[1]}</td></tr></table>`;
+    html+=`<p class="small">전체 토끼로 계산한 두 무리 간 짝짓기 가능성: <b>${pct}%</b> · 짝짓기 시기 평균: 왼쪽 무리 ${avgSeason(A)}월, 오른쪽 무리 ${avgSeason(B)}월</p>`;
+    let v;
+    if(pct<20) v='<div class="verdict diff">🧬 서로 다른 종이 되었다!<br><span style="font-weight:600;font-size:13.5px">두 무리는 만나도 짝짓기하여 자손을 남기지 못합니다. 오랜 시간 따로 살며 변화가 누적되었기 때문입니다.</span></div>';
+    else if(pct<70) v='<div class="verdict mid">⏳ 서로 다른 종으로 나뉘는 중<br><span style="font-weight:600;font-size:13.5px">짝짓기가 되는 경우와 안 되는 경우가 섞여 있습니다. 더 오랜 시간이 필요해요.</span></div>';
+    else v='<div class="verdict same">🐇 아직 같은 종<br><span style="font-weight:600;font-size:13.5px">두 무리가 만나 자유롭게 짝짓기하여 자손을 남길 수 있습니다.</span></div>';
+    html+=v;
+    showCap('5', pct<20?'두 무리가 만나게 되었지만, 이미 서로 다른 종류의 토끼가 되었다.':pct<70?'두 무리 사이에 짝짓기가 되기도, 안 되기도 한다.':'두 무리가 만나 다시 함께 짝짓기를 한다 — 아직 같은 종이다.');
+  } else {
+    html+=`<tr><td>무작위 짝</td><td>${same[0]+cross[0]} / ${same[1]+cross[1]}</td></tr></table><div class="verdict same">한 무리만 있어 비교할 수 없습니다. 먼저 강을 만들어 무리를 나누고 여러 세대를 진행해 보세요.</div>`;
+  }
+  if(resultEl) resultEl.innerHTML=html;
+  await sleep(3500);
+  pairs.forEach(p=>{p.a.locked=false;p.b.locked=false});
+  setTimeout(()=>{pairMarks=[]},4000);
+  updateUI();
+  return pct;
+}
+function avgSeason(arr){if(!arr.length)return '-';return (arr.reduce((s,r)=>s+r.season,0)/arr.length).toFixed(1)}
+
+/* ================== 이야기 모드 ================== */
+let story={step:1, done:new Set(), pred:[null,null], before:null};
+const SP=document.getElementById('storyPanel');
+async function storyReset(){
+  S.auto=false; S.river=false;S.riverW=0;S.hab=[0,0];S.prevHab=[0,0];S.habT=[1,1];S.hawk=60;S.ratio=[4,3,3];S.res=15;S.showMark=false;pairMarks=[];
+  document.getElementById('mark').checked=false;
+  initPop(40); story={step:1,done:new Set(),pred:[null,null],before:null}; renderStory();
+}
+function stepBar(){
+  return '<div class="steps">'+[1,2,3,4,5].map(i=>`<button data-s="${i}" class="${story.step===i?'on':story.done.has(i)?'done':''}">${i}</button>`).join('')+'</div>';
+}
+function renderStory(){
+  const st=story.step; let h=stepBar();
+  if(st===1){
+    showCap('1','다양한 변이를 가진 한 종류의 토끼가 살고 있었다.');
+    const c=counts();
+    h+=`<h3>1단계 · 변이가 다양한 토끼 무리</h3>
+    <p>같은 종류의 토끼인데도 털색이 <b>흰색·회색·갈색</b>으로 서로 다릅니다. 이처럼 같은 종류의 생물 사이에서 나타나는 형질의 차이를 <b>변이</b>라고 합니다.</p>
+    <table class="res"><tr><th>흰색</th><th>회색</th><th>갈색</th></tr><tr><td>${c[0]}마리</td><td>${c[1]}마리</td><td>${c[2]}마리</td></tr></table>
+    <div class="box">눈에 보이지 않는 변이도 있습니다. 토끼마다 <b>짝짓기 시기</b>가 조금씩 다르고(오른쪽 아래 그래프), 일부 토끼는 <b>질병 저항성</b>을 가지고 있어요.</div>
+    <div class="row"><button class="btn" id="go2">다음 단계 ▶</button></div>`;
+  } else if(st===2){
+    showCap('2','서식지에 강이 생겨 두 무리로 나누어 살게 되었다.');
+    h+=`<h3>2단계 · 강이 생겨 무리가 나뉨</h3>
+    <p>우연한 변화로 서식지 가운데에 강이 생겼습니다. 토끼는 강을 건널 수 없어서 <b>두 무리가 서로 만나 짝짓기를 할 수 없게</b> 됩니다.</p>
+    <p>강 오른쪽은 점점 <b>메마른 모래땅</b>으로 바뀌었습니다.</p>
+    <div class="row"><button class="btn" id="doRiver" ${S.river?'disabled':''}>🌊 강이 생긴다</button></div>
+    <div class="row"><button class="btn sec" id="go3" ${S.river?'':'disabled'}>다음 단계 ▶</button></div>`;
+  } else if(st===3){
+    showCap('3','각 서식지에서 눈에 잘 띄지 않는 토끼가 살아남았다.');
+    const radio=(side)=>`<div class="opts">${[0,1,2].map(c=>`<input type="radio" name="p${side}" id="p${side}${c}" value="${c}" ${story.pred[side]===c?'checked':''}><label for="p${side}${c}">${COLORS[c].name}</label>`).join('')}</div>`;
+    h+=`<h3>3단계 · 천적(매)의 등장</h3>
+    <div class="q">💭 각각의 무리에서 어떤 변이를 가진 토끼가 생존에 유리할지 생각해 보자.</div>
+    <div class="pred"><b>왼쪽(풀밭)</b>${radio(0)}<b>오른쪽(모래땅)</b>${radio(1)}</div>
+    <div class="row"><button class="btn orange" id="doHunt" ${story.before?'disabled':''}>🦅 매가 나타난다</button></div>
+    <div id="huntRes"></div>
+    <div class="row"><button class="btn sec" id="go4" ${story.before&&story.huntDone?'':'disabled'}>다음 단계 ▶</button></div>`;
+  } else if(st===4){
+    showCap('4','살아남은 토끼는 자손을 남겼다.');
+    h+=`<h3>4단계 · 자손을 남기고 오랜 시간이 흐름</h3>
+    <p>살아남은 토끼는 자손을 남기며, 이 과정에서 자신이 가진 <b>특성을 자손에게 전달</b>합니다.</p>
+    <div class="row"><button class="btn" id="doBreed" ${story.bred?'disabled':''}>🐣 자손을 남긴다</button></div>
+    <div class="row"><button class="btn orange" id="doLong" ${story.bred&&!story.longDone?'':'disabled'}>⏩ 오랜 시간이 흐른다 (40세대)</button></div>
+    <div class="box" id="longInfo">아래 그래프에서 세대가 지날수록 양쪽 무리의 털색 비율과 짝짓기 시기가 어떻게 달라지는지 살펴보세요.</div>
+    <div class="row"><button class="btn sec" id="go5" ${story.longDone?'':'disabled'}>다음 단계 ▶</button></div>`;
+  } else if(st===5){
+    showCap('5','매우 오랜 시간이 지나 강이 사라지고 두 무리가 만나게 되었다.');
+    h+=`<h3>5단계 · 다시 만난 두 무리</h3>
+    <p>강이 사라져 두 무리가 다시 만났습니다. 두 무리는 <b>자연 상태에서 짝짓기를 하여 번식 능력이 있는 자손</b>을 낳을 수 있을까요?</p>
+    <div class="row"><button class="btn orange" id="doMeet" ${story.met?'disabled':''}>💞 두 무리를 만나게 한다</button></div>
+    <div id="meetRes"></div>
+    <div class="box" id="wrap" style="display:${story.met?'block':'none'}">
+    <b>정리</b> · 다양한 변이를 가진 한 종류의 생물이 서식지가 나뉘어 서로 다른 환경에 살게 되면, 각 서식지에서 생존에 유리한 변이를 가진 생물이 살아남아 자손을 남깁니다. 이런 변화가 오랜 시간 누적되면 서로 다른 종류의 생물이 됩니다.</div>
+    <div class="row"><button class="btn sec" id="again">↺ 처음부터 다시</button><button class="btn" id="toFree">자유 실험으로 ▶</button></div>`;
+  }
+  SP.innerHTML=h;
+  SP.querySelectorAll('.steps button').forEach(b=>b.onclick=()=>{const s=+b.dataset.s; if(s<=Math.max(...story.done,0)+1 && !S.busy){story.step=s;renderStory();}});
+  const on=(id,fn)=>{const e=document.getElementById(id);if(e)e.onclick=fn};
+  on('go2',()=>{story.done.add(1);story.step=2;renderStory()});
+  on('doRiver',async()=>{if(S.busy)return;S.busy=true;document.getElementById('doRiver').disabled=true;
+    S.prevHab=[...S.hab];S.hab=[0,1];S.habT=[1,0];await setRiver(true,true);S.busy=false;renderStory();});
+  on('go3',()=>{story.done.add(2);story.step=3;renderStory()});
+  SP.querySelectorAll('input[type=radio]').forEach(r=>r.onchange=()=>{story.pred[+r.name[1]]=+r.value});
+  on('doHunt',async()=>{
+    if(S.busy)return;
+    if(story.pred[0]===null||story.pred[1]===null){document.getElementById('huntRes').innerHTML='<p class="small" style="color:#c2493d">먼저 양쪽 무리에서 살아남을 털색을 예측해 보세요.</p>';return;}
+    S.busy=true;story.before=[counts(0),counts(1)];document.getElementById('doHunt').disabled=true;
+    await hunt(true);
+    story.huntDone=true;
+    const after=[counts(0),counts(1)];
+    const best=[0,1].map(s=>{let bi=0,bv=-1;for(let c=0;c<3;c++){const b=story.before[s][c];if(!b)continue;const r=after[s][c]/b;if(r>bv){bv=r;bi=c}}return bi});
+    let t='<table class="res"><tr><th></th><th>털색</th><th>사냥 전</th><th>사냥 후</th><th>생존율</th></tr>';
+    ['왼쪽<br>풀밭','오른쪽<br>모래땅'].forEach((nm,s)=>{[0,1,2].forEach(c=>{const b=story.before[s][c],a=after[s][c];
+      t+=`<tr>${c===0?`<td rowspan="3">${nm}</td>`:''}<td>${COLORS[c].name}</td><td>${b}</td><td>${a}</td><td>${b?Math.round(a/b*100)+'%':'-'}</td></tr>`})});
+    t+='</table>';
+    t+=[0,1].map(s=>`<p class="small">${s?'오른쪽':'왼쪽'} 예측: <b>${COLORS[story.pred[s]].name}</b> → 생존율이 가장 높은 털색: <b>${COLORS[best[s]].name}</b> ${story.pred[s]===best[s]?'✅':'🤔'}</p>`).join('');
+    t+='<div class="box">주변 환경과 몸 색깔이 비슷한 토끼는 천적의 눈에 잘 띄지 않아 살아남을 가능성이 높습니다. (확률에 따라 결과가 조금씩 달라질 수 있어요.)</div>';
+    document.getElementById('huntRes').innerHTML=t;
+    S.busy=false; const g=document.getElementById('go4'); if(g) g.disabled=false; updateUI();
+  });
+  on('go4',()=>{story.done.add(3);story.step=4;renderStory()});
+  on('doBreed',async()=>{if(S.busy)return;S.busy=true;document.getElementById('doBreed').disabled=true;await breed(true);afterGen();story.bred=true;S.busy=false;renderStory();});
+  on('doLong',async()=>{if(S.busy)return;S.busy=true;document.getElementById('doLong').disabled=true;
+    for(let i=0;i<40 && !S.extinct;i++){await runGen(false);await sleep(110);}
+    story.longDone=true;S.busy=false;renderStory();
+    const cl=counts(0),cr=counts(1);
+    const dom=c=>COLORS[c.indexOf(Math.max(...c))].name;
+    document.getElementById('longInfo').innerHTML=`${S.gen}세대가 지났습니다. 왼쪽(풀밭) 무리는 <b>${dom(cl)}</b> 토끼, 오른쪽(모래땅) 무리는 <b>${dom(cr)}</b> 토끼가 대부분입니다. 오른쪽 아래 그래프에서 두 무리의 짝짓기 시기도 서로 멀어졌는지 확인해 보세요.`;
+  });
+  on('go5',()=>{story.done.add(4);story.step=5;renderStory()});
+  on('doMeet',async()=>{if(S.busy)return;S.busy=true;document.getElementById('doMeet').disabled=true;
+    await meetTest(document.getElementById('meetRes'));story.met=true;story.done.add(5);S.busy=false;
+    document.getElementById('wrap').style.display='block';});
+  on('again',()=>{if(!S.busy)storyReset()});
+  on('toFree',()=>setMode('free'));
+}
+
+/* ================== 자유 실험 ================== */
+const $=id=>document.getElementById(id);
+['habL','habR'].forEach(id=>{$(id).innerHTML=HABS.map((h,i)=>`<option value="${i}">${h.name}</option>`).join('')});
+function readFreeCtl(){
+  S.hawk=+$('hawk').value; S.ratio=[+$('rW').value,+$('rG').value,+$('rB').value]; S.res=+$('res').value;
+}
+function updateFree(){
+  $('hawkV').textContent=$('hawk').value+'%';
+  const r=[+$('rW').value,+$('rG').value,+$('rB').value],t=r[0]+r[1]+r[2]||1;
+  $('ratioV').textContent=r.map((v,i)=>COLORS[i].name[0]+Math.round(v/t*100)).join(' : ');
+  $('resV').textContent=$('res').value+'%';
+  $('habL').value=S.hab[0]; $('habR').value=S.hab[1];
+  $('fRiver').textContent=S.river?'🏞 강 없애기 (무리 섞임)':'🌊 강 생기기 (무리 나뉨)';
+  $('fAuto').textContent=S.auto?'⏸ 멈춤':'⏯ 자동';
+  ['f1','f10','fRiver','fMeet','fReset','fSnow','fSick'].forEach(id=>$(id).disabled=S.busy&&!(id==='fAuto'));
+  $('f1').disabled=$('f10').disabled=S.busy||S.extinct;
+  $('fSnow').textContent=S.pendingSnow?'❄ 폭설 예정…':'❄ 폭설 (환경 급변)';
+  $('fSick').textContent=S.pendingSick?'🦠 전염병 예정…':'🦠 전염병';
+}
+function freeCap(){
+  showCap('', S.river?'강으로 나뉜 두 무리 · 왼쪽 '+HABS[S.hab[0]].name+' / 오른쪽 '+HABS[S.hab[1]].name : '강이 없어 한 무리로 섞여 사는 토끼');
+}
+$('hawk').oninput=()=>{S.hawk=+$('hawk').value;updateFree()};
+$('res').oninput=updateFree;
+['rW','rG','rB'].forEach(id=>$(id).oninput=updateFree);
+$('habL').onchange=()=>{S.prevHab[0]=S.hab[0];S.hab[0]=+$('habL').value;S.habT[0]=0;freeCap()};
+$('habR').onchange=()=>{S.prevHab[1]=S.hab[1];S.hab[1]=+$('habR').value;S.habT[1]=0;freeCap()};
+$('mark').onchange=()=>{S.showMark=$('mark').checked};
+$('fReset').onclick=()=>{if(S.busy)return;S.auto=false;readFreeCtl();pairMarks=[];initPop(40);$('freeResult').innerHTML='';freeCap()};
+$('fRiver').onclick=async()=>{if(S.busy)return;S.busy=true;updateFree();await setRiver(!S.river,true);S.busy=false;freeCap();updateUI()};
+async function freeRun(n,animated){
+  if(S.busy)return; S.busy=true; updateFree();
+  for(let i=0;i<n && !S.extinct;i++){ await runGen(animated); if(!animated) await sleep(90); }
+  S.busy=false; freeCap(); updateUI();
+}
+$('f1').onclick=()=>freeRun(1,$('anim').checked);
+$('f10').onclick=()=>freeRun(10,false);
+$('fAuto').onclick=async()=>{
+  if(S.auto){S.auto=false;updateFree();return}
+  if(S.busy||S.extinct)return;
+  S.auto=true;S.busy=true;updateFree();
+  while(S.auto && !S.extinct){await runGen(false);await sleep(220);}
+  S.auto=false;S.busy=false;freeCap();updateUI();
+};
+$('fSnow').onclick=()=>{S.pendingSnow=true;updateFree()};
+$('fSick').onclick=()=>{S.pendingSick=true;updateFree()};
+$('fMeet').onclick=async()=>{if(S.busy)return;S.busy=true;updateFree();await meetTest($('freeResult'));S.busy=false;updateUI();};
+
+/* ================== 모드 전환 ================== */
+function setMode(m){
+  if(S.busy) return;
+  S.mode=m; S.auto=false;
+  $('mStory').classList.toggle('on',m==='story'); $('mFree').classList.toggle('on',m==='free');
+  $('storyPanel').style.display=m==='story'?'block':'none';
+  $('freePanel').style.display=m==='free'?'block':'none';
+  if(m==='free'){
+    $('hawk').value=S.hawk; $('rW').value=S.ratio[0];$('rG').value=S.ratio[1];$('rB').value=S.ratio[2];$('res').value=S.res;
+    $('mark').checked=S.showMark; freeCap(); updateFree();
+  } else storyReset();
+}
+$('mStory').onclick=()=>setMode('story'); $('mFree').onclick=()=>setMode('free');
+document.querySelectorAll('header .tab').forEach(t=>t.onclick=()=>{
+  document.querySelectorAll('header .tab').forEach(x=>x.classList.toggle('on',x===t));
+  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v-'+t.dataset.v));
+  if(t.dataset.v==='sheet' && !$('sheet').innerHTML) renderSheet(false);
+});
+
+/* ================== 활동지 ================== */
+function renderSheet(fill){
+  const gens=[0,10,20,30,40];
+  const row=(s,g)=>{
+    if(!fill) return '<td></td><td></td><td></td><td></td>';
+    const h=S.hist[s].find(x=>x.gen===g);
+    if(!h) return '<td></td><td></td><td></td><td></td>';
+    const n=h.n||1;
+    return `<td>${h.n}</td>`+h.c.map(v=>`<td>${h.n?Math.round(v/n*100):0}%</td>`).join('');
+  };
+  const cond = fill? `왼쪽 서식지: <b>${HABS[S.hab[0]].name}</b> · 오른쪽 서식지: <b>${HABS[S.hab[1]].name}</b> · 매 사냥 강도: <b>${S.hawk}%</b>` : '왼쪽 서식지: ________ · 오른쪽 서식지: ________ · 매 사냥 강도: ______%';
+  let h=`<h2>토끼의 종류가 다양해지는 과정</h2>
+  <div style="text-align:center;color:#555">Ⅱ. 생물의 구성과 다양성 · 2. 생물의 다양성 (교과서 46~47쪽)</div>
+  <div class="meta">학번 <span></span> 이름 <span></span></div>
+  <h3>1. 실험 조건</h3><p>${cond}</p>
+  <h3>2. 예측하기</h3>
+  <p>각 서식지에서 살아남기에 유리한 털색은 무엇일까? 그렇게 생각한 까닭은?</p>
+  <table><tr><th style="width:22%"></th><th style="width:22%">예측한 털색</th><th>까닭</th></tr><tr><td>왼쪽 무리</td><td></td><td></td></tr><tr><td>오른쪽 무리</td><td></td><td></td></tr></table>
+  <h3>3. 세대별 털색 비율 기록</h3>
+  <table><tr><th rowspan="2">세대</th><th colspan="4">왼쪽 무리</th><th colspan="4">오른쪽 무리</th></tr>
+  <tr><th>개체 수</th><th>흰색</th><th>회색</th><th>갈색</th><th>개체 수</th><th>흰색</th><th>회색</th><th>갈색</th></tr>
+  ${gens.map(g=>`<tr><td>${g}</td>${row(0,g)}${row(1,g)}</tr>`).join('')}</table>
+  <h3>4. 두 무리가 다시 만났을 때</h3>
+  <p>다른 무리끼리 짝짓기 성공: ______ / ______ · 판정: (같은 종 / 다른 종으로 나뉘는 중 / 서로 다른 종)</p>
+  <h3>5. 생각 정리</h3>
+  <p>(1) 세대가 지날수록 각 무리의 털색 비율이 달라진 까닭을 '변이', '천적', '자손'이라는 낱말을 사용하여 설명해 보자.</p><div class="lines"><div></div><div></div><div></div></div>
+  <p>(2) 두 무리가 서로 다른 종이 되었다고 판단할 수 있는 근거는 무엇인가?</p><div class="lines"><div></div><div></div></div>
+  <p>(3) 같은 종류에 속하는 생물의 변이가 다양하면 어떤 점이 좋은지 자유 실험(폭설·전염병) 결과를 근거로 써 보자.</p><div class="lines"><div></div><div></div><div></div></div>`;
+  $('sheet').innerHTML=h;
+}
+$('sFill').onclick=()=>renderSheet(true);
+$('sBlank').onclick=()=>renderSheet(false);
+$('sPrint').onclick=()=>{try{window.print()}catch(e){}};
+
+/* ================== 시작 ================== */
+storyReset();
+</script>
+</body>
+</html>

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<!-- 단원ID: photo_factor · 중2 Ⅴ. 식물과 에너지 > 1. 광합성 > 03 광합성에 영향을 주는 환경요인(168~170쪽) · 활동 1개: 시금칫잎 조각 띄우기로 환경요인과 광합성량의 관계 탐구하기 -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>환경요인과 광합성량 — 잎 조각 띄우기 실험</title>
+<style>
+:root{--bg:#f3f7ee;--card:#fff;--ink:#1e2a1c;--muted:#5e6b5a;--line:#dbe5d3;--accent:#4f9a2e;--accent-d:#356e1d;--accent-l:#e8f5df;--light:#e09a1a;--co2:#2e9a8a;--temp:#d0503a}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+header{background:linear-gradient(120deg,#4f9a2e,#9cc43a);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:20px;margin:0;font-weight:900}
+header .sub{font-size:13px;opacity:.95}
+header .sp{flex:1}
+header button{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+main{padding:10px 12px 24px;max-width:1300px;margin:0 auto}
+.intro{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:10px;padding:8px 14px;margin-bottom:10px;font-size:14px;line-height:1.55}
+.intro b{color:var(--accent-d)}
+.grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(310px,1fr);gap:10px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}
+.card h3{margin:0 4px 8px;font-size:15px;color:var(--accent-d)}
+canvas{width:100%;display:block;border-radius:8px}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0}
+.btn{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;padding:7px 11px;cursor:pointer;min-height:38px}
+.btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent-d)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.on{background:var(--accent-l);border-color:var(--accent);color:var(--accent-d)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.var{display:grid;grid-template-columns:150px 1fr 92px;gap:6px;align-items:center;padding:5px 6px;border-radius:8px;margin:3px 0}
+.var.lock{background:#f3f4f1;color:#7d867a}
+.var.act{background:#fff8e0;outline:2px solid #f0c85a}
+.var .nm{font-size:14px;font-weight:700}
+.var .nm small{display:block;font-weight:500;font-size:11.5px;color:var(--muted)}
+.var b{text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.ro{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:6px}
+.ro div{background:#1d2c17;color:#d6f2c4;border-radius:9px;padding:6px 8px}
+.ro .k{font-size:11.5px;color:#a8c497}
+.ro .v{font-size:20px;font-weight:900}
+.ro .v small{font-size:12px;font-weight:500;margin-left:2px}
+.hyp{background:#fffaf0;border:1px solid #f1d9a8;border-radius:10px;padding:7px 10px;font-size:14px;line-height:1.6}
+.hyp b{color:#a3600a}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{border:1px solid var(--line);padding:4px 6px;text-align:center}
+th{background:#eef6e8;color:var(--accent-d)}
+.msg{background:#f7faf3;border:1px dashed #b5d39f;border-radius:8px;padding:7px 10px;font-size:14px;line-height:1.5;margin-top:8px}
+.note{font-size:12.5px;color:var(--muted);line-height:1.55;margin:6px 4px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>잎 조각 띄우기 실험</h1><span class="sub">환경요인(빛의 세기·이산화 탄소의 농도·온도)과 광합성량의 관계</span>
+  <span class="sp"></span><button id="resetBtn" type="button">↺ 초기화</button>
+</header>
+<main>
+  <div class="intro">공기를 빼서 가라앉힌 시금칫잎 조각 6개가 탄산수소 나트륨 수용액 100 mL에 들어 있다. 광합성으로 산소가 생기면 잎 조각이 떠오른다. <b>바꿀 환경요인 하나</b>를 고르고, 그 값을 바꿔 가며 <b>6개가 모두 떠오를 때까지 걸린 시간</b>을 재 보세요.</div>
+  <div class="grid">
+    <div class="card">
+      <canvas id="app" width="760" height="330" aria-label="LED 전등 아래 수조 속 비커와 잎 조각 6개"></canvas>
+      <div class="row">
+        <button class="btn pri" id="runBtn" type="button">▶ 실험 시작</button>
+        <button class="btn" id="ffBtn" type="button">⏩ 끝까지 빨리 감기</button>
+        <span style="flex:1"></span>
+        <span style="font-size:13px;color:#5e6b5a">실험 시간은 최대 20분 · 1분이 약 1.5초로 흘러요</span>
+      </div>
+      <div class="ro">
+        <div><div class="k">경과 시간</div><div class="v" id="vT">0.0<small>분</small></div></div>
+        <div><div class="k">떠오른 잎 조각</div><div class="v" id="vN">0<small>/ 6개</small></div></div>
+        <div><div class="k">6개가 모두 떠오른 시간</div><div class="v" id="vAll">–</div></div>
+      </div>
+      <div class="msg" id="msg">위 오른쪽에서 바꿀 환경요인을 고른 뒤 ▶ 실험 시작을 누르세요.</div>
+    </div>
+    <div>
+      <div class="card">
+        <h3>① 실험 설계: 바꿀 환경요인 고르기</h3>
+        <div class="row" id="pick">
+          <button class="btn" data-v="L" type="button">빛의 세기</button>
+          <button class="btn" data-v="C" type="button">이산화 탄소의 농도</button>
+          <button class="btn" data-v="T" type="button">온도</button>
+        </div>
+        <div class="var" id="rowL"><div class="nm">빛의 세기<small>LED 전등의 개수</small></div><input id="inL" type="range" min="0" max="5" step="1" value="2"><b id="outL"></b></div>
+        <div class="var" id="rowC"><div class="nm">이산화 탄소의 농도<small>탄산수소 나트륨 수용액</small></div><input id="inC" type="range" min="0" max="3" step="0.5" value="1"><b id="outC"></b></div>
+        <div class="var" id="rowT"><div class="nm">온도<small>수조 물의 온도</small></div><input id="inT" type="range" min="5" max="50" step="5" value="25"><b id="outT"></b></div>
+        <div class="hyp" id="hyp"></div>
+      </div>
+      <div class="card">
+        <h3>② 결과 정리</h3>
+        <table><thead><tr><th id="thX">조건</th><th>6개 모두 떠오른 시간</th><th>5분 동안 떠오른 수</th></tr></thead><tbody id="tb"></tbody></table>
+        <canvas id="graph" width="420" height="200" aria-label="환경요인에 따른 광합성량 그래프" style="margin-top:6px"></canvas>
+        <p class="note"><b>모델의 한계</b> · 잎 조각마다 떠오르는 데 필요한 산소의 양을 조금씩 다르게 정했고, 광합성량은 교과서 그래프 모양(빛·이산화 탄소는 일정 값 이상에서 더 늘지 않음, 온도는 알맞은 온도를 지나면 급격히 줄어듦)을 따르도록 만든 모형이다. 실제 시간은 잎의 상태, 용액, 전등 거리에 따라 다르다. 호흡과 물속 산소의 녹음은 생각하지 않았다.</p>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+/* ================================================================
+   잎 조각 띄우기 모형 (시간 단위: 분)
+   - 광합성 속도 P = Pmax × fL × fC × fT   (Pmax = 0.58 /분)
+       빛: fL = 1 − e^(−L/1.2)      (L: LED 개수 0~5)        → 일정 세기 이상에서 더 늘지 않음
+       CO₂: fC = 1 − e^(−C/0.5)     (C: 탄산수소 나트륨 % 0~3) → 일정 농도 이상에서 더 늘지 않음
+       온도: T ≤ 35 ℃ → fT = 0.2 + 0.8·e^(−((T−35)/14)²),  T > 35 ℃ → fT = e^(−((T−35)/6)²)  → 35 ℃ 부근이 가장 큼, 지나면 급격히 감소
+   - 잎 조각 i는 쌓인 산소량이 θi에 이르면 떠오른다. θ = 0.85, 0.92, 0.97, 1.03, 1.08, 1.15 → 걸린 시간 ti = θi ÷ P
+   - 기준 조건(LED 2개, 1 %, 25 ℃): P ≈ 0.277 /분, 6개 모두 약 4.2분(4분 9초)
+   - 광합성량(그래프 세로축) = 6 ÷ (6개 모두 떠오른 시간) = 1분 동안 평균으로 떠오른 잎 조각 수, 20분 안에 다 뜨지 않으면 떠오른 수 ÷ 20
+   ================================================================ */
+const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
+function fit(cv, w, h) { const r = Math.min(2, window.devicePixelRatio || 1); cv.width = w * r; cv.height = h * r; const x = cv.getContext('2d'); x.setTransform(r, 0, 0, r, 0, 0); return x; }
+const W = 760, H = 330, GW = 420, GH = 200, TH = [0.85, 0.92, 0.97, 1.03, 1.08, 1.15], TMAX = 20, SPEED = 1 / 1.5, STD = { L: 2, C: 1, T: 25 };
+const c = fit($('#app'), W, H), g = fit($('#graph'), GW, GH);
+const fT = T => T <= 35 ? 0.2 + 0.8 * Math.exp(-(((T - 35) / 14) ** 2)) : Math.exp(-(((T - 35) / 6) ** 2));
+const rateOf = (L, C, T) => 0.58 * (1 - Math.exp(-L / 1.2)) * (1 - Math.exp(-C / 0.5)) * fT(T);
+const NAME = { L: '빛의 세기', C: '이산화 탄소의 농도', T: '온도' }, UNIT = { L: v => 'LED ' + v + '개', C: v => v + ' %', T: v => v + ' ℃' };
+let S;
+function newState() { return { pick: null, L: 2, C: 1, T: 25, t: 0, running: false, acc: 0, rise: TH.map(() => null), recs: { L: [], C: [], T: [] }, anim: 0, done: false, tAll: null, n5: null }; }
+const P = () => rateOf(S.L, S.C, S.T);
+const floated = () => S.rise.filter(r => r !== null).length;
+function stepTo(t) {
+  const p = P();
+  S.t = Math.min(TMAX, t); S.acc = p * S.t;
+  TH.forEach((th, i) => { if (S.rise[i] === null && S.acc >= th) S.rise[i] = th / p; });
+  if (S.n5 === null && S.t >= 5) S.n5 = TH.filter(th => p > 0 && th / p <= 5).length;
+  if (floated() === 6 && S.tAll === null) S.tAll = Math.max(...S.rise);
+  if (floated() === 6 || S.t >= TMAX) finish();
+}
+function finish() {
+  if (S.done) return; S.running = false; S.done = true;
+  if (S.n5 === null) S.n5 = TH.filter(th => P() > 0 && th / P() <= 5).length;
+  const v = S[S.pick], row = { x: v, tAll: S.tAll, n5: S.n5, n: floated(), y: S.tAll ? 6 / S.tAll : floated() / TMAX };
+  const list = S.recs[S.pick], k = list.findIndex(r => r.x === v); if (k >= 0) list[k] = row; else list.push(row); list.sort((a, b) => a.x - b.x);
+  $('#msg').innerHTML = (S.tAll ? `${UNIT[S.pick](v)}: 6개가 모두 떠오르는 데 <b>${fmt(S.tAll)}</b> 걸렸다.` : `${UNIT[S.pick](v)}: 20분이 지나도 <b>${floated()}개</b>만 떠올랐다.`)
+    + ' 값을 바꿔 다시 실험하고 그래프를 비교해 보세요.';
+  readouts();
+}
+const fmt = t => { const s = Math.round(t * 60); return (t).toFixed(1) + '분 (' + Math.floor(s / 60) + '분 ' + (s % 60) + '초)'; };
+/* ---------------- 그림 ---------------- */
+function rr(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+function tempCol(T) { const k = (T - 5) / 45; return `rgb(${Math.round(120 + 135 * k)},${Math.round(190 - 60 * k)},${Math.round(240 - 170 * k)})`; }
+function draw() {
+  c.clearRect(0, 0, W, H); c.fillStyle = '#f9fbf6'; c.fillRect(0, 0, W, H); c.fillStyle = '#d8cdb8'; c.fillRect(0, 305, W, 25);
+  // LED 전등(전구 5칸 중 L개 켜짐)
+  c.fillStyle = '#2f6fb5'; rr(c, 230, 14, 300, 34, 10); c.fill();
+  for (let i = 0; i < 5; i++) { const x = 262 + i * 59, on = i < S.L;
+    if (on) { const gr = c.createRadialGradient(x, 50, 2, x, 50, 26); gr.addColorStop(0, 'rgba(255,250,200,1)'); gr.addColorStop(1, 'rgba(255,240,150,0)'); c.fillStyle = gr; c.beginPath(); c.arc(x, 50, 26, 0, 7); c.fill(); }
+    c.fillStyle = on ? '#fff6b0' : '#5c6b78'; c.beginPath(); c.arc(x, 44, 9, 0, 7); c.fill(); }
+  if (S.L > 0) { c.fillStyle = `rgba(255,240,150,${0.08 * S.L})`; c.beginPath(); c.moveTo(240, 50); c.lineTo(520, 50); c.lineTo(560, 300); c.lineTo(200, 300); c.closePath(); c.fill(); }
+  c.fillStyle = '#1e2a1c'; c.font = 'bold 13px sans-serif'; c.fillText('LED 전등 ' + S.L + '개 켬', 545, 38);
+  // 수조(온도)
+  c.fillStyle = tempCol(S.T); c.globalAlpha = .35; rr(c, 180, 130, 400, 175, 10); c.fill(); c.globalAlpha = 1; c.strokeStyle = '#8aa3b5'; c.lineWidth = 2.5; rr(c, 180, 110, 400, 195, 10); c.stroke();
+  // 온도계
+  c.fillStyle = '#fff'; rr(c, 540, 90, 16, 190, 8); c.fill(); c.strokeStyle = '#999'; c.lineWidth = 1.5; c.stroke();
+  const ty = 270 - (S.T / 50) * 170; c.fillStyle = '#d0503a'; c.fillRect(544, ty, 8, 272 - ty); c.beginPath(); c.arc(548, 276, 9, 0, 7); c.fill();
+  c.fillStyle = '#1e2a1c'; c.font = 'bold 13px sans-serif'; c.fillText(S.T + ' ℃', 562, ty + 4);
+  // 비커(용액)
+  c.fillStyle = 'rgba(225,240,250,.7)'; c.strokeStyle = '#7f98aa'; c.lineWidth = 2.5; c.beginPath(); c.moveTo(270, 120); c.lineTo(274, 296); c.lineTo(486, 296); c.lineTo(490, 120); c.stroke();
+  c.fillStyle = 'rgba(170,215,235,.55)'; c.fillRect(276, 150, 208, 144);
+  c.strokeStyle = 'rgba(255,255,255,.8)'; c.beginPath(); c.moveTo(276, 150); c.lineTo(484, 150); c.stroke();
+  c.fillStyle = '#1e2a1c'; c.font = '12.5px sans-serif'; c.fillText('탄산수소 나트륨 수용액 ' + S.C + ' %', 286, 140);
+  // 잎 조각 6개
+  const p = P();
+  TH.forEach((th, i) => {
+    const x = 300 + i * 32 + (i % 2) * 6, bottom = 284 - (i % 3) * 3, top = 158;
+    let y = bottom;
+    if (S.rise[i] !== null) { const k = Math.min(1, (S.t - S.rise[i]) * 2.2); y = bottom + (top - bottom) * (1 - (1 - k) * (1 - k)); }
+    const fill = Math.min(1, (p * S.t) / th);
+    c.fillStyle = '#3f8f3a'; c.beginPath(); c.ellipse(x, y, 12, 4.5, 0, 0, 7); c.fill(); c.strokeStyle = '#2b6a28'; c.lineWidth = 1; c.stroke();
+    c.fillStyle = 'rgba(255,255,255,.95)'; const nb = Math.floor(fill * 5);
+    for (let j = 0; j < nb; j++) { c.beginPath(); c.arc(x - 9 + j * 4.5, y - 5 - (j % 2) * 2, 1.6, 0, 7); c.fill(); }
+  });
+  c.fillStyle = '#5e6b5a'; c.font = '12px sans-serif'; c.fillText('잎 조각에 산소 기포가 붙으면 떠오른다', 290, 318);
+  // 타이머
+  c.fillStyle = '#1d2c17'; rr(c, 30, 120, 120, 70, 10); c.fill(); c.fillStyle = '#d6f2c4'; c.font = 'bold 26px sans-serif'; c.textAlign = 'center';
+  const s = Math.round(S.t * 60); c.fillText(String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'), 90, 166); c.font = '12px sans-serif'; c.fillText('타이머(분:초)', 90, 182); c.textAlign = 'left';
+}
+function drawGraph() {
+  g.clearRect(0, 0, GW, GH); g.fillStyle = '#fbfdf9'; g.fillRect(0, 0, GW, GH);
+  const x0 = 46, x1 = GW - 14, y0 = 162, y1 = 14;
+  g.strokeStyle = '#7d8a77'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(x0, y1); g.lineTo(x0, y0); g.lineTo(x1, y0); g.stroke();
+  g.fillStyle = '#5e6b5a'; g.font = '11px sans-serif';
+  g.save(); g.translate(12, (y0 + y1) / 2); g.rotate(-Math.PI / 2); g.textAlign = 'center'; g.fillText('광합성량(1분에 떠오른 수)', 0, 0); g.restore();
+  if (!S.pick) { g.textAlign = 'center'; g.fillText('환경요인을 고르면 그래프가 그려져요', (x0 + x1) / 2, 90); g.textAlign = 'left'; return; }
+  const rng = { L: [0, 5], C: [0, 3], T: [5, 50] }[S.pick], yMax = 2.5, X = v => x0 + (v - rng[0]) / (rng[1] - rng[0]) * (x1 - x0), Y = v => y0 - v / yMax * (y0 - y1);
+  g.textAlign = 'center';
+  const ticks = { L: [0, 1, 2, 3, 4, 5], C: [0, 0.5, 1, 1.5, 2, 2.5, 3], T: [5, 10, 15, 20, 25, 30, 35, 40, 45, 50] }[S.pick];
+  ticks.forEach(v => { g.strokeStyle = '#e6ede1'; g.beginPath(); g.moveTo(X(v), y1); g.lineTo(X(v), y0); g.stroke(); g.fillText(String(v), X(v), y0 + 13); });
+  g.fillText(NAME[S.pick] + ' (' + { L: 'LED 개수', C: '%', T: '℃' }[S.pick] + ')', (x0 + x1) / 2, y0 + 30);
+  g.textAlign = 'right'; [0, 1, 2].forEach(v => g.fillText(String(v), x0 - 5, Y(v) + 4)); g.textAlign = 'left';
+  const list = S.recs[S.pick]; if (!list.length) return;
+  const col = { L: '#e09a1a', C: '#2e9a8a', T: '#d0503a' }[S.pick];
+  g.strokeStyle = col; g.lineWidth = 2.2; g.beginPath(); list.forEach((r, k) => k ? g.lineTo(X(r.x), Y(r.y)) : g.moveTo(X(r.x), Y(r.y))); g.stroke();
+  g.fillStyle = col; list.forEach(r => { g.beginPath(); g.arc(X(r.x), Y(r.y), 4.5, 0, 7); g.fill(); });
+}
+/* ---------------- 화면 갱신 ---------------- */
+function readouts() {
+  ['L', 'C', 'T'].forEach(k => {
+    const row = $('#row' + k), act = S.pick === k; row.classList.toggle('act', act); row.classList.toggle('lock', !act);
+    $('#in' + k).disabled = !act || S.running; $('#in' + k).value = S[k];
+    $('#out' + k).textContent = (act ? '' : '🔒 ') + UNIT[k](S[k]);
+  });
+  $$('#pick .btn').forEach(e => { e.classList.toggle('on', e.dataset.v === S.pick); e.disabled = S.running; });
+  $('#vT').innerHTML = S.t.toFixed(1) + '<small>분</small>'; $('#vN').innerHTML = floated() + '<small>/ 6개</small>';
+  $('#vAll').innerHTML = S.tAll ? S.tAll.toFixed(1) + '<small>분</small>' : (S.done ? '<small>20분 안에 다 뜨지 않음</small>' : '–');
+  $('#runBtn').disabled = !S.pick || S.running; $('#ffBtn').disabled = !S.running;
+  if (!S.pick) $('#hyp').innerHTML = '바꿀 환경요인을 고르면 가설과 통제 변인이 정리돼요.';
+  else {
+    const word = { L: '셀', C: '높을', T: '높을' }[S.pick], others = ['L', 'C', 'T'].filter(k => k !== S.pick).map(k => NAME[k] + '(' + UNIT[k](STD[k]) + ')');
+    $('#hyp').innerHTML = `가설: [<b>${NAME[S.pick]}</b>]${S.pick === 'T' ? '가' : '가'} [<b>${word}</b>]수록 광합성량이 증가한다.<br>다르게 할 조건: <b>${NAME[S.pick]}</b><br>같게 할 조건: ${others.join(', ')}, 잎 조각 6개, 용액 100 mL<br>측정: 6개가 모두 떠오를 때까지 걸린 시간(짧을수록 광합성량이 많다)`;
+  }
+  $('#thX').textContent = S.pick ? NAME[S.pick] : '조건';
+  const list = S.pick ? S.recs[S.pick] : [];
+  $('#tb').innerHTML = list.length ? list.map(r => `<tr><td>${UNIT[S.pick](r.x)}</td><td>${r.tAll ? fmt(r.tAll) : '20분 안에 ' + r.n + '개만'}</td><td>${r.n5}개</td></tr>`).join('')
+    : '<tr><td colspan="3" style="color:#9aa69a">실험이 끝나면 결과가 여기에 쌓여요.</td></tr>';
+  drawGraph();
+}
+function resetRun() { S.t = 0; S.acc = 0; S.rise = TH.map(() => null); S.done = false; S.tAll = null; S.n5 = null; S.running = false; }
+$$('#pick .btn').forEach(e => e.onclick = () => { S.pick = e.dataset.v; S.L = STD.L; S.C = STD.C; S.T = STD.T; resetRun();
+  $('#msg').innerHTML = `<b>${NAME[S.pick]}</b>만 바꾸고 나머지 요인은 같게(🔒) 유지한다. 값을 정하고 ▶ 실험 시작을 누르세요.`; readouts(); });
+['L', 'C', 'T'].forEach(k => $('#in' + k).addEventListener('input', e => { S[k] = +e.target.value; resetRun(); readouts(); }));
+$('#runBtn').onclick = () => { resetRun(); S.running = true; $('#msg').innerHTML = '실험 중… 잎 조각이 떠오르는 순간을 지켜보세요.'; readouts(); };
+$('#ffBtn').onclick = () => { let t = S.t; while (S.running) { t += 0.01; stepTo(t); } readouts(); };
+$('#resetBtn').onclick = () => { S = newState(); $('#msg').innerHTML = '위 오른쪽에서 바꿀 환경요인을 고른 뒤 ▶ 실험 시작을 누르세요.'; readouts(); };
+let last = performance.now();
+function loop(ts) {
+  const dt = Math.min(0.1, (ts - last) / 1000); last = ts; S.anim += dt;
+  if (S.running) { stepTo(S.t + dt * SPEED); $('#vT').innerHTML = S.t.toFixed(1) + '<small>분</small>'; $('#vN').innerHTML = floated() + '<small>/ 6개</small>'; }
+  draw(); requestAnimationFrame(loop);
+}
+S = newState(); readouts(); requestAnimationFrame(loop);
+// 테스트용: 조건을 정하고 끝까지 실행
+window.__run = (pick, v) => { S.pick = pick; S.L = STD.L; S.C = STD.C; S.T = STD.T; S[pick] = v; resetRun(); S.running = true; let t = 0; while (S.running) { t += 0.01; stepTo(t); } readouts(); return { tAll: S.tAll, n5: S.n5, n: floated() }; };
+</script>
+</body>
+</html>
