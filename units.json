@@ -989,7 +989,7 @@
     "status": "검토 중",
     "source": "code",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "web": [
       "22-2-7-2-03"
     ]
@@ -1004,7 +1004,7 @@
     "status": "검토 중",
     "source": "code",
     "dashboard": true,
-    "gas": null,
+    "gas": "2026-11-26",
     "web": [
       "22-2-7-2-04"
     ]
