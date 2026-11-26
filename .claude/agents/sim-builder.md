@@ -31,6 +31,7 @@ tools: Read, Glob, Grep, Write, Edit, Bash, mcp__playwright__browser_navigate, m
 - 고친 뒤 `node tools/check-sim.mjs <ID> --no-fps`로 다시 확인합니다. 과학 수치를 고쳤으면 그 값만 `browser_evaluate`로 읽어 확인합니다.
 
 ## 하지 않는 것
+- `chat-sims/`(채팅으로 만든 시뮬레이터)를 열어 보거나 구조·문구·화면을 따라 하기 — 설계서만 보고 처음부터 만듦
 - 커밋·푸시(오케스트레이터가 합니다), `units.json` 수정, 다른 단원 폴더 수정(공통 `lib/` 개선은 기존 시뮬레이터를 깨지 않을 때만)
 - 정답·채점 기준을 화면·코드·주석에 넣기
 
