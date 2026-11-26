@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>파동의 발생과 전달 | 과학 시뮬레이터</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>" />
+  <link rel="stylesheet" href="../../lib/sim.css" />
+  <link rel="stylesheet" href="../../lib/vendor/jua-5.3.0/jua.css" />
+  <link rel="stylesheet" href="./style.css" />
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "../../lib/vendor/three-0.170.0/build/three.module.js",
+      "three/addons/": "../../lib/vendor/three-0.170.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="app">
+    <!-- 위 띠: 제목 -->
+    <div id="brand">
+      <a class="btn icon" href="../../index.html" title="목록으로" aria-label="목록으로">←</a>
+      <div class="title">
+        <h1>파동의 발생과 전달</h1>
+        <p>22-2-3-2-01 · Ⅲ. 빛과 파동 · 2. 파동</p>
+      </div>
+    </div>
+    <!-- 위 띠: 오른쪽 단추 -->
+    <div id="actions">
+      <button class="btn" id="btnHelp" title="탐구 안내">❓<span class="lbl">탐구 안내</span></button>
+      <button class="btn" id="btnQuality" title="그래픽 품질 (높음/낮음)">✨<span class="lbl" id="qualityLbl">품질 높음</span></button>
+      <button class="btn icon" id="btnMute" title="소리 켜기/끄기" aria-label="소리 켜기/끄기">🔊</button>
+      <button class="btn" id="btnReset" title="지금 단계를 처음 상태로">↺<span class="lbl">초기화</span></button>
+    </div>
+
+    <main id="views">
+      <!-- ───────── ① 물결 연못 ───────── -->
+      <section id="viewPond" class="view" aria-label="물결 연못">
+        <div id="pondScene" class="card scene">
+          <div id="pondCanvas"></div>
+          <div id="pondLabels" class="label-layer"></div>
+          <div id="pondQuestion" class="question">💧 <span id="pondQText">물방울이 떨어지면 오리는 어떻게 될까? <b>수면을 눌러</b> 물방울을 떨어뜨려 보세요.</span></div>
+          <div class="scene-tip">끌면 돌려 보기 · 휠·두 손가락으로 확대 · 오리와 나뭇잎은 끌어서 옮길 수 있어요</div>
+        </div>
+
+        <div id="pondRead" class="card readouts">
+          <div class="ro"><span>오리가 옆으로 움직인 거리</span><b id="roShift">0.0 cm</b></div>
+          <div class="ro"><span>오리의 높이 <small>(진동의 중심 기준)</small></span><b id="roHeight">0.0 cm</b></div>
+          <div class="ro"><span>나뭇잎 상태</span><b id="roLeaf" class="leaf-calm">잔잔함</b></div>
+        </div>
+
+        <div id="pondGraphCard" class="card graph-card">
+          <div class="card-h"><b>오리의 시간-높이 그래프</b><small>최근 6초</small></div>
+          <div class="cv-wrap"><canvas id="duckGraph" aria-label="오리의 시간에 따른 높이 그래프"></canvas></div>
+        </div>
+
+        <div id="pondCtrl" class="card ctrl">
+          <div class="row2">
+            <button class="btn primary" id="btnDrop">💧 물방울 하나 떨어뜨리기</button>
+            <button class="btn tog" id="btnRain" aria-pressed="false">🔁 계속 떨어뜨리기</button>
+          </div>
+          <div class="field">
+            <label for="strength">물결 세기 <output id="strengthOut">보통</output></label>
+            <input type="range" id="strength" min="1" max="3" step="1" value="2" aria-label="물결 세기" />
+            <div class="scale"><span>약하게</span><span>보통</span><span>세게</span></div>
+          </div>
+          <div class="row2">
+            <button class="btn tog" id="btnTrail" aria-pressed="false">〰 흔적 보기</button>
+            <button class="btn tog" id="btnDots" aria-pressed="false">⚪ 물 알갱이 보기</button>
+          </div>
+          <button class="btn" id="btnCalm">🫧 잔잔하게 만들기</button>
+        </div>
+
+        <div id="pondPlay" class="card playbar">
+          <button class="btn" id="pondPlayBtn" title="일시정지/재생 (스페이스바)">⏸<span class="lbl">일시정지</span></button>
+          <button class="btn tog" id="pondSlow" aria-pressed="false" title="느리게 (×0.25)">🐢<span class="lbl">느리게 ×0.25</span></button>
+          <button class="btn" id="pondView" title="보는 방향 처음대로">🎥<span class="lbl">보는 방향 처음대로</span></button>
+          <span class="pb-note" id="pondDropCount">물방울 0번</span>
+        </div>
+      </section>
+
+      <!-- 단계 탭 (DOM에서는 ① 뒤에 두고, 화면에서는 위 띠에 보임) -->
+      <nav id="tabs" role="tablist" aria-label="단계">
+        <button class="tab" role="tab" id="tabPond" data-stage="pond" aria-selected="true">① 물결 연못</button>
+        <button class="tab" role="tab" id="tabSpring" data-stage="spring" aria-selected="false">② 용수철 실험실</button>
+      </nav>
+
+      <!-- ───────── ② 용수철 실험실 ───────── -->
+      <section id="viewSpring" class="view" aria-label="용수철 실험실" hidden>
+        <div id="boardCard" class="card scene">
+          <canvas id="board" aria-label="모눈 판 위의 용수철 파동"></canvas>
+          <div id="boardHint" class="board-hint">자의 노란 끝을 끌어 마루·골에 대 보세요</div>
+        </div>
+
+        <div id="ribbonCard" class="card graph-card">
+          <div class="card-h"><b>리본의 시간-위치 그래프</b><small id="ribbonInfo">리본 1.50 m · 위치 0.00 m</small><small id="graphDtOut" class="dt">그래프를 눌러 두 점을 찍으면 시간 차가 보여요</small></div>
+          <div class="cv-wrap"><canvas id="ribbonGraph" aria-label="리본의 시간에 따른 위치 그래프"></canvas></div>
+        </div>
+
+        <div id="springCtrl" class="card ctrl">
+          <div class="col">
+            <div class="field">
+              <span class="f-title">흔들기 방법</span>
+              <div class="seg2" role="group" aria-label="흔들기 방법">
+                <button class="btn" id="modeAuto" aria-pressed="true">⚙️ 자동으로 흔들기</button>
+                <button class="btn" id="modeHand" aria-pressed="false">✋ 손으로 흔들기</button>
+              </div>
+            </div>
+            <div class="field" id="ampField">
+              <label for="amp">진폭 <output id="ampOut">0.30 m</output></label>
+              <input type="range" id="amp" min="0.10" max="0.60" step="0.05" value="0.30" aria-label="진폭" />
+            </div>
+            <div class="field" id="perField">
+              <label for="per">주기 <output id="perOut">1.00 초</output><span class="freq">진동수 <output id="freqOut">1.00 Hz</output></span></label>
+              <input type="range" id="per" min="0.25" max="2.00" step="0.05" value="1.00" aria-label="주기" />
+            </div>
+            <div class="hand-note" id="handNote" hidden>✋ 왼쪽 장갑 손잡이를 위아래로 끌어 보세요. 진폭·주기는 <b>그래프에서 재 보세요</b>.</div>
+            <div class="field">
+              <span class="f-title">용수철 팽팽함</span>
+              <div class="seg3" role="group" aria-label="용수철 팽팽함">
+                <button class="btn" data-tension="loose" aria-pressed="false">느슨하게</button>
+                <button class="btn" data-tension="normal" aria-pressed="true">보통</button>
+                <button class="btn" data-tension="tight" aria-pressed="false">팽팽하게</button>
+              </div>
+            </div>
+            <div class="row2">
+              <button class="btn tog" id="btnLabels" aria-pressed="true">🏷 라벨 보기</button>
+              <button class="btn tog" id="btnRibbonTrail" aria-pressed="true">🎀 리본 흔적</button>
+            </div>
+          </div>
+          <div class="col mission">
+            <div class="mission-card">
+              <b class="m-title">📸 조건 맞추기</b>
+              <ul>
+                <li id="mWave"><i></i>파장이 0.5 m인 파동</li>
+                <li id="mAmp"><i></i>진폭이 0.5 m인 파동</li>
+                <li id="mPer"><i></i>주기가 0.5 초인 파동</li>
+              </ul>
+              <button class="btn primary" id="btnShoot">📷 촬영</button>
+            </div>
+            <div class="photos" id="photos">
+              <div class="photo empty"><span>사진 1</span></div>
+              <div class="photo empty"><span>사진 2</span></div>
+              <div class="photo empty"><span>사진 3</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="springPlay" class="card playbar">
+          <button class="btn" id="springPlayBtn" title="일시정지/재생 (스페이스바)">⏸<span class="lbl">일시정지</span></button>
+          <button class="btn" id="springStep" title="한 칸씩 (0.05초)">⏭<span class="lbl">한 칸씩</span></button>
+          <button class="btn tog" id="springSlow" aria-pressed="false" title="느리게 (×0.25)">🐢<span class="lbl">느리게</span></button>
+          <button class="btn" id="springStop" title="용수철 멈추기 (잔잔하게)">⏹<span class="lbl">용수철 멈추기</span></button>
+          <span class="pb-note">시간 <b id="springTime">0.0 초</b></span>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="helpModal" class="modal" hidden>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+      <h2 id="helpTitle">🔍 탐구 안내</h2>
+      <h3>① 물결 연못</h3>
+      <ol>
+        <li>수면을 <b>짧게 눌러</b> 물방울을 떨어뜨려 보세요. 물방울이 떨어진 곳이 <b>파원</b>이에요.</li>
+        <li><b>흔적 보기</b>를 켜고 오리가 어느 방향으로 움직이는지 보세요. '오리가 옆으로 움직인 거리'도 확인해요.</li>
+        <li>멀리 있는 나뭇잎은 언제 흔들리기 시작하나요? 물결이 나뭇잎까지 가져다준 것은 무엇일까요?</li>
+      </ol>
+      <h3>② 용수철 실험실</h3>
+      <ol>
+        <li><b>일시정지</b>한 뒤 노란 자의 두 끝을 끌어 마루와 이웃한 마루 사이(<b>파장</b>), 진동의 중심에서 마루까지(<b>진폭</b>)를 재 보세요.</li>
+        <li>리본 그래프를 두 번 눌러 마루에서 다음 마루까지 걸린 시간(<b>주기</b>)을 재 보세요.</li>
+        <li>진폭만 바꾸면 파장이 달라지나요? 주기를 바꾸면 진동수는 어떻게 되나요?</li>
+        <li>조건 카드의 세 파동을 만들어 <b>촬영</b>해 보세요.</li>
+      </ol>
+      <p class="tip">⌨️ 슬라이더는 ← → 키로도 움직여요. 스페이스바 = 일시정지/재생.</p>
+      <button class="btn primary" id="btnHelpClose">알겠어요!</button>
+    </div>
+  </div>
+
+  <script src="../../lib/sim-bridge.js"></script>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
