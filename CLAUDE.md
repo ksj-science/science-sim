@@ -1,11 +1,11 @@
 # science-sim 작업 규칙
 
 하남중학교 과학 수업용 시뮬레이터 모음입니다. GitHub Pages(`https://ksj-science.github.io/science-sim/`)로 공개되고,
-학교 구글 계정의 Apps Script 웹앱(껍데기)이 이 시뮬레이터를 창 안에 불러와 문항 표시·채점·기록을 합니다.
+학교 구글 계정의 **수업용 웹앱**(Apps Script, 채팅 시뮬레이터와 같은 웹앱)이 이 시뮬레이터를 창 안에 불러와 학생용 링크·확인문제·자동 채점·결과 대시보드를 맡습니다.
 
 ## 대화
 - 선생님(성준)과는 한국어로 대화합니다. 커밋 메시지도 한국어로 씁니다.
-- **교과서 이미지만 첨부되고 다른 지시가 없으면 `/시뮬레이터` 스킬을 실행한다.** (`.claude/skills/시뮬레이터/SKILL.md` — 설계 → 구현 → 3중 검수 → 활동지 → 등록·푸시까지 전자동. `inbox/` 폴더에 넣은 이미지도 같은 입력으로 씀)
+- **교과서 이미지만 첨부되고 다른 지시가 없으면 `/시뮬레이터` 스킬을 실행한다.** (`.claude/skills/시뮬레이터/SKILL.md` — 설계 → 구현 → 자동 점검·검수 → 활동지 → 등록·푸시까지 전자동. `inbox/` 폴더에 넣은 이미지도 같은 입력으로 씀)
 - 교과서 자료를 받으면 계획 확인을 기다리지 않고 바로 설계서·시뮬레이터·문항까지 만듭니다.
   애매한 점(단원 ID·차시 번호, 화면 구성, 문항 수, 채점 방식 등)은 합리적으로 정해 진행하고,
   완료 보고 때 "정한 것"으로 따로 알려 선생님이 고칠 수 있게 합니다.
@@ -25,11 +25,15 @@
 - 파일 위치
   - `단원설계서/<ID>.md` — 교과서 자료를 요약한 설계서 (`단원설계서/_양식.md` 참고). 교과서 이미지는 한 번만 읽고 이후에는 설계서만 봅니다.
   - `sims/<ID>/index.html` — 시뮬레이터 (한 폴더에 완결)
-  - `units.json` — 포털 목록에 등록
+  - `units.json` — 시뮬레이터 목록 하나(포털 `index.html`과 교사용 대시보드 `teacher.html`이 함께 씀). 항목마다
+    `source`(`"code"`=클로드 코드, `"chat"`=채팅), `dashboard`(대시보드 반영 여부), `gas`(웹앱 배포 날짜, 안 했으면 `null`)
+  - `chat-sims/sim_<이름>.html` — 채팅으로 만든 시뮬레이터(한 파일짜리). 단원 ID는 `chat-<이름>`(밑줄은 하이픈으로, 예: `sim_annual_sun.html` → `chat-annual-sun`)
+  - `deploy.json` — 예전 웹앱(`shell/`)에 마지막으로 배포한 커밋(지금은 안 씀)
+  - `.work/<ID>/seed.gs` — 웹앱에 넣을 단원·문항·정답(저장소에 안 올라감, 아래 "수업용 웹앱")
   - `activities/<ID>/` — 학생 활동지·교사용 안내·클래스룸 게시글 (정답 없이)
   - `inbox/` — 교과서 이미지를 넣는 곳(저장소에 안 올라감), 처리 후 `inbox/done/`으로 이동
   - `.work/<ID>/` — 파이프라인 작업 폴더(검수 보고서·스크린샷·정답 초안, 저장소에 안 올라감)
-  - 문항 문구(정답 제외)는 시트 `문항` 탭, 정답은 `정답` 탭
+  - 문항·정답은 수업용 웹앱의 시트 `[문항]` 탭에만(공개 저장소에는 문항 문구만, 정답 없음)
 
 ## 시뮬레이터 규칙
 - 목표: PhET 수준의 완성도와 조작감. 학생들은 크롬북·태블릿·교실 PC 브라우저로 씁니다.
@@ -79,24 +83,49 @@
 
 ## 완료 전 확인
 1. 만들기 전에 화면 구성과 학습 목표를 설계서에 짧게 정리
-2. 로컬 서버(`npx serve`)로 띄우고 Playwright로 열어 스크린샷을 찍고, 콘솔 오류가 없는지, 화면이 잘리지 않는지 확인
-   (1366×768과 태블릿 세로 화면 모두)
-3. 버튼·슬라이더를 실제로 조작해 보고, 조작 → `SimBridge` 상태가 바뀌는지 확인
-4. 어색하거나 단순해 보이는 부분을 찾아 고치는 과정을 최소 2번 반복
-5. `units.json` 등록 후 포털(`index.html`)에서 링크 확인
-6. 커밋 후 작업 브랜치와 `main`에 모두 푸시해 GitHub Pages에 바로 올림 (선생님이 바로 볼 수 있게 — `main` 푸시는 허락받음)
+2. `node tools/check-sim.mjs <ID>`(자동 점검)로 1366×768·1280×800·768×1024 배치·잘림·겹침, 콘솔 오류, 모든 조작 → 화면·`SimBridge` 변화, 소리·음소거, fps, 잠금을 한 번에 확인
+   (처음 한 번 `npm i --no-save playwright && npx playwright install chromium` 필요. 결과는 `.work/<ID>/자동점검/`)
+3. 자동 점검 스크린샷을 보고 어색하거나 단순해 보이는 부분을 한 번 다듬기
+4. 검수는 기계가 못 보는 것(과학 검산·학생 눈)만 `sim-reviewer` 1명이 봄 — 토큰을 아끼기 위해 스크린샷을 여러 장 찍지 않음
+5. `units.json`에 `"source": "code", "dashboard": false, "gas": null`로 등록(아직 대시보드·포털에 안 보임)
+6. 커밋 후 작업 브랜치와 `main`에 모두 푸시해 GitHub Pages에 올림 — 시뮬레이터 주소로는 바로 열림 (`main` 푸시는 허락받음)
 7. 완료 보고에 무엇을 만들었고 어떻게 확인했는지 짧게 적고, 바로 열리는 주소를 줌: 시뮬레이터 `https://ksj-science.github.io/science-sim/sims/<ID>/`, 웹앱 `…/exec?unit=<ID>`
    (Pages 반영에 1~2분 걸림. 클라우드 작업 환경에서는 github.io 접속이 막혀 있으므로 GitHub Actions의 "pages build and deployment" 실행이 성공했는지로 확인)
 
-## 웹앱(껍데기)
-- 코드는 `shell/`에 보관하고 학교 계정 Apps Script에 반영합니다. 단원 추가만으로는 다시 배포할 필요가 없게 유지합니다.
-- 학생 학번은 학교 계정 이메일(`26` + 학번 4자리 `@hanam.ms.kr`)에서 읽습니다.
-- 배포된 웹앱(학교 도메인 전용): https://script.google.com/a/macros/hanam.ms.kr/s/AKfycbzNCp2pNjEVYoyiP6BIRW1OlwCzK7UzEk6t4SjiN3qEW84WEQqXF_Ybe1WEnS8z_jzR/exec — 단원 주소는 뒤에 `?unit=<단원ID>`
-- Apps Script 프로젝트 "과학 시뮬레이터 웹앱", 결과 시트 "과학 시뮬레이터 결과"(문항·정답·결과 탭) — 모두 학교 계정(hanam.ms.kr) 드라이브. 작업은 학교 계정 크롬 프로필에서.
-- 문항·정답을 시트에 넣을 때는 탭 구분 텍스트를 클립보드로 붙여넣기(직접 타이핑하면 Tab이 먹지 않음).
+## 대시보드 반영·웹앱 배포 — 시뮬레이터를 만들 때마다 묻기
+- 시뮬레이터 하나를 끝낼 때마다(최종 보고 직전) `node tools/pending.mjs`로 대기 목록을 보고, AskUserQuestion **한 번**으로 두 가지를 묻습니다(multiSelect):
+  "교사용 대시보드에 반영할까요?" / "구글 스크립트(웹앱)에 배포할까요?" — 선택지 설명에 대기 개수(이번 것 포함)를 적습니다.
+- 허락한 항목은 **이번 것만이 아니라 그동안 반영·배포 안 된 모든 시뮬레이터를 한꺼번에** 처리합니다.
+  - 대시보드 반영: `node tools/pending.mjs --mark dashboard` → 포털·대시보드에서 카드 확인 → 커밋·`main` 푸시 (1회)
+  - 웹앱 배포(학교 계정 크롬 프로필에서):
+    1. 학교 계정(39410951@hanam.ms.kr)으로 수업용 웹앱 프로젝트를 엽니다(아래 "수업용 웹앱").
+    2. 대기 단원 전부의 `.work/<ID>/seed.gs`를 수업용 웹앱 프로젝트의 `unit_claude_code.gs` 끝에 이어 붙여 저장 → 편집기에서 `setupSheets` 실행
+       (실행 로그에 "추가함: 단원 <ID>, 문항 n개"가 나와야 함) → 이어서 `markClaudeCodeUnits` 실행(단원명 앞에 🛠 — 결과 대시보드 목록에서 채팅 단원과 구분)
+       → 배포 관리 → 기존 배포 수정 → 새 버전(주소 그대로). 시트 내용만 바뀐 경우(문항 수정 등)는 새 버전 없이 바로 반영됨.
+       새 버전 '배포' 클릭이 자동 승인에서 막히면 그 창을 열어 둔 채 선생님께 '배포'만 눌러 달라고 합니다.
+    3. 교사 시연(`?unit=<ID>&demo=1`)으로 시뮬레이터가 뜨고 문항이 채점되는지 확인한 뒤 `node tools/pending.mjs --mark gas` → 커밋·푸시.
+    - 크롬 학교 프로필에 닿을 수 없으면(클라우드 세션 등) 표시하지 않고, 붙여 넣을 코드 블록과 방법만 최종 보고에 적습니다.
+- 선생님이 자리에 없어 답이 없거나 "나중에"면 아무것도 표시하지 않고 대기로 남깁니다(다음에 허락할 때 함께 처리).
+- 선생님이 언제든 "반영해 줘"·"배포해 줘"라고 하면 같은 절차로 대기 전부를 처리합니다.
+- 교사용 대시보드(목록): `https://ksj-science.github.io/science-sim/teacher.html` — 출처 배지(🛠 클로드 코드 / 💬 채팅), 반영·등록 상태, 학생용 링크 복사·시연·결과 바로가기.
+- 수업 결과 대시보드(제출·정답률·미제출자·QR): 수업용 웹앱 `…/exec?page=dashboard`.
+
+## 수업용 웹앱 (학생 링크·문항·자동 채점·결과 대시보드)
+- 채팅 시뮬레이터 57단원이 이미 들어 있는 학교 계정 Apps Script 웹앱 하나로 클로드 코드 시뮬레이터도 운영합니다.
+  - 프로젝트: 학교 계정 Apps Script "제목 없는 프로젝트"(2026-11-16, 시트 "비열 시뮬레이터 활동지 (하남중)"에 연결) — https://script.google.com/home/projects/14u6o9s9exj6Qn531kyeeDXYevoZ34mSBx-zlIqnpakt5iN13rv2HbVt0/edit
+  - 웹앱 주소: https://script.google.com/a/macros/hanam.ms.kr/s/AKfycbypy64khK7NrllDVllT6Sj2157o-qYtdqnNhdVYaBNTj2wwm0Hq9oqDa_5MxvEQJX7I/exec
+    — 학생 `?unit=<단원ID>`, 교사 시연 `?unit=<단원ID>&demo=1`(기록 안 남음), 결과 대시보드 `?page=dashboard`
+  - 시트 탭: `[단원설정]`(단원ID·단원명·학년·시뮬레이터파일·피드백·최대제출횟수·공개·비고·화면배치), `[문항]`(단원ID·번호·유형·문항·보기·정답·허용오차·단위·해설·성취기준·배점), `[응답로그]`, `[학생명렬]`
+- 클로드 코드 단원은 `[단원설정]` 시뮬레이터파일 칸에 `https://ksj-science.github.io/science-sim/sims/<ID>/` 주소를 넣으면 웹앱이 그 주소를 창 안에 띄웁니다
+  (Code.gs `simMode = 'url'`). 단원·문항은 프로젝트의 `unit_claude_code.gs`에 `var SEED_UNIT_cc_<ID의 -를 _로> = { unit: [...], questions: [...] }`로 적고 `setupSheets`로 시트에 넣습니다.
+- 채팅 시뮬레이터의 웹앱 단원ID는 `units.json`의 `web` 필드(예: `chat-boyle` → `boyle`, `chat-matter-prop` → `density`·`melt_boil`·`solubility`·`matter_prop`).
+- 학생 학번·반은 학교 계정 이메일(`26` + 학번 4자리 `@hanam.ms.kr`)과 `[학생명렬]`에서 읽습니다.
+- 작업은 학교 계정이 로그인된 브라우저에서. 편집기 코드는 브라우저 안 monaco 모델로 읽고 고칠 수 있습니다(`monaco.editor.getModels()`).
+- 예전 껍데기 웹앱(`shell/`, 프로젝트 "과학 시뮬레이터 웹앱", AKfycbzNCp…)은 더 쓰지 않습니다. 학생에게는 수업용 웹앱 링크만 줍니다.
 
 ## 전자동 파이프라인 (`/시뮬레이터`)
-- 서브에이전트(`.claude/agents/`): `curriculum-analyst`(설계서) → `sim-builder`(구현·수정) → `qa-tester`·`science-reviewer`·`student-ux-reviewer`(병렬 검수, 코드 수정 금지, 높음/중간/낮음 + PASS/FAIL) → `activity-writer`(수업 자료).
-- 검수에서 FAIL이나 '높음'이 있으면 `sim-builder`가 고치고 검수자를 새로 불러 다시 검수(수정 최대 3회).
-- 검수자 3명은 서로 다른 Playwright 서버를 씁니다(`.mcp.json`: `playwright`=QA·제작, `playwright-science`, `playwright-ux`). 서버는 `tools/playwright-mcp.mjs`가 띄워 윈도우(학교 PC)·리눅스(클라우드 세션) 모두에서 동작 — 병렬로 돌아도 브라우저가 섞이지 않게.
+- 서브에이전트(`.claude/agents/`): `curriculum-analyst`(설계서) → `sim-builder`(구현·수정, 자동 점검으로 스스로 확인) → 자동 점검 `tools/check-sim.mjs` + `sim-reviewer`(과학·학생 UX, Sonnet, 코드 수정 금지) → `activity-writer`(수업 자료, Sonnet).
+- 높음이 있으면 `sim-builder`가 고치고, 자동 점검은 다시 전부, 검수자는 고친 것만 확인(수정 최대 2회).
+- `/시뮬레이터 정밀`: 예전 3중 검수(`qa-tester`·`science-reviewer`·`student-ux-reviewer` 병렬, 각자 다른 Playwright 서버 — `.mcp.json`의 `playwright`·`playwright-science`·`playwright-ux`). 3D·물리 엔진을 쓰는 큰 단원에서 선생님이 요청할 때만.
+- 서버는 `tools/playwright-mcp.mjs`가 띄워 윈도우(학교 PC)·리눅스(클라우드 세션) 모두에서 동작.
 - `/시뮬레이터 모의`: 이미지 없이 설정 점검과 단계 목록만 출력.

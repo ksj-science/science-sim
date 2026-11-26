@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<!-- 단원ID: cell_resp · 중2 Ⅵ. 동물과 에너지 > 2. 호흡과 배설 > 03 세포호흡과 에너지(214~217쪽) · 활동 1개: 혈액이 되어 물질을 운반하며 소화·순환·호흡·배설의 통합적 관계 알아보기 -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>세포호흡과 에너지 — 몸속 배달 게임</title>
+<style>
+:root{--bg:#f4f6f1;--card:#fff;--ink:#1f2a1d;--muted:#5f6b5c;--line:#dfe6d9;--accent:#3f9a4e;--accent-d:#2a6f37;--accent-l:#e6f5e8;--nut:#f09a2a;--oxy:#e0453f;--co2:#3d7bd9;--urea:#7cc142;--en:#f2b705}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+header{background:linear-gradient(120deg,#3f9a4e,#e0a12a);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:20px;margin:0;font-weight:900}
+header .sub{font-size:13px;opacity:.95}
+header .sp{flex:1}
+header button{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+main{padding:10px 12px 24px;max-width:1320px;margin:0 auto}
+.intro{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:10px;padding:8px 14px;margin-bottom:10px;font-size:14px;line-height:1.55}
+.intro b{color:var(--accent-d)}
+.grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(320px,1fr);gap:10px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:10px}
+.card h3{margin:0 2px 8px;font-size:15px;color:var(--accent-d)}
+canvas{width:100%;display:block;border-radius:10px;cursor:pointer;touch-action:manipulation}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0}
+.lbl{font-size:13px;color:var(--muted)}
+.btn{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:9px;padding:7px 11px;cursor:pointer;min-height:38px}
+.btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent-d)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.on{background:#fdeceb;border-color:#e39a94;color:#b3312a}
+.go{flex:1;min-width:110px}
+.msg{background:#f7faf5;border:1px dashed #b4d3ac;border-radius:10px;padding:8px 11px;font-size:14.5px;line-height:1.55;margin-top:8px;min-height:62px}
+.msg.bad{background:#fff1ef;border-color:#f0aaa3}
+.gauge{height:26px;border-radius:13px;background:#eef1ea;position:relative;overflow:hidden;border:1px solid var(--line)}
+.gauge i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#f7d54a,#f2a105);border-radius:13px;transition:width .4s}
+.gauge span{position:absolute;left:0;right:0;top:3px;text-align:center;font-weight:900;font-size:14px}
+.ro{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.ro div{background:#1d2a1f;color:#dcefd9;border-radius:10px;padding:6px 8px}
+.ro .k{font-size:11.5px;color:#a8c3a3}
+.ro .v{font-size:19px;font-weight:900}
+.ro .v small{font-size:12px;font-weight:500;margin-left:2px}
+.carry{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;font-size:13px;align-items:center}
+.it{border-radius:999px;padding:3px 10px;font-weight:700;border:1.5px solid}
+.it.n{border-color:var(--nut);background:#fff3e0}.it.o{border-color:var(--oxy);background:#fdeceb}.it.c{border-color:var(--co2);background:#e9f1fd}.it.u{border-color:var(--urea);background:#eff8e4}
+.check{list-style:none;margin:0;padding:0;font-size:14px}
+.check li{padding:6px 8px;border:1px solid var(--line);border-radius:8px;margin-bottom:5px;display:flex;gap:8px;align-items:center}
+.check li.done{background:#e6f6ee;border-color:#9fd8bb;color:#14653f;font-weight:700}
+.check .box{width:20px;height:20px;border:2px solid #9aa9b8;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-weight:900;flex:none}
+.check li.done .box{border-color:#1f9a62;background:#1f9a62;color:#fff}
+.acts{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
+.acts .btn{padding:6px 2px;font-size:12.5px;text-align:center;line-height:1.35}
+.acts .btn.used{background:#fff7dc;border-color:#e8c85a}
+.eq{font-size:14px;font-weight:700;text-align:center;background:#f7faf5;border-radius:10px;padding:8px;border:1px solid var(--line);margin-top:8px}
+.note{font-size:12.5px;color:var(--muted);line-height:1.55;margin:6px 2px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>몸속 배달 게임: 세포호흡과 에너지</h1><span class="sub">소화계 · 호흡계 · 순환계 · 배설계 · 조직 세포의 통합적 작용</span>
+  <span class="sp"></span><button id="resetBtn" type="button">↺ 초기화</button>
+</header>
+<main>
+  <div class="intro">나는 온몸을 도는 <b>혈액</b>! 그림에서 <b>기관계를 눌러</b> 이동하면서 조직 세포에 필요한 물질을 가져다주고, 세포에서 생긴 노폐물을 내보내세요. 세포가 <b>에너지</b>를 만들려면 무엇이 필요할까요? 혈액은 물질을 종류마다 2개까지 실을 수 있다.</div>
+  <div class="grid">
+    <div class="card">
+      <canvas id="app" width="760" height="465" aria-label="혈액이 도는 길과 호흡계, 소화계, 조직 세포, 배설계"></canvas>
+      <div class="row">
+        <button class="btn go" data-go="resp" type="button">호흡계로</button><button class="btn go" data-go="dig" type="button">소화계로</button><button class="btn go" data-go="cell" type="button">조직 세포로</button><button class="btn go" data-go="exc" type="button">배설계로</button>
+      </div>
+      <div class="msg" id="msg"></div>
+    </div>
+    <div>
+      <div class="card">
+        <h3>세포가 만든 에너지</h3>
+        <div class="gauge"><i id="gBar"></i><span id="gTxt">0</span></div>
+        <div class="ro">
+          <div><div class="k">세포호흡 횟수</div><div class="v" id="vResp">0<small>번</small></div></div>
+          <div><div class="k">날숨으로 내보낸 이산화 탄소</div><div class="v" id="vCo2">0<small>개</small></div></div>
+          <div><div class="k">오줌으로 내보낸 요소</div><div class="v" id="vUrea">0<small>개</small></div></div>
+        </div>
+        <div class="carry" id="carry"></div>
+        <div class="eq">영양소 + 산소 → 이산화 탄소 + 물 + <span style="color:#c98a00">에너지</span></div>
+      </div>
+      <div class="card">
+        <h3>미션</h3>
+        <ul class="check" id="check">
+          <li data-c="resp"><span class="box"></span>세포호흡을 4번 일으키기</li>
+          <li data-c="co2"><span class="box"></span>이산화 탄소 4개를 날숨으로 내보내기</li>
+          <li data-c="urea"><span class="box"></span>요소 4개를 오줌으로 내보내기</li>
+          <li data-c="act"><span class="box"></span>에너지로 생명활동 3가지 하기</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>에너지 쓰기: 생명활동</h3>
+        <div class="acts" id="acts"></div>
+        <h3 style="margin-top:10px">실험: 기관계 하나가 일하지 않는다면?</h3>
+        <div class="row" style="margin-top:0" id="breaks"></div>
+        <p class="note"><b>모델의 한계</b> · 물질의 수와 에너지의 양(세포호흡 1번에 10)은 상대적인 값이다. 세포에서 단백질을 분해할 때 생기는 암모니아가 간에서 요소로 바뀌는 과정, 물의 이동은 생략하고 노폐물을 '이산화 탄소'와 '요소'로만 나타냈다. 실제 혈액은 한 방향으로 계속 흐르며 모든 물질을 동시에 운반한다.</p>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+/* ================================================================
+   기관계의 통합적 작용 모형 (혈액 = 운반자, 물질마다 2개까지 운반)
+   - 소화계: 음식물 속 영양소를 소화·흡수 → 혈액이 영양소를 싣는다
+   - 호흡계: 산소를 받아들여 혈액에 싣고, 혈액이 실어 온 이산화 탄소를 날숨으로 내보낸다
+   - 순환계: 영양소와 산소를 조직 세포로, 노폐물을 호흡계와 배설계로 운반한다
+   - 조직 세포: 세포호흡 — 영양소 1 + 산소 1 → 이산화 탄소 1 + 요소(노폐물) 1 + 에너지 10 (물 생략)
+       세포에 쌓인 이산화 탄소나 요소가 4개가 되면 더는 세포호흡을 하지 못한다(노폐물을 내보내야 함)
+   - 배설계: 혈액이 실어 온 요소를 걸러 오줌으로 내보낸다
+   - 생명활동에 쓰는 에너지: 체온 유지 5, 소리 내기 5, 공부(두뇌 활동) 10, 성장 15, 운동(근육 수축) 20
+   ================================================================ */
+const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
+function fit(cv, w, h) { const r = Math.min(2, window.devicePixelRatio || 1); cv.width = w * r; cv.height = h * r; const x = cv.getContext('2d'); x.setTransform(r, 0, 0, r, 0, 0); return x; }
+const W = 760, H = 465, c = fit($('#app'), W, H), CX = 380, CY = 235, RX = 250, RY = 150, CAP = 2, CELL_MAX = 4;
+const ST = {
+  resp: { name: '호흡계', sub: '허파', ang: -Math.PI / 2, rect: [292, 6, 176, 66] },
+  dig: { name: '소화계', sub: '작은창자', ang: 0, rect: [640, 196, 114, 78] },
+  cell: { name: '조직 세포', sub: '세포호흡', ang: Math.PI / 2, rect: [270, 396, 220, 64] },
+  exc: { name: '배설계', sub: '콩팥', ang: Math.PI, rect: [6, 196, 114, 78] },
+};
+const ACTS = [['warm', '🧣', '체온 유지', 5], ['voice', '🎤', '소리 내기', 5], ['study', '📖', '공부', 10], ['grow', '📏', '성장', 15], ['sport', '🏃', '운동', 20]];
+const BRK = { dig: '소화계', resp: '호흡계', circ: '순환계', exc: '배설계' };
+let S;
+function newState() { return { at: 'resp', ang: -Math.PI / 2, move: null, blood: { n: 0, o: 0, c: 0, u: 0 }, cell: { n: 0, o: 0, c: 0, u: 0 }, energy: 0, made: 0, resp: 0, outC: 0, outU: 0, used: {}, broken: {}, t: 0, fx: [], first: true }; }
+const pos = a => [CX + RX * Math.cos(a), CY + RY * Math.sin(a)];
+const say = (t, bad) => { const m = $('#msg'); m.className = 'msg' + (bad ? ' bad' : ''); m.innerHTML = t; };
+/* ---------------- 도착했을 때 일어나는 일 ---------------- */
+function arrive(id) {
+  const b = S.blood, cl = S.cell, br = S.broken; let t = '';
+  if (id === 'resp') {
+    if (br.resp) t = '<b>호흡계</b>가 일하지 않는다. 산소를 받을 수도, 이산화 탄소를 내보낼 수도 없다.';
+    else { const out = b.c, got = CAP - b.o; b.c = 0; b.o = CAP; S.outC += out; if (out) fx(380, 104, '이산화 탄소 ' + out + '개 → 날숨', '#3d7bd9');
+      t = '<b>호흡계(허파)</b>: ' + (got ? `들숨으로 들어온 <b>산소 ${got}개</b>를 실었다. ` : '산소는 이미 가득 실었다. ') + (out ? `실어 온 <b>이산화 탄소 ${out}개</b>를 날숨으로 내보냈다.` : ''); } }
+  else if (id === 'dig') {
+    if (br.dig) t = '<b>소화계</b>가 일하지 않는다. 영양소를 소화·흡수하지 못해 실을 영양소가 없다.';
+    else { const got = CAP - b.n; b.n = CAP; t = '<b>소화계(작은창자)</b>: ' + (got ? `음식물에서 소화·흡수된 <b>영양소 ${got}개</b>를 실었다.` : '영양소는 이미 가득 실었다.'); } }
+  else if (id === 'exc') {
+    if (br.exc) t = '<b>배설계</b>가 일하지 않는다. 요소를 걸러 내보내지 못해 혈액에 그대로 남아 있다.';
+    else { const out = b.u; b.u = 0; S.outU += out; if (out) fx(150, 178, '요소 ' + out + '개 → 오줌', '#5d9a2a'); t = '<b>배설계(콩팥)</b>: ' + (out ? `실어 온 <b>요소 ${out}개</b>를 걸러 오줌으로 내보냈다.` : '내보낼 요소가 없다.'); } }
+  else {
+    const dn = Math.min(b.n, CELL_MAX - cl.n), dox = Math.min(b.o, CELL_MAX - cl.o); cl.n += dn; cl.o += dox; b.n -= dn; b.o -= dox;   // 세포가 받을 수 있는 만큼만
+    t = '<b>조직 세포</b>: ' + (dn || dox ? `영양소 ${dn}개, 산소 ${dox}개를 건네주었다. ` : '건네줄 영양소와 산소가 없다. ');
+    const room = Math.min(CELL_MAX - cl.c, CELL_MAX - cl.u), k = Math.max(0, Math.min(cl.n, cl.o, room));
+    if (k > 0) { cl.n -= k; cl.o -= k; cl.c += k; cl.u += k; S.resp += k; S.energy += 10 * k; S.made += 10 * k; fx(380, 366, '세포호흡 ' + k + '번! 에너지 +' + 10 * k, '#c98a00'); t += `<b>세포호흡이 ${k}번</b> 일어나 에너지 ${10 * k}을(를) 얻었다. 이산화 탄소와 요소가 ${k}개씩 생겼다. `; }
+    else if (room <= 0) t += '세포에 <b>노폐물이 너무 많이 쌓여</b> 세포호흡을 하지 못한다. 노폐물을 호흡계와 배설계로 내보내야 한다. ';
+    else if (cl.n > 0 && cl.o === 0) t += '<b>산소가 없어서</b> 영양소를 분해하지 못한다. 세포호흡에는 산소가 필요하다. ';
+    else if (cl.o > 0 && cl.n === 0) t += '<b>영양소가 없어서</b> 에너지를 만들지 못한다. 세포호흡에는 영양소가 필요하다. ';
+    const tc = Math.min(CAP - b.c, cl.c), tu = Math.min(CAP - b.u, cl.u); cl.c -= tc; cl.u -= tu; b.c += tc; b.u += tu;
+    if (tc || tu) t += `세포에서 생긴 이산화 탄소 ${tc}개, 요소 ${tu}개를 실었다.`;
+    else if (cl.c || cl.u) t += '혈액에 노폐물이 가득 실려 있어 더 싣지 못했다.';
+  }
+  S.at = id; say(t, /일하지 않는다|못한다/.test(t)); ui();
+}
+function go(id) {
+  if (S.move) return;
+  if (S.broken.circ) { say('<b>순환계</b>가 일하지 않는다. 심장이 혈액을 내보내지 못하면 영양소와 산소, 노폐물을 운반할 수 없다.', true); return; }
+  if (id === S.at) { arrive(id); return; }
+  let to = ST[id].ang; while (to <= S.ang + 1e-6) to += 2 * Math.PI;
+  S.move = { id, from: S.ang, to, p: 0, dur: 0.45 + (to - S.ang) * 0.38 }; ui();
+}
+function fx(x, y, t, col) { S.fx.push({ x, y, t, col, t0: S.t }); }
+/* ---------------- 그림 ---------------- */
+function rr(x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+function item(k, x, y, s) { s = s || 1; c.lineWidth = 1.5; c.strokeStyle = '#fff';
+  if (k === 'n') { c.fillStyle = '#f09a2a'; c.beginPath(); for (let i = 0; i < 6; i++) c.lineTo(x + 7 * s * Math.cos(i * Math.PI / 3), y + 7 * s * Math.sin(i * Math.PI / 3)); c.closePath(); c.fill(); c.stroke(); }
+  else if (k === 'o') { c.fillStyle = '#e0453f'; c.beginPath(); c.arc(x, y, 6 * s, 0, 7); c.fill(); c.stroke(); }
+  else if (k === 'c') { c.fillStyle = '#3d7bd9'; c.beginPath(); c.arc(x, y, 6 * s, 0, 7); c.fill(); c.stroke(); }
+  else { c.fillStyle = '#7cc142'; c.fillRect(x - 5.5 * s, y - 5.5 * s, 11 * s, 11 * s); c.strokeRect(x - 5.5 * s, y - 5.5 * s, 11 * s, 11 * s); } }
+function icon(id, x, y) {
+  if (id === 'resp') { c.fillStyle = '#ee9aa6'; c.beginPath(); c.ellipse(x - 11, y + 4, 10, 17, .15, 0, 7); c.ellipse(x + 11, y + 4, 10, 17, -.15, 0, 7); c.fill(); c.strokeStyle = '#7fc4d6'; c.lineWidth = 4; c.beginPath(); c.moveTo(x, y - 20); c.lineTo(x, y - 6); c.lineTo(x - 8, y); c.moveTo(x, y - 6); c.lineTo(x + 8, y); c.stroke(); }
+  else if (id === 'dig') { c.strokeStyle = '#e39a6a'; c.lineWidth = 7; c.lineCap = 'round'; c.beginPath(); c.moveTo(x - 16, y - 14); c.lineTo(x + 12, y - 14); c.quadraticCurveTo(x + 20, y - 7, x + 12, y); c.lineTo(x - 12, y); c.quadraticCurveTo(x - 20, y + 7, x - 12, y + 14); c.lineTo(x + 16, y + 14); c.stroke(); }
+  else if (id === 'exc') { c.fillStyle = '#c96a55'; c.beginPath(); c.moveTo(x - 4, y - 18); c.bezierCurveTo(x + 22, y - 20, x + 22, y + 20, x - 4, y + 18); c.bezierCurveTo(x - 16, y + 14, x + 2, y + 6, x + 2, y); c.bezierCurveTo(x + 2, y - 6, x - 16, y - 14, x - 4, y - 18); c.fill(); c.strokeStyle = '#e8c15a'; c.lineWidth = 4; c.beginPath(); c.moveTo(x + 1, y + 2); c.lineTo(x - 8, y + 22); c.stroke(); }
+  else { c.fillStyle = '#9ed68a'; c.strokeStyle = '#4f9a3e'; c.lineWidth = 2.5; c.beginPath(); c.ellipse(x, y, 26, 20, 0, 0, 7); c.fill(); c.stroke(); c.fillStyle = '#8a63c9'; c.beginPath(); c.arc(x - 4, y, 7, 0, 7); c.fill(); c.strokeStyle = '#e0584e'; c.lineWidth = 3; c.beginPath(); c.ellipse(x + 13, y - 5, 5, 3, .6, 0, 7); c.stroke(); c.beginPath(); c.ellipse(x + 11, y + 8, 5, 3, -.5, 0, 7); c.stroke(); }
+}
+function draw() {
+  c.clearRect(0, 0, W, H); c.fillStyle = '#fbfcf9'; c.fillRect(0, 0, W, H);
+  const stopped = !!S.broken.circ;
+  // 혈액이 도는 길
+  c.strokeStyle = stopped ? '#c9c9c9' : '#e98b85'; c.lineWidth = 30; c.beginPath(); c.ellipse(CX, CY, RX, RY, 0, 0, 7); c.stroke();
+  c.strokeStyle = stopped ? '#e2e2e2' : '#f8c9c5'; c.lineWidth = 22; c.beginPath(); c.ellipse(CX, CY, RX, RY, 0, 0, 7); c.stroke();
+  for (let k = 0; k < 40; k++) { const a = k * Math.PI / 20 + (stopped ? 0 : S.t * .35), [x, y] = pos(a); c.fillStyle = 'rgba(224,69,63,.35)'; c.beginPath(); c.ellipse(x, y, 5, 3.5, a, 0, 7); c.fill(); }
+  // 방향 화살표
+  [[-Math.PI / 4], [Math.PI / 4], [3 * Math.PI / 4], [-3 * Math.PI / 4]].forEach(([a]) => { const [x, y] = pos(a), tx = -RX * Math.sin(a), ty = RY * Math.cos(a), n = Math.hypot(tx, ty), ux = tx / n, uy = ty / n;
+    c.fillStyle = '#fff'; c.beginPath(); c.moveTo(x + ux * 10, y + uy * 10); c.lineTo(x - ux * 7 - uy * 7, y - uy * 7 + ux * 7); c.lineTo(x - ux * 7 + uy * 7, y - uy * 7 - ux * 7); c.fill(); });
+  // 가운데: 순환계(심장)
+  const beat = stopped ? 1 : 1 + .09 * Math.max(0, Math.sin(S.t * 7));
+  c.save(); c.translate(CX, CY - 8); c.scale(beat, beat); c.fillStyle = stopped ? '#b9b9b9' : '#e5484d'; c.beginPath(); c.moveTo(0, 30); c.bezierCurveTo(-48, -4, -24, -42, 0, -18); c.bezierCurveTo(24, -42, 48, -4, 0, 30); c.fill(); c.restore();
+  c.fillStyle = '#1f2a1d'; c.font = 'bold 15px sans-serif'; c.textAlign = 'center'; c.fillText('순환계' + (stopped ? ' ✕' : ''), CX, CY + 48); c.font = '12.5px sans-serif'; c.fillStyle = '#5f6b5c'; c.fillText('심장 · 혈관 · 혈액: 물질을 운반', CX, CY + 66);
+  // 기관계 상자
+  Object.entries(ST).forEach(([id, s]) => { const [x, y, w, h] = s.rect, here = S.at === id && !S.move, br = S.broken[id];
+    c.fillStyle = br ? '#ececec' : '#fff'; rr(x, y, w, h, 14); c.fill(); c.strokeStyle = here ? '#2a6f37' : br ? '#b5b5b5' : '#cfd9c8'; c.lineWidth = here ? 3.5 : 2; c.stroke();
+    if (id === 'cell') { icon(id, x + 36, y + h / 2); c.textAlign = 'left'; c.fillStyle = '#1f2a1d'; c.font = 'bold 14px sans-serif'; c.fillText('조직 세포', x + 70, y + 22);
+      // 세포 안 물질
+      let ix = x + 76; const cl = S.cell; [['n', cl.n], ['o', cl.o], ['c', cl.c], ['u', cl.u]].forEach(([k, n]) => { for (let i = 0; i < n; i++) { item(k, ix, y + 42, .9); ix += 15; } if (n) ix += 5; });
+      if (!cl.n && !cl.o && !cl.c && !cl.u) { c.fillStyle = '#8c978a'; c.font = '12px sans-serif'; c.fillText('영양소와 산소가 필요해!', x + 70, y + 46); }
+      c.textAlign = 'center'; }
+    else if (id === 'resp') { icon(id, x + 32, y + h / 2 + 2); c.textAlign = 'left'; c.fillStyle = br ? '#8a8a8a' : '#1f2a1d'; c.font = 'bold 14px sans-serif'; c.fillText('호흡계 (허파)' + (br ? ' ✕' : ''), x + 62, y + 26); c.font = '12px sans-serif'; c.fillStyle = '#5f6b5c'; c.fillText('산소 ↓  이산화 탄소 ↑', x + 62, y + 46); c.textAlign = 'center'; }
+    else { icon(id, x + w / 2, y + 26); c.fillStyle = br ? '#8a8a8a' : '#1f2a1d'; c.font = 'bold 13.5px sans-serif'; c.fillText(s.name + (br ? ' ✕' : ''), x + w / 2, y + 60); c.font = '11.5px sans-serif'; c.fillStyle = '#5f6b5c'; c.fillText(id === 'dig' ? '영양소 흡수' : '요소 → 오줌', x + w / 2, y + 74); }
+  });
+  // 나(혈액)
+  const [bx, by] = pos(S.ang), b = S.blood, items = [].concat(Array(b.n).fill('n'), Array(b.o).fill('o'), Array(b.c).fill('c'), Array(b.u).fill('u'));
+  c.fillStyle = 'rgba(0,0,0,.15)'; c.beginPath(); c.arc(bx + 2, by + 4, 21, 0, 7); c.fill();
+  c.fillStyle = '#d8332c'; c.strokeStyle = '#fff'; c.lineWidth = 3.5; c.beginPath(); c.arc(bx, by, 21, 0, 7); c.fill(); c.stroke();
+  c.fillStyle = '#fff'; c.font = 'bold 12px sans-serif'; c.textAlign = 'center'; c.fillText('혈액', bx, by + 4);
+  if (items.length) { const inward = Math.atan2(CY - by, CX - bx), ox = bx + Math.cos(inward) * 54, oy = by + Math.sin(inward) * 46, w = items.length * 17 + 12;
+    c.fillStyle = 'rgba(255,255,255,.96)'; rr(ox - w / 2, oy - 13, w, 26, 13); c.fill(); c.strokeStyle = '#d8332c'; c.lineWidth = 1.5; c.stroke();
+    items.forEach((k, i) => item(k, ox - w / 2 + 15 + i * 17, oy, .95)); }
+  // 떠오르는 글자
+  S.fx = S.fx.filter(f => S.t - f.t0 < 1.8); S.fx.forEach(f => { const p = (S.t - f.t0) / 1.8; c.globalAlpha = 1 - p * p; c.font = 'bold 15px sans-serif'; c.textAlign = 'center'; c.lineWidth = 4; c.strokeStyle = '#fff'; c.strokeText(f.t, f.x, f.y - 22 * p); c.fillStyle = f.col; c.fillText(f.t, f.x, f.y - 22 * p); c.globalAlpha = 1; });
+  // 범례
+  c.textAlign = 'left'; c.font = '12.5px sans-serif'; [['n', '영양소'], ['o', '산소'], ['c', '이산화 탄소'], ['u', '요소']].forEach(([k, n], i) => { item(k, 22, 22 + i * 20, .9); c.fillStyle = '#1f2a1d'; c.fillText(n, 34, 26 + i * 20); });
+}
+/* ---------------- 화면 글 ---------------- */
+function ui() {
+  $('#gBar').style.width = Math.min(100, S.energy) + '%'; $('#gTxt').textContent = '지금 에너지 ' + S.energy + ' (만든 에너지 합계 ' + S.made + ')';
+  $('#vResp').innerHTML = S.resp + '<small>번</small>'; $('#vCo2').innerHTML = S.outC + '<small>개</small>'; $('#vUrea').innerHTML = S.outU + '<small>개</small>';
+  const b = S.blood, L = [['n', '영양소', b.n], ['o', '산소', b.o], ['c', '이산화 탄소', b.c], ['u', '요소', b.u]].filter(x => x[2]);
+  $('#carry').innerHTML = '<span class="lbl">혈액이 운반 중:</span>' + (L.length ? L.map(x => `<span class="it ${x[0]}">${x[1]} ${x[2]}</span>`).join('') : '<span class="lbl">없음</span>');
+  const nAct = Object.keys(S.used).length, ok = { resp: S.resp >= 4, co2: S.outC >= 4, urea: S.outU >= 4, act: nAct >= 3 };
+  $$('#check li').forEach(li => { const d = ok[li.dataset.c]; li.classList.toggle('done', d); li.querySelector('.box').textContent = d ? '✓' : ''; });
+  $$('[data-go]').forEach(e => { e.disabled = !!S.move; e.style.borderColor = e.dataset.go === S.at ? '#2a6f37' : ''; });
+  $$('[data-a]').forEach(e => { e.classList.toggle('used', !!S.used[e.dataset.a]); });
+  $$('[data-b]').forEach(e => { const on = !!S.broken[e.dataset.b]; e.classList.toggle('on', on); e.textContent = BRK[e.dataset.b] + (on ? ' ✕ 멈춤' : ' 멈추기'); });
+  if (ok.resp && ok.co2 && ok.urea && ok.act && !S.cleared) { S.cleared = true; say('🎉 <b>미션 완료!</b> 소화계가 영양소를, 호흡계가 산소를 받아들이고, 순환계가 운반하며, 세포가 세포호흡으로 에너지를 얻고, 호흡계와 배설계가 노폐물을 내보낸다. 여러 기관계가 <b>통합적으로 작용</b>해야 생명활동을 할 수 있다.'); }
+}
+$('#acts').innerHTML = ACTS.map(a => `<button class="btn" data-a="${a[0]}" type="button">${a[1]}<br>${a[2]}<br><b>−${a[3]}</b></button>`).join('');
+$('#breaks').innerHTML = Object.keys(BRK).map(k => `<button class="btn" data-b="${k}" type="button"></button>`).join('');
+$$('[data-a]').forEach(e => e.onclick = () => { const a = ACTS.find(x => x[0] === e.dataset.a);
+  if (S.energy < a[3]) { say(`에너지가 부족해요! <b>${a[2]}</b>에는 에너지 ${a[3]}이(가) 필요한데 지금 ${S.energy}밖에 없다. 세포호흡으로 에너지를 더 만들어야 한다.`, true); return; }
+  S.energy -= a[3]; S.used[a[0]] = 1; say(`${a[1]} <b>${a[2]}</b>에 에너지 ${a[3]}을(를) 썼다. 세포호흡으로 얻은 에너지는 체온 유지, 소리 내기, 두뇌 활동, 성장, 근육 운동 등 여러 생명활동에 쓰인다.`); ui(); });
+$$('[data-b]').forEach(e => e.onclick = () => { const k = e.dataset.b; S.broken[k] = !S.broken[k]; if (!S.broken[k]) delete S.broken[k];
+  say(S.broken[k] ? `실험: <b>${BRK[k]}</b>가 일하지 않게 했다. 이 상태로 배달을 계속해 보세요. 세포는 에너지를 만들 수 있을까?` : `<b>${BRK[k]}</b>가 다시 일한다.`, !!S.broken[k]); ui(); });
+$$('[data-go]').forEach(e => e.onclick = () => go(e.dataset.go));
+$('#app').addEventListener('click', e => { const r = e.target.getBoundingClientRect(), x = (e.clientX - r.left) * W / r.width, y = (e.clientY - r.top) * H / r.height;
+  const id = Object.keys(ST).find(k => { const [a, b, w, h] = ST[k].rect; return x >= a - 8 && x <= a + w + 8 && y >= b - 8 && y <= b + h + 8; }); if (id) go(id); });
+function start() { S = newState(); say('나는 지금 <b>호흡계(허파)</b> 앞에 있다. 조직 세포가 에너지를 만들려면 <b>영양소</b>와 <b>산소</b>가 모두 필요하다. 기관계를 눌러 이동해 보세요. (지금 있는 곳을 누르면 그 자리에서 물질을 주고받는다)'); ui(); }
+$('#resetBtn').onclick = start;
+let last = performance.now();
+function loop(ts) { const dt = Math.min(0.1, (ts - last) / 1000); last = ts; S.t += dt;
+  if (S.move) { S.move.p += dt / S.move.dur; const p = Math.min(1, S.move.p), e = p < .5 ? 2 * p * p : 1 - 2 * (1 - p) ** 2; S.ang = S.move.from + (S.move.to - S.move.from) * e;
+    if (p >= 1) { const id = S.move.id; S.ang = ST[id].ang; S.move = null; arrive(id); } }
+  draw(); requestAnimationFrame(loop); }
+start(); requestAnimationFrame(loop);
+// 테스트용: 바로 이동
+window.__go = id => { if (S.broken.circ) { go(id); return snap(); } S.ang = ST[id].ang; S.move = null; arrive(id); return snap(); };
+function snap() { return { e: S.energy, made: S.made, resp: S.resp, outC: S.outC, outU: S.outU, blood: Object.values(S.blood).join(''), cell: Object.values(S.cell).join('') }; }
+window.__snap = snap;
+</script>
+</body>
+</html>

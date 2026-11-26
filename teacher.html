@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>교사용 대시보드 · 중학교 과학 시뮬레이터</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="lib/sim.css">
+<style>
+  body { min-height: 100%; }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 24px 20px 48px; }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  .lead { color: var(--muted); margin: 0 0 16px; font-size: 14px; }
+  .stats { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+  .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; min-width: 130px; }
+  .stat b { display: block; font-size: 22px; }
+  .stat span { color: var(--muted); font-size: 13px; }
+  .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .bar .lbl { color: var(--muted); font-size: 13px; margin-right: 2px; }
+  .chip { font: inherit; font-size: 14px; border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+  .chip.on { background: #1d2433; border-color: #1d2433; color: #fff; }
+  input[type=search] { font: inherit; font-size: 14px; border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; min-width: 220px; }
+  .grade { margin: 26px 0 4px; font-size: 19px; }
+  .chap { margin: 14px 0 8px; font-size: 15px; color: #2b3a67; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
+  .card { position: relative; background: var(--panel); border: 1px solid var(--line); border-left-width: 6px; border-radius: 12px; padding: 12px 14px 10px; display: flex; flex-direction: column; gap: 6px; }
+  .card.code { border-left-color: #c2410c; }
+  .card.chat { border-left-color: #2563eb; }
+  .card.wait { border-style: dashed; background: #fffbeb; }
+  .card h3 { margin: 0; font-size: 16px; }
+  .card .meta { color: var(--muted); font-size: 12px; display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: center; }
+  .src { font-size: 12px; font-weight: 700; border-radius: 6px; padding: 1px 8px; white-space: nowrap; }
+  .src.code { background: #ffedd5; color: #9a3412; }
+  .src.chat { background: #dbeafe; color: #1e40af; }
+  .uid { font-family: ui-monospace, Consolas, monospace; font-size: 11px; background: #eef1f5; border-radius: 5px; padding: 1px 6px; }
+  .st { font-size: 12px; border-radius: 6px; padding: 1px 7px; white-space: nowrap; }
+  .st.ok { background: #e7f6ee; color: #1a7f4b; }
+  .st.no { background: #fdecea; color: #b42318; }
+  .st.mid { background: #fef3c7; color: #92400e; }
+  .acts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: 4px; }
+  .acts a, .acts button { display: inline-flex; align-items: center; line-height: 1.4; font: inherit; font-size: 13px; text-decoration: none; color: inherit; border: 1px solid var(--line); background: #fff; border-radius: 8px; padding: 4px 10px; cursor: pointer; }
+  .acts a.go { background: #1f6feb; border-color: #1f6feb; color: #fff; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--muted); margin: 6px 0 4px; }
+  .note { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 10px; padding: 10px 14px; font-size: 14px; margin: 10px 0; }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: #1d2433; color: #fff; padding: 10px 18px; border-radius: 10px; font-size: 14px; opacity: 0; transition: opacity .2s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+  footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>교사용 대시보드</h1>
+  <p class="lead">채팅으로 만든 시뮬레이터와 클로드 코드로 만든 시뮬레이터를 한곳에 모았습니다. 학생에게는 <b>학생용 링크</b>를 주면 확인문제·자동 채점·기록까지 되고,
+    결과는 <a href="#" id="dashLink" target="_blank" rel="noopener"><b>수업 결과 대시보드</b></a>(학교 계정)에서 봅니다.</p>
+  <div class="stats" id="stats"></div>
+  <div id="pending"></div>
+  <div class="bar"><span class="lbl">만든 방법</span>
+    <button class="chip on" data-k="src" data-v="">전체</button>
+    <button class="chip" data-k="src" data-v="code">🛠 클로드 코드</button>
+    <button class="chip" data-k="src" data-v="chat">💬 채팅</button>
+  </div>
+  <div class="bar"><span class="lbl">학년</span>
+    <button class="chip on" data-k="grade" data-v="">전체</button>
+    <button class="chip" data-k="grade" data-v="1">1학년</button>
+    <button class="chip" data-k="grade" data-v="2">2학년</button>
+    <button class="chip" data-k="grade" data-v="3">3학년</button>
+    <span class="lbl" style="margin-left:10px">웹앱</span>
+    <button class="chip on" data-k="gas" data-v="">전체</button>
+    <button class="chip" data-k="gas" data-v="no">미등록만</button>
+    <input type="search" id="q" placeholder="제목·단원 검색">
+  </div>
+  <div class="legend">
+    <span><span class="src code">🛠 클로드 코드</span> 3D·소리·자동 점검·검수를 거친 시뮬레이터 (단원 ID로 표시)</span>
+    <span><span class="src chat">💬 채팅</span> 채팅에서 만든 시뮬레이터 (chat- 로 시작)</span>
+  </div>
+  <div id="list"><p class="hint">목록을 불러오는 중…</p></div>
+  <footer><a href="./">학생용 목록</a> · 정답과 학생 기록은 학교 구글 시트에만 있습니다.</footer>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+// 수업용 웹앱(학생 링크·문항·자동 채점·결과 대시보드) — 학교 계정 Apps Script, 시트 '비열 시뮬레이터 활동지 (하남중)'
+var WEBAPP = 'https://script.google.com/a/macros/hanam.ms.kr/s/AKfycbypy64khK7NrllDVllT6Sj2157o-qYtdqnNhdVYaBNTj2wwm0Hq9oqDa_5MxvEQJX7I/exec';
+var REPO = 'https://github.com/ksj-science/science-sim/tree/main/';
+var ROMAN = 'ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩ';
+var all = [], f = { src: '', grade: '', gas: '', q: '' };
+
+document.getElementById('dashLink').href = WEBAPP + '?page=dashboard';
+fetch('units.json', { cache: 'no-cache' }).then(function (r) { return r.json(); }).then(function (units) {
+  all = units.filter(function (u) { return u.grade; });   // 예시(0학년) 제외
+  stats(); pending(); render();
+}).catch(function () { document.getElementById('list').innerHTML = '<p class="hint">목록을 불러오지 못했어요.</p>'; });
+
+function src(u) { return u.source === 'chat' ? 'chat' : 'code'; }
+function gasDone(u) { return !!u.gas; }
+function shown(u) { return u.dashboard !== false; }
+
+function stats() {
+  var vis = all.filter(shown);
+  var n = function (fn) { return vis.filter(fn).length; };
+  var waitDash = all.length - vis.length, waitGas = n(function (u) { return !gasDone(u); });
+  document.getElementById('stats').innerHTML =
+    st(vis.length, '전체 시뮬레이터') + st(n(function (u) { return src(u) === 'code'; }), '🛠 클로드 코드') +
+    st(n(function (u) { return src(u) === 'chat'; }), '💬 채팅') +
+    st(waitDash, '대시보드 반영 대기') + st(waitGas, '웹앱 미등록');
+  function st(v, t) { return '<div class="stat"><b>' + v + '</b><span>' + t + '</span></div>'; }
+}
+
+function pending() {
+  var w = all.filter(function (u) { return !shown(u); });
+  if (!w.length) return;
+  document.getElementById('pending').innerHTML = '<div class="note">반영 대기 ' + w.length + '개: ' +
+    w.map(function (u) { return esc(u.title) + ' (' + esc(u.id) + ')'; }).join(', ') +
+    ' — 클로드 코드에서 "반영해 줘"라고 하면 한꺼번에 반영됩니다.</div>';
+}
+
+function render() {
+  var list = all.filter(function (u) {
+    if (f.src && src(u) !== f.src) return false;
+    if (f.grade && String(u.grade) !== f.grade) return false;
+    if (f.gas === 'no' && gasDone(u)) return false;
+    if (f.q && (u.title + ' ' + u.chapter + ' ' + u.id + ' ' + (u.summary || '')).toLowerCase().indexOf(f.q) < 0) return false;
+    return true;
+  });
+  list.sort(function (a, b) {
+    return a.grade - b.grade || rom(a.chapter) - rom(b.chapter) ||
+      String(a.chapter).localeCompare(String(b.chapter), 'ko', { numeric: true }) ||
+      (src(a) === 'chat') - (src(b) === 'chat') || (a.page || 0) - (b.page || 0) ||
+      String(a.id).localeCompare(String(b.id), 'ko', { numeric: true });
+  });
+  var html = '', g = null, ch = null;
+  list.forEach(function (u) {
+    if (u.grade !== g) { if (g !== null) html += '</div>'; g = u.grade; ch = null; html += '<h2 class="grade">' + g + '학년</h2>'; }
+    var big = String(u.chapter).split(' · ')[0];
+    if (big !== ch) { if (ch !== null) html += '</div>'; ch = big; html += '<h3 class="chap">' + esc(big) + '</h3><div class="grid">'; }
+    html += card(u);
+  });
+  document.getElementById('list').innerHTML = html ? html + '</div>' : '<p class="hint">조건에 맞는 시뮬레이터가 없어요.</p>';
+}
+
+function card(u) {
+  var s = src(u), mid = String(u.chapter).split(' · ')[1] || '';
+  var webs = (u.web && u.web.length ? u.web : [u.id]);
+  return '<div class="card ' + s + (shown(u) ? '' : ' wait') + '">' +
+    '<div class="meta"><span class="src ' + s + '">' + (s === 'chat' ? '💬 채팅' : '🛠 클로드 코드') + '</span>' +
+      (s === 'code' ? '<span class="uid">' + esc(u.id) + '</span>' : '') +
+      esc(mid) + (u.lesson ? ' · ' + esc(u.lesson) : '') + (u.page ? ' · ' + u.page + '쪽' : '') + '</div>' +
+    '<h3>' + esc(u.title) + '</h3>' +
+    '<div class="meta">' +
+      (shown(u) ? '<span class="st ok">대시보드 반영</span>' : '<span class="st mid">반영 대기</span>') +
+      (gasDone(u) ? '<span class="st ok">웹앱 문항 등록' + (/^\d{4}-/.test(u.gas) ? ' ' + esc(u.gas.slice(5)) : '') + '</span>' : '<span class="st no">웹앱 미등록</span>') +
+      (u.status ? '<span class="st mid">' + esc(u.status) + '</span>' : '') + '</div>' +
+    '<div class="acts"><a class="go" href="' + esc(u.path) + '" target="_blank" rel="noopener">열기</a>' +
+      webs.map(function (w) { return '<button data-copy="' + esc(WEBAPP + '?unit=' + encodeURIComponent(w)) + '">학생용 링크' + (webs.length > 1 ? ' · ' + esc(w) : '') + '</button>'; }).join('') +
+      '<a href="' + esc(WEBAPP + '?unit=' + encodeURIComponent(webs[0]) + '&demo=1') + '" target="_blank" rel="noopener">시연</a>' +
+      '<a href="' + esc(WEBAPP + '?page=dashboard&unit=' + encodeURIComponent(webs[0])) + '" target="_blank" rel="noopener">결과</a>' +
+      (s === 'code' ? '<a href="' + REPO + 'activities/' + encodeURIComponent(u.id) + '" target="_blank" rel="noopener">활동지</a>' : '') +
+    '</div></div>';
+}
+
+document.addEventListener('click', function (e) {
+  var c = e.target.closest('.chip');
+  if (c) {
+    f[c.dataset.k] = c.dataset.v;
+    document.querySelectorAll('.chip[data-k="' + c.dataset.k + '"]').forEach(function (x) { x.classList.toggle('on', x === c); });
+    render(); return;
+  }
+  var b = e.target.closest('[data-copy]');
+  if (b) {
+    var t = b.getAttribute('data-copy');
+    (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { toast('복사했어요. 클래스룸에 붙여 넣으세요.'); },
+      function () { prompt('아래 링크를 복사하세요', t); });
+  }
+});
+document.getElementById('q').addEventListener('input', function (e) { f.q = e.target.value.trim().toLowerCase(); render(); });
+function toast(t) { var el = document.getElementById('toast'); el.textContent = t; el.classList.add('show'); setTimeout(function () { el.classList.remove('show'); }, 1600); }
+function rom(c) { var m = /^\s*([ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩ])/.exec(c || ''); return m ? ROMAN.indexOf(m[1]) + 1 : 99; }
+function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+</script>
+</body>
+</html>

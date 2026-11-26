@@ -33,16 +33,17 @@
   <p class="lead">교과서 차례 순서대로 정리한 수업용 시뮬레이터입니다. 크롬북에서 바로 열 수 있어요.</p>
   <div class="ok" id="status">● 사이트 연결 성공</div>
   <div id="list"><p class="hint">목록을 불러오는 중…</p></div>
-  <footer>하남중학교 과학과 · 시뮬레이터는 자유롭게 수업에 쓰셔도 됩니다.</footer>
+  <footer>하남중학교 과학과 · 시뮬레이터는 자유롭게 수업에 쓰셔도 됩니다. · <a href="teacher.html">교사용 대시보드</a></footer>
 </div>
 <script>
 fetch('units.json', { cache: 'no-cache' }).then(function (r) { return r.json(); }).then(function (units) {
   var names = { 0: '예시', 1: '1학년 (과학1)', 2: '2학년 (과학2)', 3: '3학년 (과학3)' };
-  units.sort(function (a, b) { return a.grade - b.grade || String(a.id).localeCompare(String(b.id), 'ko', { numeric: true }); });
+  units = units.filter(function (u) { return u.dashboard !== false; });
+  units.sort(function (a, b) { return a.grade - b.grade || roman(a.chapter) - roman(b.chapter) || String(a.chapter).localeCompare(String(b.chapter), 'ko', { numeric: true }) || (a.source === 'chat') - (b.source === 'chat') || String(a.id).localeCompare(String(b.id), 'ko', { numeric: true }); });
   var html = '', cur = null;
   units.forEach(function (u) {
     if (u.grade !== cur) { if (cur !== null) html += '</div>'; cur = u.grade; html += '<h2 class="grade">' + (names[u.grade] || u.grade + '학년') + '</h2><div class="grid">'; }
-    html += '<a class="card" href="' + u.path + '"><div class="meta">' + (u.grade ? '<span class="uid">' + esc(u.id) + '</span> ' : '') + esc(u.chapter) +
+    html += '<a class="card" href="' + u.path + '"><div class="meta">' + (u.grade && u.source !== 'chat' ? '<span class="uid">' + esc(u.id) + '</span> ' : '') + esc(u.chapter) +
       (u.status ? '<span class="tag">' + esc(u.status) + '</span>' : '') + '</div><h3>' + esc(u.title) +
       '</h3><p>' + esc(u.summary || '') + '</p></a>';
   });
@@ -50,6 +51,7 @@ fetch('units.json', { cache: 'no-cache' }).then(function (r) { return r.json(); 
 }).catch(function () {
   document.getElementById('list').innerHTML = '<p class="hint">목록을 불러오지 못했어요. 잠시 후 새로고침해 주세요.</p>';
 });
+function roman(c) { var m = /^\s*([ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩ])/.exec(c || ''); return m ? 'ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩ'.indexOf(m[1]) + 1 : 99; }
 function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 </script>
 </body>

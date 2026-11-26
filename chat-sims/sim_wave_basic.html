@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<!-- 단원ID: wave_basic · 중2 Ⅲ. 빛과 파동 > 2. 파동 > 01 파동의 발생과 전달(109~111쪽) · 활동 1개: 용수철로 파동 만들기 -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>용수철 파동 만들기 — 파동의 발생과 전달</title>
+<style>
+:root{--bg:#f1f6fa;--card:#fff;--ink:#1c2836;--muted:#5b6878;--line:#d7e1ea;--accent:#2f8fd0;--accent-d:#1f6aa0;--accent-l:#e2f1fc;--ok:#1f9a62}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+header{background:linear-gradient(120deg,#2f8fd0,#38b6c8);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:20px;margin:0;font-weight:900}
+header .sub{font-size:13px;opacity:.95}
+header .sp{flex:1}
+header button{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+main{padding:10px 12px 24px;max-width:1300px;margin:0 auto}
+.intro{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:10px;padding:8px 14px;margin-bottom:10px;font-size:14px;line-height:1.55}
+.intro b{color:var(--accent-d)}
+.grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(280px,1fr);gap:10px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}
+.card h3{margin:0 4px 8px;font-size:15px;color:var(--accent-d)}
+canvas{width:100%;display:block;border-radius:8px}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0}
+.btn{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;padding:7px 11px;cursor:pointer;min-height:36px}
+.btn:hover{border-color:var(--accent);color:var(--accent-d)}
+.btn.on{background:var(--accent-l);border-color:var(--accent);color:var(--accent-d)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.lbl{font-size:13px;color:var(--muted);min-width:120px}
+input[type=range]{flex:1;min-width:120px;accent-color:var(--accent)}
+.ro{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:6px}
+.ro div{background:#16283a;color:#bfe4ff;border-radius:9px;padding:6px 8px}
+.ro .k{font-size:11.5px;color:#9fb6cb}
+.ro .v{font-size:20px;font-weight:900}
+.ro .v small{font-size:12px;font-weight:500;margin-left:2px}
+.check{list-style:none;margin:0;padding:0;font-size:14px}
+.check li{padding:6px 8px;border:1px solid var(--line);border-radius:8px;margin-bottom:5px;display:flex;gap:8px;align-items:center}
+.check li.done{background:#e6f6ee;border-color:#9fd8bb;color:#14653f;font-weight:700}
+.check .box{width:20px;height:20px;border:2px solid #9aa9b8;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-weight:900}
+.check li.done .box{border-color:var(--ok);background:var(--ok);color:#fff}
+.note{font-size:12.5px;color:var(--muted);line-height:1.55;margin:6px 4px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>용수철 파동 만들기</h1><span class="sub">파동의 발생과 전달 · 마루, 골, 파장, 진폭, 주기, 진동수</span>
+  <span class="sp"></span><button id="resetBtn" type="button">↺ 초기화</button>
+</header>
+<main>
+  <div class="intro">왼쪽 끝을 잡은 손이 위아래로 흔들면 진동이 용수철을 따라 오른쪽으로 퍼져 나간다. <b>진폭</b>과 <b>주기</b>를 바꿔 파동을 만들고, <b>노란 고리</b>가 어떻게 움직이는지 살펴보세요. 눈금 한 칸은 0.1 m이다.</div>
+  <div class="grid">
+    <div class="card">
+      <canvas id="app" width="900" height="380" aria-label="눈금 위에서 흔들리는 용수철"></canvas>
+      <div class="row">
+        <button class="btn pri" id="runBtn" type="button">❚❚ 멈춤</button>
+        <button class="btn" id="stepBtn" type="button">▸ 0.1초 앞으로</button>
+        <button class="btn" id="restartBtn" type="button">처음부터 다시 흔들기</button>
+        <span style="flex:1"></span>
+        <button class="btn" id="crestBtn" type="button">마루·골 표시</button>
+        <button class="btn" id="measBtn" type="button">파장·진폭 재기</button>
+      </div>
+      <div class="row"><span class="lbl">진폭 (손을 흔드는 높이)</span><input id="amp" type="range" min="0.1" max="0.6" step="0.05" value="0.3"><b id="ampv" style="min-width:60px">0.30 m</b></div>
+      <div class="row"><span class="lbl">주기 (한 번 흔드는 시간)</span><input id="per" type="range" min="0.5" max="2" step="0.1" value="1"><b id="perv" style="min-width:60px">1.0 초</b></div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="ro">
+          <div><div class="k">진폭</div><div class="v" id="vA">0.30<small>m</small></div></div>
+          <div><div class="k">주기</div><div class="v" id="vT">1.0<small>초</small></div></div>
+          <div><div class="k">진동수</div><div class="v" id="vF">1.0<small>Hz</small></div></div>
+        </div>
+        <h3>노란 고리의 시간에 따른 위치</h3>
+        <canvas id="graph" width="420" height="170" aria-label="노란 고리의 위치-시간 그래프"></canvas>
+      </div>
+      <div class="card">
+        <h3>조건에 맞는 파동 만들기</h3>
+        <ul class="check" id="check">
+          <li data-c="lam"><span class="box"></span>파장이 0.5 m인 파동</li>
+          <li data-c="amp"><span class="box"></span>진폭이 0.5 m인 파동</li>
+          <li data-c="per"><span class="box"></span>주기가 0.5초인 파동</li>
+        </ul>
+        <p class="note"><b>모델의 한계</b> · 같은 용수철을 같은 세기로 당기고 있다고 보아 파동이 퍼져 나가는 빠르기를 1 m/s로 일정하게 두었다(그래서 파장 = 1 m/s × 주기). 오른쪽 끝에서 되돌아오는 파동과 에너지가 줄어드는 것은 생각하지 않았다. 실제 용수철의 고리는 위아래로만 움직이는 것으로 단순화하였다.</p>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+/* ================================================================
+   용수철(가로 파동) 모형
+   - 손(x = 0)의 위치: y_손(t) = A·sin(φ), φ는 dφ/dt = 2π/T 로 증가(진폭·주기를 바꾸면 그 뒤로 만들어지는 진동부터 바뀜)
+   - 매질의 각 점: y(x, t) = y_손(t − x/v), 파동이 아직 닿지 않은 곳(t < x/v)은 0  (v = 1 m/s 고정)
+   - 파장 λ = v·T, 진동수 f = 1/T (단위 Hz)
+   - 매질(고리)은 제자리에서 위아래로만 진동하고, 파동과 함께 오른쪽으로 이동하지 않는다.
+   - 시뮬레이션 시간 간격 0.01 s(고정), 손 위치 기록을 버퍼에 저장
+   ================================================================ */
+const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
+function fit(cv, w, h) { const r = Math.min(2, window.devicePixelRatio || 1); cv.width = w * r; cv.height = h * r; const x = cv.getContext('2d'); x.setTransform(r, 0, 0, r, 0, 0); return x; }
+const W = 900, H = 380, X0 = 60, Y0 = 190, PX = 200, L = 4, V = 1, DT = 0.01, MARK_X = 2.0;   // 1 m = 200 px
+const c = fit($('#app'), W, H), g = fit($('#graph'), 420, 170);
+let S;
+function newState() { return { A: 0.3, T: 1.0, phase: 0, t: 0, hist: [0], markHist: [], running: true, crest: false, meas: false }; }
+const histLen = Math.ceil(L / V / DT) + 5;
+function handY() { return S.A * Math.sin(S.phase); }
+function stepOnce() {
+  S.phase += 2 * Math.PI * DT / S.T; S.t += DT;
+  S.hist.push(handY()); if (S.hist.length > histLen) S.hist.shift();
+  S.markHist.push(yAt(MARK_X)); if (S.markHist.length > 400) S.markHist.shift();   // 최근 4초
+}
+function yAt(x) {   // 손 위치 기록에서 x/v 초 전 값을 읽음(보간)
+  const back = x / V / DT, n = S.hist.length - 1, idx = n - back;
+  if (idx < 0 || S.t < x / V - 1e-9) return 0;
+  const i = Math.floor(idx), f = idx - i;
+  return (S.hist[i] || 0) * (1 - f) + (S.hist[Math.min(n, i + 1)] || 0) * f;
+}
+const sx = x => X0 + x * PX, sy = y => Y0 - y * PX;
+
+function draw() {
+  c.clearRect(0, 0, W, H); c.fillStyle = '#fbfdff'; c.fillRect(0, 0, W, H);
+  // 눈금(0.1 m)
+  for (let i = 0; i <= L * 10; i++) { const x = sx(i / 10); c.strokeStyle = i % 5 === 0 ? '#a9c6dd' : '#dbe8f2'; c.lineWidth = i % 5 === 0 ? 1.2 : .7; c.beginPath(); c.moveTo(x, 10); c.lineTo(x, H - 30); c.stroke(); }
+  for (let j = -8; j <= 8; j++) { const y = sy(j / 10); c.strokeStyle = j === 0 ? '#7f9bb3' : j % 5 === 0 ? '#a9c6dd' : '#dbe8f2'; c.lineWidth = j === 0 ? 1.2 : j % 5 === 0 ? 1.2 : .7; if (j === 0) c.setLineDash([6, 5]); c.beginPath(); c.moveTo(X0 - 10, y); c.lineTo(sx(L), y); c.stroke(); c.setLineDash([]); }
+  c.fillStyle = '#5b6878'; c.font = '11px sans-serif'; c.textAlign = 'center';
+  for (let i = 0; i <= L * 2; i++) c.fillText((i / 2).toFixed(1) + ' m', sx(i / 2), H - 14);
+  c.textAlign = 'right'; [-0.5, 0, 0.5].forEach(v => c.fillText(v.toFixed(1), X0 - 14, sy(v) + 4)); c.textAlign = 'left';
+  c.fillText('진동의 중심', sx(L) - 70, Y0 - 6);
+  // 용수철(코일 느낌의 굵은 선 + 고리)
+  const N = 160, pts = [];
+  for (let k = 0; k <= N; k++) { const x = k / N * L; pts.push([sx(x), sy(yAt(x))]); }
+  c.strokeStyle = '#7a8fa3'; c.lineWidth = 7; c.lineCap = 'round'; c.beginPath(); pts.forEach((p, k) => k ? c.lineTo(...p) : c.moveTo(...p)); c.stroke();
+  c.strokeStyle = '#c5d3df'; c.lineWidth = 2; c.beginPath(); pts.forEach((p, k) => k ? c.lineTo(...p) : c.moveTo(...p)); c.stroke();
+  for (let k = 1; k < 40; k++) { const x = k / 10, X = sx(x), Y = sy(yAt(x)); c.strokeStyle = '#506478'; c.lineWidth = 1.6; c.beginPath(); c.ellipse(X, Y, 3, 9, 0, 0, 7); c.stroke(); }
+  // 노란 고리(표시한 매질)
+  const my = sy(yAt(MARK_X));
+  c.fillStyle = '#ffd23f'; c.strokeStyle = '#b48a00'; c.lineWidth = 2; c.beginPath(); c.ellipse(sx(MARK_X), my, 7, 14, 0, 0, 7); c.fill(); c.stroke();
+  c.setLineDash([3, 3]); c.strokeStyle = '#b48a00'; c.beginPath(); c.moveTo(sx(MARK_X), sy(0.75)); c.lineTo(sx(MARK_X), sy(-0.75)); c.stroke(); c.setLineDash([]);
+  // 손
+  const hy = sy(yAt(0));
+  c.fillStyle = '#f0c8a8'; c.strokeStyle = '#b98b6b'; c.lineWidth = 1.5; c.beginPath(); c.roundRect ? c.roundRect(X0 - 46, hy - 16, 40, 32, 10) : c.rect(X0 - 46, hy - 16, 40, 32); c.fill(); c.stroke();
+  c.fillStyle = '#333'; c.font = 'bold 12px sans-serif'; c.fillText('손', X0 - 32, hy + 4);
+  // 파동의 앞부분
+  const front = Math.min(L, S.t * V);
+  if (front < L) { c.fillStyle = '#2f8fd0'; c.font = 'bold 12px sans-serif'; c.fillText('파동의 진행 방향 →', sx(front) + 6, 28); }
+  else { c.fillStyle = '#2f8fd0'; c.font = 'bold 13px sans-serif'; c.fillText('파동의 진행 방향 →', sx(L) - 130, 28); }
+  const feats = features();
+  if (S.crest) feats.forEach(f => { c.fillStyle = f.top ? '#d6455d' : '#3a6fd8'; c.font = 'bold 13px sans-serif'; c.textAlign = 'center'; c.fillText(f.top ? '마루' : '골', sx(f.x), sy(f.y) + (f.top ? -18 : 28)); c.beginPath(); c.arc(sx(f.x), sy(f.y), 4, 0, 7); c.fill(); c.textAlign = 'left'; });
+  if (S.meas) drawMeasure(feats);
+}
+/* 현재 모양에서 마루(극대)·골(극소) 찾기 — 진폭의 60 % 넘는 것만 */
+function features() {
+  const out = [], n = 400; let prev = yAt(0), cur = yAt(L / n);
+  for (let k = 2; k <= n; k++) {
+    const x = k / n * L, nx = yAt(x), xm = (k - 1) / n * L;
+    if (xm > 0.05 && xm < Math.min(L, S.t * V) - 0.05) {
+      if (cur > prev && cur >= nx && cur > 0.06) out.push({ x: xm, y: cur, top: true });
+      if (cur < prev && cur <= nx && cur < -0.06) out.push({ x: xm, y: cur, top: false });
+    }
+    prev = cur; cur = nx;
+  }
+  return out;
+}
+function arrow(x1, y1, x2, y2, col, label, lx, ly) {
+  c.save(); c.strokeStyle = col; c.fillStyle = col; c.lineWidth = 2; c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2); c.stroke();
+  [[x1, y1, x2, y2], [x2, y2, x1, y1]].forEach(([a, b, p, q]) => { const ang = Math.atan2(b - q, a - p); c.beginPath(); c.moveTo(a, b); c.lineTo(a - Math.cos(ang - .4) * 9, b - Math.sin(ang - .4) * 9); c.lineTo(a - Math.cos(ang + .4) * 9, b - Math.sin(ang + .4) * 9); c.fill(); });
+  c.font = 'bold 13px sans-serif'; const w = c.measureText(label).width + 10; c.fillStyle = 'rgba(255,255,255,.92)'; c.fillRect(lx - w / 2, ly - 11, w, 22); c.fillStyle = col; c.textAlign = 'center'; c.fillText(label, lx, ly + 5); c.restore();
+}
+function drawMeasure(feats) {
+  const tops = feats.filter(f => f.top);
+  if (tops.length >= 2) { const a = tops[tops.length - 2], b = tops[tops.length - 1], y = sy(Math.max(a.y, b.y)) - 34;
+    c.setLineDash([3, 3]); c.strokeStyle = '#8a3fbf'; [a, b].forEach(f => { c.beginPath(); c.moveTo(sx(f.x), sy(f.y)); c.lineTo(sx(f.x), y); c.stroke(); }); c.setLineDash([]);
+    arrow(sx(a.x), y, sx(b.x), y, '#8a3fbf', '파장 ' + (Math.round((b.x - a.x) * 20) / 20).toFixed(2) + ' m', (sx(a.x) + sx(b.x)) / 2, y - 14); }
+  if (tops.length) { const f = tops[0]; arrow(sx(f.x) - 14, Y0, sx(f.x) - 14, sy(f.y), '#e2733a', '진폭 ' + (Math.round(f.y * 20) / 20).toFixed(2) + ' m', sx(f.x) - 66, (Y0 + sy(f.y)) / 2); }
+  if (!tops.length || tops.length < 2) { c.fillStyle = '#8a3fbf'; c.font = '13px sans-serif'; c.fillText('파동이 더 퍼져 나가면 파장을 잴 수 있어요.', 340, H - 40); }
+}
+function drawGraph() {
+  g.clearRect(0, 0, 420, 170); g.fillStyle = '#fbfdff'; g.fillRect(0, 0, 420, 170);
+  const gx0 = 40, gy0 = 82, gw = 360, ys = 110;    // 4초 = 360 px, 1 m = 110 px
+  g.strokeStyle = '#dbe8f2'; g.lineWidth = .8;
+  for (let k = 0; k <= 8; k++) { const x = gx0 + k * gw / 8; g.beginPath(); g.moveTo(x, 10); g.lineTo(x, 155); g.stroke(); }
+  [-0.5, 0.5].forEach(v => { g.beginPath(); g.moveTo(gx0, gy0 - v * ys); g.lineTo(gx0 + gw, gy0 - v * ys); g.stroke(); });
+  g.strokeStyle = '#7f9bb3'; g.beginPath(); g.moveTo(gx0, gy0); g.lineTo(gx0 + gw, gy0); g.stroke();
+  g.fillStyle = '#5b6878'; g.font = '11px sans-serif'; g.textAlign = 'center';
+  for (let k = 0; k <= 4; k++) g.fillText(k + '', gx0 + k * gw / 4, 166);
+  g.textAlign = 'right'; g.fillText('0.5', gx0 - 4, gy0 - 0.5 * ys + 4); g.fillText('0', gx0 - 4, gy0 + 4); g.fillText('−0.5', gx0 - 4, gy0 + 0.5 * ys + 4);
+  g.textAlign = 'left'; g.fillText('위치(m)', 2, 10); g.fillText('최근 4초 (초)', gx0 + gw - 70, 150);
+  const hist = S.markHist, n = hist.length; if (!n) return;
+  g.strokeStyle = '#d19a00'; g.lineWidth = 2.2; g.beginPath();
+  hist.forEach((y, k) => { const x = gx0 + gw - (n - 1 - k) * DT * gw / 4; k ? g.lineTo(x, gy0 - y * ys) : g.moveTo(x, gy0 - y * ys); }); g.stroke();
+}
+function updateChecks() {
+  const filled = S.t * V >= 1.2;     // 파동이 충분히 퍼져 나간 뒤에 판정
+  const ok = { lam: filled && Math.abs(V * S.T - 0.5) < 1e-6, amp: filled && Math.abs(S.A - 0.5) < 1e-6, per: filled && Math.abs(S.T - 0.5) < 1e-6 };
+  $$('#check li').forEach(li => { const d = ok[li.dataset.c]; li.classList.toggle('done', d); li.querySelector('.box').textContent = d ? '✓' : ''; });
+}
+function readouts() {
+  $('#ampv').textContent = S.A.toFixed(2) + ' m'; $('#perv').textContent = S.T.toFixed(1) + ' 초';
+  $('#vA').innerHTML = S.A.toFixed(2) + '<small>m</small>'; $('#vT').innerHTML = S.T.toFixed(1) + '<small>초</small>';
+  $('#vF').innerHTML = (Math.round(100 / S.T) / 100) + '<small>Hz</small>';
+  $('#runBtn').textContent = S.running ? '❚❚ 멈춤' : '▶ 계속'; $('#crestBtn').classList.toggle('on', S.crest); $('#measBtn').classList.toggle('on', S.meas);
+}
+function frame() { draw(); drawGraph(); updateChecks(); }
+let last = performance.now(), acc = 0;
+function loop(ts) {
+  if (S.running) { acc += Math.min(0.1, (ts - last) / 1000); while (acc >= DT) { stepOnce(); acc -= DT; } frame(); }
+  last = ts; requestAnimationFrame(loop);
+}
+$('#amp').addEventListener('input', e => { S.A = +e.target.value; readouts(); if (!S.running) frame(); });
+$('#per').addEventListener('input', e => { S.T = +e.target.value; readouts(); if (!S.running) frame(); });
+$('#runBtn').addEventListener('click', () => { S.running = !S.running; readouts(); });
+$('#stepBtn').addEventListener('click', () => { S.running = false; for (let k = 0; k < 10; k++) stepOnce(); readouts(); frame(); });
+$('#restartBtn').addEventListener('click', () => { const keep = { A: S.A, T: S.T, crest: S.crest, meas: S.meas }; S = Object.assign(newState(), keep); readouts(); frame(); });
+$('#crestBtn').addEventListener('click', () => { S.crest = !S.crest; readouts(); frame(); });
+$('#measBtn').addEventListener('click', () => { S.meas = !S.meas; readouts(); frame(); });
+$('#resetBtn').addEventListener('click', () => { S = newState(); $('#amp').value = S.A; $('#per').value = S.T; readouts(); frame(); });
+S = newState(); readouts(); frame(); requestAnimationFrame(loop);
+// 테스트용: 시간을 빨리 감기
+window.__advance = sec => { for (let k = 0; k < Math.round(sec / DT); k++) stepOnce(); frame(); return features(); };
+</script>
+</body>
+</html>

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<!-- 단원ID: elec_energy · 중2 Ⅶ. 전기와 자기 > 2. 전류와 전기 에너지 > 04 전기 에너지의 효율적인 사용(248~250쪽) · 활동 1개: 전기 기구의 에너지 전환과 소비 전력 조사하기 -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>전기 기구의 에너지 전환과 소비 전력</title>
+<style>
+:root{--bg:#f4f6f3;--card:#fff;--ink:#1f2620;--muted:#5d6a60;--line:#dde4dc;--g:#2f9a6a;--g-d:#1d6b48;--heat:#e8603c;--light:#e9b40c;--sound:#8a5cd6;--motion:#2e86de;--chem:#1fa39a}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+header{background:linear-gradient(120deg,#1d6b48,#2f9a6a 60%,#e9b40c);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:20px;margin:0;font-weight:900}
+header .sub{font-size:13px;opacity:.95}
+header .sp{flex:1}
+header button{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+nav{display:flex;gap:6px;padding:10px 12px 0;max-width:1320px;margin:0 auto}
+nav button{font:inherit;font-size:14.5px;font-weight:800;border:1px solid var(--line);background:#fff;border-radius:10px 10px 0 0;padding:9px 16px;cursor:pointer;color:var(--muted);border-bottom:none}
+nav button.on{background:var(--card);color:var(--g-d);box-shadow:inset 0 3px 0 var(--g)}
+main{padding:0 12px 24px;max-width:1320px;margin:0 auto}
+.pane{display:none;background:var(--card);border:1px solid var(--line);border-radius:0 12px 12px 12px;padding:12px 14px}
+.pane.on{display:block}
+.guide{font-size:14px;line-height:1.55;margin:0 0 10px;color:#33402f}
+.guide b{color:var(--g-d)}
+.btn{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:9px;padding:7px 11px;cursor:pointer;min-height:38px}
+.btn:hover:not(:disabled){border-color:#9db8a5}
+.btn.on{background:#e3f4ea;border-color:var(--g);color:var(--g-d)}
+.btn.main{background:var(--g);border-color:var(--g);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.msg{background:#f8fbf7;border:1px dashed #a9cdb5;border-radius:10px;padding:8px 11px;font-size:14.5px;line-height:1.55;margin-top:8px;min-height:42px}
+.msg.warn{background:#fff3ee;border-color:#f2b19c}
+.note{font-size:12.5px;color:var(--muted);line-height:1.55;margin:8px 2px 0}
+/* 1. 에너지 전환 */
+.conv{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:12px}
+@media (max-width:900px){.conv{grid-template-columns:1fr}}
+.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.ap{border:2px solid var(--line);border-radius:12px;background:#fff;padding:8px 4px 6px;text-align:center;cursor:pointer;font:inherit;position:relative;min-height:96px}
+.ap .e{font-size:30px;line-height:1.1}
+.ap .n{font-size:13.5px;font-weight:800;margin-top:3px}
+.ap .tags{display:flex;gap:3px;justify-content:center;flex-wrap:wrap;margin-top:4px;min-height:18px}
+.ap .tags i{font-style:normal;font-size:11px;font-weight:800;color:#fff;border-radius:6px;padding:1px 5px}
+.ap.sel{border-color:var(--g);box-shadow:0 0 0 3px #c8ebd6}
+.ap.ok{background:#effaf3;border-color:#7cc79b}
+.ap.bad{background:#fff3f0;border-color:#f0a28d}
+.ap .mark{position:absolute;right:6px;top:4px;font-size:16px}
+.bins{display:grid;grid-template-columns:1fr;gap:7px}
+.bin{display:flex;align-items:center;gap:10px;border:2px solid var(--line);border-radius:12px;padding:8px 10px;background:#fff;cursor:pointer;font:inherit;font-size:15px;font-weight:800;text-align:left}
+.bin .ic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-size:20px;color:#fff}
+.bin.on{box-shadow:0 0 0 3px rgba(47,154,106,.25)}
+.bin small{display:block;font-size:12px;font-weight:500;color:var(--muted)}
+.score{font-size:15px;font-weight:900;color:var(--g-d)}
+/* 2. 소비 전력 */
+.pw{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:12px}
+@media (max-width:900px){.pw{grid-template-columns:1fr}}
+.pick{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
+.pick .btn{padding:4px 2px;font-size:12px;line-height:1.25;min-height:34px}
+.lane{border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin-top:8px;background:#fbfcfa}
+.lane h4{margin:0 0 4px;font-size:14px;display:flex;align-items:center;gap:6px}
+.lane h4 .w{margin-left:auto;font-size:13px;color:var(--muted)}
+.bar{height:26px;border-radius:13px;background:#eceff0;position:relative;overflow:hidden}
+.bar i{position:absolute;left:0;top:0;bottom:0;border-radius:13px}
+.bar span{position:absolute;right:10px;top:3px;font-weight:900;font-size:14px}
+.timer{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px}
+.timer .clock{font-family:monospace;font-size:28px;font-weight:900;background:#1f2620;color:#bff0cf;border-radius:10px;padding:2px 14px;min-width:120px;text-align:center}
+input[type=range]{width:220px;accent-color:var(--g)}
+.formula{background:#1f2620;color:#e9f4ec;border-radius:12px;padding:10px 12px;font-size:15px;line-height:1.7}
+.formula b{color:#ffd76a}
+.label{border:2px solid #333;border-radius:10px;padding:8px;background:#fff;font-size:13px;line-height:1.5;width:100%}
+.label .t{font-weight:900;font-size:14px;border-bottom:1px solid #333;margin-bottom:4px}
+/* 3. 대기 전력 */
+.room{position:relative;width:100%;max-width:760px;margin:0 auto}
+canvas{width:100%;display:block;border-radius:12px;touch-action:manipulation;cursor:pointer}
+.sb{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.sb div{background:#1f2620;color:#e9f4ec;border-radius:12px;padding:6px 10px}
+.sb .k{font-size:12px;color:#a8c2b0}
+.sb .v{font-size:20px;font-weight:900}
+</style>
+</head>
+<body>
+<header>
+  <h1>전기 에너지의 효율적인 사용</h1><span class="sub">에너지 전환 · 소비 전력 · 전력량 · 대기 전력</span>
+  <span class="sp"></span><button id="resetBtn" type="button">↺ 초기화</button>
+</header>
+<nav>
+  <button data-tab="t1" class="on" type="button">① 에너지 전환 분류</button>
+  <button data-tab="t2" type="button">② 소비 전력과 전력량</button>
+  <button data-tab="t3" type="button">③ 대기 전력 줄이기</button>
+</nav>
+<main>
+  <!-- ① 에너지 전환 -->
+  <section class="pane on" id="t1">
+    <p class="guide">전기 기구를 하나 고른 뒤, 오른쪽에서 그 기구가 전기 에너지를 <b>주로 어떤 에너지로 바꾸는지</b> 눌러 붙이세요(2개인 기구도 있어요). 다 붙였으면 <b>채점하기</b>를 누르세요.</p>
+    <div class="conv">
+      <div><div class="cards" id="cards"></div>
+        <div class="row" style="display:flex;gap:8px;align-items:center;margin-top:10px"><button class="btn main" id="checkBtn" type="button">채점하기</button><button class="btn" id="clearBtn" type="button">다시 붙이기</button><span class="score" id="score"></span></div>
+        <div class="msg" id="msg1">기구 카드를 먼저 눌러 고르세요.</div></div>
+      <div class="bins" id="bins"></div>
+    </div>
+  </section>
+  <!-- ② 소비 전력 -->
+  <section class="pane" id="t2">
+    <p class="guide">두 전기 기구를 골라 <b>같은 시간</b> 동안 켜 보세요. <b>소비 전력</b>은 1초 동안 쓰는 전기 에너지(W = J/s)이고, <b>전력량</b>(사용한 전기 에너지)은 소비 전력 × 시간이에요.</p>
+    <div class="pw">
+      <div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:4px">기구 A 고르기</div><div class="pick" id="pickA"></div>
+        <div style="font-size:13px;color:var(--muted);margin:8px 0 4px">기구 B 고르기</div><div class="pick" id="pickB"></div>
+        <div class="timer"><button class="btn main" id="runBtn" type="button">▶ 켜기</button><button class="btn" id="stopBtn" type="button">■ 끄기·처음으로</button>
+          <span class="clock" id="clock">0 s</span>
+          <label style="font-size:13px;color:var(--muted)">시간 직접 정하기 <input type="range" id="tSl" min="0" max="60" step="1" value="0"></label></div>
+        <div class="lane" id="laneA"></div><div class="lane" id="laneB"></div>
+      </div>
+      <div>
+        <div class="formula" id="formula"></div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <div class="label"><div class="t">에너지 소비 효율 표시 (예)</div>정격 전압 <b>220 V</b><br>소비 전력 <b id="lblW">1500 W</b><br><span style="color:var(--muted);font-size:12px">'220 V–1500 W'는 220 V에 연결하면 1초에 1500 J의 전기 에너지를 쓴다는 뜻</span></div>
+        </div>
+        <div class="msg" id="msg2"></div>
+        <p class="note"><b>모델의 한계</b> · 기구의 소비 전력은 제품마다 다르며 여기의 값은 대표값이다. 실제 기구는 작동 중에 소비 전력이 바뀌기도 하지만 여기서는 일정하다고 보았다. 1 Wh = 3600 J.</p>
+      </div>
+    </div>
+  </section>
+  <!-- ③ 대기 전력 -->
+  <section class="pane" id="t3">
+    <p class="guide">밤에 아무도 쓰지 않는 거실이에요. 전원을 꺼도 플러그가 꽂혀 있으면 <b>대기 전력</b>이 쓰여요. 기구나 <b>멀티탭 스위치</b>를 눌러 플러그를 뽑아 보세요.</p>
+    <div class="room"><canvas id="room" width="760" height="300" aria-label="대기 전력을 쓰는 거실의 전기 기구들. 눌러서 플러그를 뽑는다."></canvas></div>
+    <div class="sb">
+      <div><div class="k">지금 새는 대기 전력</div><div class="v" id="sW">–</div></div>
+      <div><div class="k">이대로 1년(365일 × 24시간)이면</div><div class="v" id="sY">–</div></div>
+      <div><div class="k">1년 동안 아낄 수 있는 양</div><div class="v" id="sS">–</div></div>
+    </div>
+    <div class="msg" id="msg3"></div>
+    <p class="note"><b>모델의 한계</b> · 기구별 대기 전력은 대표적인 값이며, 하루 종일 대기 상태라고 가정해 계산했다. 1 kWh = 1000 Wh.</p>
+  </section>
+</main>
+<script>
+/* ================================================================
+   전기 에너지의 효율적인 사용
+   - 에너지 전환: 전기 에너지 → 열(전기난로·전기다리미·온수 매트·전기밥솥), 빛(LED 전등), 소리(스피커),
+     운동(선풍기·세탁기), 빛+소리(텔레비전), 화학(휴대 전화 충전) — 기구가 '주로' 하는 일 기준
+   - 소비 전력 P(W) = 1초 동안 쓰는 전기 에너지(J/s), 전력량 E = P × t (J), 1 Wh = 3600 J
+     예: 헤어드라이어 1500 W × 10 s = 15000 J
+   - 대기 전력: TV 1 W + 셋톱박스 12 W + 컴퓨터 3 W + 전자레인지 2 W + 충전기 1 W = 19 W
+     1년 전력량 = 19 W × 24 h × 365 = 166 440 Wh ≈ 166 kWh
+   ================================================================ */
+const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
+const KIND = { heat: ['열에너지', '🔥', 'var(--heat)', '따뜻하게·뜨겁게'], light: ['빛에너지', '💡', 'var(--light)', '밝게 비춤'], sound: ['소리 에너지', '🔊', 'var(--sound)', '소리를 냄'], motion: ['운동 에너지', '🌀', 'var(--motion)', '돌리거나 움직임'], chem: ['화학 에너지', '🔋', 'var(--chem)', '배터리에 저장'] };
+const CONV = [['전기난로', '♨️', ['heat']], ['전기다리미', '👔', ['heat']], ['온수 매트', '🛏️', ['heat']], ['전기밥솥', '🍚', ['heat']], ['LED 전등', '💡', ['light']],
+  ['선풍기', '🌀', ['motion']], ['세탁기', '🧺', ['motion']], ['스피커', '🔊', ['sound']], ['텔레비전', '📺', ['light', 'sound']], ['휴대 전화 충전', '📱', ['chem']]];
+const PW = [['헤어드라이어', '💨', 1500], ['전기다리미', '👔', 1200], ['전기난로', '♨️', 1000], ['전자레인지', '📦', 1000], ['세탁기', '🧺', 500], ['컴퓨터', '🖥️', 300], ['텔레비전', '📺', 100], ['냉장고', '🧊', 50], ['선풍기', '🌀', 40], ['백열전구', '🔆', 60], ['LED 전구', '💡', 10], ['충전기', '🔌', 10]];
+const SB = [['텔레비전', 1, 85, 130], ['셋톱박스', 12, 230, 130], ['컴퓨터', 3, 380, 130], ['전자레인지', 2, 530, 130], ['휴대 전화 충전기', 1, 675, 130]];
+let S;
+function newState() { return { tab: S ? S.tab : 't1', sel: -1, put: CONV.map(() => []), checked: false, A: 0, B: 10, t: 0, run: false, unplug: SB.map(() => false), tap: true }; }
+/* ---------- ① 에너지 전환 ---------- */
+function renderConv() {
+  $('#cards').innerHTML = CONV.map((c, i) => { const ok = S.checked ? same(S.put[i], c[2]) : null;
+    return `<button class="ap ${S.sel === i ? 'sel' : ''} ${ok === true ? 'ok' : ok === false ? 'bad' : ''}" data-c="${i}" type="button">${ok === null ? '' : `<span class="mark">${ok ? '⭕' : '❌'}</span>`}<div class="e">${c[1]}</div><div class="n">${c[0]}</div><div class="tags">${S.put[i].map(k => `<i style="background:${KIND[k][2]}">${KIND[k][0].replace(' 에너지', '').replace('에너지', '')}</i>`).join('')}</div></button>`; }).join('');
+  $('#bins').innerHTML = Object.keys(KIND).map(k => `<button class="bin ${S.sel >= 0 && S.put[S.sel].includes(k) ? 'on' : ''}" data-k="${k}" type="button" style="${S.sel >= 0 && S.put[S.sel].includes(k) ? 'border-color:' + KIND[k][2] : ''}"><span class="ic" style="background:${KIND[k][2]}">${KIND[k][1]}</span><span>전기 에너지 → ${KIND[k][0]}<small>${KIND[k][3]}</small></span></button>`).join('');
+  $$('[data-c]').forEach(b => b.onclick = () => { S.sel = +b.dataset.c; renderConv(); const c = CONV[S.sel]; $('#msg1').className = 'msg';
+    $('#msg1').innerHTML = S.checked ? explain(S.sel) : `<b>${c[0]}</b>을(를) 골랐다. 오른쪽에서 주로 바뀌는 에너지를 눌러 붙이세요. 다시 누르면 떼어진다.`; });
+  $$('[data-k]').forEach(b => b.onclick = () => { if (S.sel < 0) { $('#msg1').innerHTML = '먼저 왼쪽에서 기구 카드를 고르세요.'; return; } const a = S.put[S.sel], k = b.dataset.k; const j = a.indexOf(k); j >= 0 ? a.splice(j, 1) : a.push(k); S.checked = false; $('#score').textContent = ''; renderConv(); });
+}
+const same = (a, b) => a.length === b.length && b.every(x => a.includes(x));
+function explain(i) { const c = CONV[i]; return `<b>${c[0]}</b>: 전기 에너지 → ${c[2].map(k => KIND[k][0]).join(' + ')}. ` + ({ heat: '전류가 흐를 때 발생하는 열을 이용한다.', light: '전기 에너지를 주로 빛에너지로 바꾸며, 열로 버려지는 에너지가 적어 효율이 높다.', sound: '진동판을 떨게 해 소리를 낸다.', motion: '전동기(모터)를 돌려 운동 에너지로 바꾼다.', chem: '배터리 안에 화학 에너지로 저장했다가 나중에 다시 전기 에너지로 쓴다.' })[c[2][0]] + (c[2].length > 1 ? ' 화면으로 빛을, 스피커로 소리를 동시에 낸다.' : ''); }
+$('#checkBtn').onclick = () => { S.checked = true; const n = CONV.filter((c, i) => same(S.put[i], c[2])).length; $('#score').textContent = `${n} / ${CONV.length} 정답`; renderConv();
+  const m = $('#msg1'); m.className = 'msg' + (n < CONV.length ? ' warn' : ''); m.innerHTML = n === CONV.length ? '🎉 모두 맞혔다! 열을 내는 기구(전기난로·다리미·온수 매트·밥솥)는 대부분 <b>소비 전력이 크다</b>는 점도 ② 탭에서 확인해 보자.' : '❌ 표시된 카드를 눌러 해설을 보고 다시 붙여 보세요. 텔레비전처럼 두 가지 에너지로 바꾸는 기구도 있다.'; };
+$('#clearBtn').onclick = () => { S.put = CONV.map(() => []); S.checked = false; S.sel = -1; $('#score').textContent = ''; $('#msg1').className = 'msg'; $('#msg1').textContent = '기구 카드를 먼저 눌러 고르세요.'; renderConv(); };
+/* ---------- ② 소비 전력 ---------- */
+const fmt = n => Math.round(n).toLocaleString('ko-KR');
+function renderPick() {
+  ['A', 'B'].forEach(L => { $('#pick' + L).innerHTML = PW.map((p, i) => `<button class="btn ${S[L] === i ? 'on' : ''}" data-p${L}="${i}" type="button">${p[1]} ${p[0]}<br><b>${p[2]} W</b></button>`).join('');
+    $$(`[data-p${L.toLowerCase()}]`).forEach(b => b.onclick = () => { S[L] = +b.getAttribute('data-p' + L.toLowerCase()); renderPick(); powerUI(); }); });
+}
+function lane(L) { const p = PW[S[L]], E = p[2] * S.t, max = 1500 * 60; return `<h4>${p[1]} ${L}. ${p[0]}<span class="w">소비 전력 ${p[2]} W = 1초에 ${p[2]} J</span></h4><div class="bar"><i style="width:${Math.min(100, E / max * 100)}%;background:${L === 'A' ? 'var(--heat)' : 'var(--motion)'}"></i><span>${fmt(E)} J</span></div>`; }
+function powerUI() {
+  const a = PW[S.A], b = PW[S.B], t = S.t; $('#clock').textContent = Math.floor(t) + ' s'; $('#tSl').value = Math.floor(t);
+  $('#laneA').innerHTML = lane('A'); $('#laneB').innerHTML = lane('B'); $('#lblW').textContent = a[2] + ' W';
+  const T = Math.floor(t);
+  $('#formula').innerHTML = `전력량 = 소비 전력 × 시간<br>A: <b>${a[2]} W × ${T} s = ${fmt(a[2] * T)} J</b><br>B: <b>${b[2]} W × ${T} s = ${fmt(b[2] * T)} J</b>`;
+  const r = a[2] / b[2];
+  $('#msg2').innerHTML = S.A === S.B ? '서로 다른 두 기구를 골라 비교해 보세요.' : T === 0 ? `▶ 켜기를 누르거나 시간 막대를 움직여 보세요. 같은 시간 동안 어느 기구가 전기 에너지를 더 많이 쓸까?` :
+    `같은 ${T}초 동안 <b>${r > 1 ? a[0] : b[0]}</b> 쪽이 ${r > 1 ? (r).toFixed(r >= 10 ? 0 : 1) : (1 / r).toFixed(1 / r >= 10 ? 0 : 1)}배 많은 전기 에너지를 썼다. <b>소비 전력이 클수록, 사용 시간이 길수록</b> 전력량이 크다.` +
+    ((a[0] === '백열전구' && b[0] === 'LED 전구') || (b[0] === '백열전구' && a[0] === 'LED 전구') ? ' 밝기가 비슷해도 LED 전구는 전기 에너지 대부분을 빛으로 바꿔 백열전구보다 훨씬 적게 쓴다.' : '');
+}
+$('#runBtn').onclick = () => { if (S.t >= 60) S.t = 0; S.run = true; };
+$('#stopBtn').onclick = () => { S.run = false; S.t = 0; powerUI(); };
+$('#tSl').oninput = e => { S.run = false; S.t = +e.target.value; powerUI(); };
+/* ---------- ③ 대기 전력 ---------- */
+const rc = (() => { const cv = $('#room'), r = Math.min(2, devicePixelRatio || 1); cv.width = 760 * r; cv.height = 300 * r; const x = cv.getContext('2d'); x.setTransform(r, 0, 0, r, 0, 0); return x; })();
+const live = i => S.tap && !S.unplug[i];
+function drawRoom(ts) {
+  const c = rc; c.clearRect(0, 0, 760, 300); const g = c.createLinearGradient(0, 0, 0, 300); g.addColorStop(0, '#1b2433'); g.addColorStop(1, '#2a3446'); c.fillStyle = g; c.fillRect(0, 0, 760, 300);
+  c.fillStyle = '#3a4458'; c.fillRect(0, 240, 760, 60); c.fillStyle = '#c8d3e6'; c.font = 'bold 13px sans-serif'; c.fillText('🌙 밤 12시 · 모두 잠든 거실 (기구는 모두 꺼진 상태)', 14, 22);
+  // 멀티탭
+  c.fillStyle = '#e8ecef'; c.beginPath(); c.roundRect(250, 262, 260, 26, 8); c.fill(); c.fillStyle = S.tap ? '#e0453f' : '#666'; c.beginPath(); c.roundRect(470, 266, 30, 18, 4); c.fill();
+  c.fillStyle = S.tap ? '#fff' : '#bbb'; c.font = 'bold 10px sans-serif'; c.fillText(S.tap ? 'ON' : 'OFF', 476, 279); c.fillStyle = '#c8d3e6'; c.font = 'bold 12px sans-serif'; c.textAlign = 'center'; c.fillText('멀티탭 스위치', 485, 256); c.textAlign = 'left';
+  SB.forEach(([n, w, x, y], i) => { const on = live(i), px = 275 + i * 36;
+    // 전선
+    c.strokeStyle = on ? '#9aa4b5' : '#55607a'; c.lineWidth = 2.5; c.beginPath(); c.moveTo(x, y + 40); c.quadraticCurveTo(x, 255, S.unplug[i] ? px + 6 : px + 10, S.unplug[i] ? 244 : 266); c.stroke();
+    c.fillStyle = '#d7dce3'; c.fillRect(S.unplug[i] ? px : px + 4, S.unplug[i] ? 232 : 262, 12, 12);
+    // 기구 몸체
+    c.fillStyle = '#4a556b'; c.beginPath(); c.roundRect(x - 50, y - 30, 100, 70, 10); c.fill(); c.font = '30px sans-serif'; c.textAlign = 'center'; c.fillText(['📺', '📡', '🖥️', '📦', '🔌'][i], x, y + 14);
+    c.fillStyle = '#e8edf5'; c.font = 'bold 12px sans-serif'; c.fillText(n, x, y - 38);
+    // 대기 전력 표시등
+    if (on) { const blink = 0.5 + 0.5 * Math.sin(ts / 300 + i); c.fillStyle = `rgba(255,70,60,${0.5 + 0.5 * blink})`; c.beginPath(); c.arc(x + 38, y + 30, 4, 0, 7); c.fill(); c.fillStyle = '#ffcf5a'; c.font = 'bold 13px sans-serif'; c.fillText(`⚡ ${w} W`, x, y + 58); }
+    else { c.fillStyle = '#8fd6a8'; c.font = 'bold 12px sans-serif'; c.fillText('0 W · 뽑음', x, y + 58); }
+    c.textAlign = 'left'; });
+}
+function standbyUI() {
+  const W = SB.reduce((a, s, i) => a + (live(i) ? s[1] : 0), 0), all = SB.reduce((a, s) => a + s[1], 0), kwh = w => (w * 24 * 365 / 1000);
+  $('#sW').textContent = W + ' W'; $('#sY').textContent = '약 ' + Math.round(kwh(W)) + ' kWh'; $('#sS').textContent = '약 ' + Math.round(kwh(all - W)) + ' kWh';
+  const m = $('#msg3'); m.className = 'msg' + (W === all ? ' warn' : '');
+  m.innerHTML = W === all ? `기구를 모두 껐는데도 플러그가 꽂혀 있어 <b>${all} W</b>의 대기 전력이 계속 쓰이고 있다. 가장 큰 범인은 누구일까? 기구를 눌러 플러그를 뽑아 보세요.` :
+    W === 0 ? `✅ 대기 전력 0 W! 쓰지 않는 기구의 플러그를 뽑거나 <b>멀티탭 스위치</b>를 끄면 1년에 약 ${Math.round(kwh(all))} kWh(${fmt(all * 24 * 365)} Wh)를 아낄 수 있다.` :
+    `아직 ${W} W가 새고 있다. 하나씩 뽑기 번거로우면 멀티탭 스위치를 꺼 한 번에 차단해 보세요.`;
+}
+$('#room').addEventListener('click', e => { const r = e.target.getBoundingClientRect(), x = (e.clientX - r.left) * 760 / r.width, y = (e.clientY - r.top) * 300 / r.height;
+  if (x > 460 && x < 510 && y > 258 && y < 292) { S.tap = !S.tap; standbyUI(); return; }
+  const i = SB.findIndex(s => Math.abs(s[2] - x) < 55 && y > s[3] - 45 && y < s[3] + 65); if (i >= 0) { S.unplug[i] = !S.unplug[i]; standbyUI(); } });
+/* ---------- 공통 ---------- */
+$$('nav button').forEach(b => b.onclick = () => { S.tab = b.dataset.tab; $$('nav button').forEach(x => x.classList.toggle('on', x === b)); $$('.pane').forEach(p => p.classList.toggle('on', p.id === S.tab)); });
+function start() { S = newState(); renderConv(); renderPick(); powerUI(); standbyUI(); $('#msg1').className = 'msg'; $('#msg1').textContent = '기구 카드를 먼저 눌러 고르세요.'; $('#score').textContent = ''; }
+$('#resetBtn').onclick = start;
+let last = performance.now();
+function loop(ts) { const dt = Math.min(0.1, (ts - last) / 1000); last = ts;
+  if (S.run) { S.t = Math.min(60, S.t + dt * 4); powerUI(); if (S.t >= 60) S.run = false; }   // 화면 1초 = 4초
+  if (S.tab === 't3') drawRoom(ts); requestAnimationFrame(loop); }
+start(); drawRoom(0); requestAnimationFrame(loop);
+// 테스트용
+window.__E = (a, b, t) => { S.A = PW.findIndex(p => p[0] === a); S.B = PW.findIndex(p => p[0] === b); S.run = false; S.t = t; renderPick(); powerUI(); return $('#formula').textContent; };
+window.__sb = ids => { S.tap = true; S.unplug = SB.map((s, i) => ids.includes(i)); standbyUI(); return [$('#sW').textContent, $('#sY').textContent]; };
+window.__all = () => { CONV.forEach((c, i) => S.put[i] = c[2].slice()); $('#checkBtn').click(); return $('#score').textContent; };
+</script>
+</body>
+</html>

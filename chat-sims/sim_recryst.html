@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<!-- 단원ID: recryst · 2. 혼합물의 분리 > 03 용해도 차를 이용한 분리(재결정) · 활동 1개: 순수한 질산 칼륨 분리하기 -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>재결정 실험실 — 순수한 질산 칼륨 분리하기</title>
+<style>
+:root{--bg:#f2f6f9;--card:#fff;--ink:#1f2a30;--muted:#5f6f76;--line:#d7e2e8;--accent:#1f9ec4;--accent-d:#167a99;--accent-l:#e2f4fa;--red:#e8455a;--green:#2fae84}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+header{background:linear-gradient(120deg,#1f9ec4,#33b6a4);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:20px;margin:0;font-weight:900}
+header .sub{font-size:13px;opacity:.92}
+header .sp{flex:1}
+header button{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+main{padding:10px 12px 24px;max-width:1300px;margin:0 auto}
+.intro{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:10px;padding:8px 14px;margin-bottom:10px;font-size:14px;line-height:1.55}
+.intro b{color:var(--accent-d)}
+.grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(300px,1fr);gap:10px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}
+.card h3{margin:0 4px 8px;font-size:15px;color:var(--accent-d)}
+canvas{width:100%;display:block;border-radius:8px;touch-action:none}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0}
+.btn{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;padding:8px 12px;cursor:pointer;min-height:38px}
+.btn:hover{border-color:var(--accent);color:var(--accent-d)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.on{background:var(--accent-l);border-color:var(--accent);color:var(--accent-d)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.steps .btn .n{display:inline-block;width:20px;height:20px;line-height:20px;border-radius:50%;background:rgba(0,0,0,.12);text-align:center;font-size:12px;margin-right:5px}
+.lbl{font-size:13px;color:var(--muted)}
+input[type=range]{flex:1;min-width:120px;accent-color:var(--accent)}
+.ro{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:8px}
+.ro div{background:#16303a;color:#a8f0ff;border-radius:9px;padding:6px 10px}
+.ro .k{font-size:12px;color:#a9c3cb}
+.ro .v{font-size:21px;font-weight:900}
+.ro .v small{font-size:13px;font-weight:500;color:#cfe;margin-left:2px}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{border:1px solid var(--line);padding:5px 6px;text-align:center}
+th{background:var(--accent-l);color:var(--accent-d)}
+.note{font-size:12.5px;color:var(--muted);line-height:1.55;margin:6px 4px 0}
+.msg{min-height:20px;font-size:13.5px;color:var(--accent-d);font-weight:700;margin:4px 4px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>재결정 실험실</h1><span class="sub">용해도 차를 이용한 분리 · 질산 칼륨 + 황산 구리(Ⅱ)</span>
+  <span class="sp"></span><button id="resetBtn" type="button">↺ 초기화</button>
+</header>
+<main>
+  <div class="intro">① 약 40 ℃ 물 100 g에 혼합물을 넣어 <b>모두 녹인다.</b> ② <b>얼음물에 담가 냉각</b>하며 결정이 생기는 온도를 관찰한다(원하는 온도에서 꺼낼 수 있다). ③ <b>거름 장치로 걸러</b> 거름종이에 남은 물질과 거른 용액을 확인한다. 오른쪽 용해도 곡선의 점이 지금 녹아 있는 양이다.</div>
+  <div class="grid">
+    <div>
+      <div class="card">
+        <canvas id="app" width="620" height="400" aria-label="재결정 실험 장면"></canvas>
+        <div class="row"><span class="lbl" style="min-width:96px">질산 칼륨</span><input id="mk" type="range" min="10" max="60" step="5" value="30"><b id="mkv" style="min-width:44px">30 g</b></div>
+        <div class="row"><span class="lbl" style="min-width:96px">황산 구리(Ⅱ)</span><input id="mc" type="range" min="1" max="5" step="1" value="1"><b id="mcv" style="min-width:44px">1 g</b></div>
+        <div class="row steps">
+          <button class="btn pri" id="b1" type="button"><span class="n">1</span>40 ℃ 물에 녹이기</button>
+          <button class="btn" id="b2" type="button"><span class="n">2</span>얼음물에 담가 냉각</button>
+          <button class="btn" id="b3" type="button"><span class="n">3</span>거르기</button>
+        </div>
+        <div class="row"><span class="lbl">냉각 속도</span>
+          <button class="btn sp" data-s="1" type="button">×1</button><button class="btn sp on" data-s="5" type="button">×5</button><button class="btn sp" data-s="20" type="button">×20</button></div>
+        <div class="msg" id="msg"></div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="ro">
+          <div><div class="k">용액의 온도</div><div class="v" id="vT">–<small>℃</small></div></div>
+          <div><div class="k">결정이 처음 보인 온도</div><div class="v" id="vF">–<small>℃</small></div></div>
+          <div><div class="k">석출된 질산 칼륨</div><div class="v" id="vK">0.0<small>g</small></div></div>
+          <div><div class="k">석출된 황산 구리(Ⅱ)</div><div class="v" id="vC">0.0<small>g</small></div></div>
+        </div>
+        <canvas id="graph" width="460" height="270" aria-label="질산 칼륨과 황산 구리의 용해도 곡선"></canvas>
+      </div>
+      <div class="card">
+        <h3>거른 결과</h3>
+        <table><thead><tr><th></th><th>질산 칼륨</th><th>황산 구리(Ⅱ)</th><th>색깔</th></tr></thead>
+          <tbody><tr><td>거름종이에 남은 것</td><td id="rK1">–</td><td id="rC1">–</td><td id="rCol1">–</td></tr>
+          <tr><td>거른 용액에 녹아 있는 것</td><td id="rK2">–</td><td id="rC2">–</td><td id="rCol2">–</td></tr></tbody></table>
+        <p class="note"><b>모델의 한계</b> · 용해도는 물 100 g에 녹는 최대 질량(무수물 기준, 10 ℃ 간격 자료를 직선으로 이음)이다. 두 물질은 서로의 용해도에 영향을 주지 않고, 용해도보다 많아지는 즉시 결정이 생긴다고 보았다(과포화 무시). 결정 표면에 묻은 용액과 물의 증발은 무시하였다.</p>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+/* ================================================================
+   재결정 모형
+   - 용해도 S(T) [g / 물 100 g], 0~100 ℃ 10 ℃ 간격 자료(CRC Handbook, 무수물) 직선 보간
+       질산 칼륨 KNO3 : 13.3 20.9 31.6 45.8 63.9 85.5 110 138 169 202 246
+       황산 구리 CuSO4: 14.3 17.4 20.7 25.0 28.5 33.3 40.0 47.0 55.0 64.2 75.4
+   - 녹아 있는 양 = min(넣은 양, S(T)),  석출량 = 넣은 양 − 녹아 있는 양 (물 100 g)
+   - 냉각: 뉴턴 냉각 dT/dt = −(T − T얼음물)/τ, τ = 60 s, T얼음물 = 0 ℃ (0 ℃에 도달하면 그대로)
+   - 검산(질산 칼륨 30 g, 황산 구리 1 g): 40 ℃ 모두 녹음, 18.5 ℃부터 석출, 0 ℃ 석출 16.7 g, 황산 구리 석출 0 g
+   ================================================================ */
+const SOL = { K: [13.3, 20.9, 31.6, 45.8, 63.9, 85.5, 110, 138, 169, 202, 246], C: [14.3, 17.4, 20.7, 25.0, 28.5, 33.3, 40.0, 47.0, 55.0, 64.2, 75.4] };
+function sol(k, T) { T = Math.max(0, Math.min(100, T)); const i = Math.min(9, Math.floor(T / 10)), a = SOL[k][i], b = SOL[k][i + 1]; return a + (b - a) * (T - i * 10) / 10; }
+/* 석출이 시작되는 온도(넣은 양 = 용해도) */
+function satTemp(k, m) { for (let i = 0; i < 10; i++) { const a = SOL[k][i], b = SOL[k][i + 1]; if (m <= b) return m <= a ? i * 10 : i * 10 + 10 * (m - a) / (b - a); } return 100; }
+const $ = s => document.querySelector(s);
+const TAU = 60, T_HOT = 40, T_BATH = 0;
+let S, speed = 5, lastTs = 0, running = false;
+function newState() { return { mK: +$('#mk').value, mC: +$('#mc').value, stage: 0, T: null, cooling: false, firstT: null, crystK: 0, crystC: 0, filtered: false, t: 0 }; }
+const dissolvedK = () => S.mK - S.crystK, dissolvedC = () => S.mC - S.crystC;
+
+function update(dt) {
+  if (!S.cooling) return;
+  S.T = T_BATH + (S.T - T_BATH) * Math.exp(-dt / TAU);
+  if (S.T < 0.05) { S.T = 0; S.cooling = false; say('용액이 얼음물 온도(0 ℃)까지 식었어요.'); }
+  S.t += dt;
+  const cK = Math.max(0, S.mK - sol('K', S.T)), cC = Math.max(0, S.mC - sol('C', S.T));
+  if (cK > S.crystK) S.crystK = cK;
+  if (cC > S.crystC) S.crystC = cC;
+  if (S.firstT === null && (S.crystK > 0.005 || S.crystC > 0.005)) S.firstT = S.mK - sol('K', S.T) > 0 ? satTemp('K', S.mK) : satTemp('C', S.mC);
+}
+function loop(ts) {
+  const real = Math.min(0.1, (ts - lastTs) / 1000 || 0); lastTs = ts;
+  let sim = real * speed; while (sim > 0 && S.cooling) { const d = Math.min(0.2, sim); update(d); sim -= d; }
+  render();
+  running = S.cooling; if (running) requestAnimationFrame(loop); else updateButtons();
+}
+function kick() { if (!running) { running = true; lastTs = performance.now(); requestAnimationFrame(loop); } }
+
+/* ---------- 그림 ---------- */
+const app = $('#app'), cx = app.getContext('2d'), graph = $('#graph'), gc = graph.getContext('2d');
+function fit(c, ctx, w, h) { const r = Math.min(2, window.devicePixelRatio || 1); c.width = w * r; c.height = h * r; ctx.setTransform(r, 0, 0, r, 0, 0); }
+fit(app, cx, 620, 400); fit(graph, gc, 460, 270);
+function rnd(seed) { let s = seed; return () => (s = (s * 16807) % 2147483647) / 2147483647; }
+function blue(alpha) { const k = Math.min(1, dissolvedC() / 5); return `rgba(${Math.round(200 - 140 * k)},${Math.round(225 - 60 * k)},255,${alpha})`; }
+
+function drawCrystals(c, x0, y0, w, mass, seed) {   // 흰 바늘 모양 결정
+  const r = rnd(seed), n = Math.min(160, Math.round(mass * 6));
+  c.strokeStyle = 'rgba(255,255,255,.95)'; c.lineWidth = 2.2;
+  for (let i = 0; i < n; i++) { const x = x0 + r() * w, y = y0 - r() * Math.min(40, 6 + mass * 1.6), a = r() * Math.PI, l = 5 + r() * 8; c.beginPath(); c.moveTo(x, y); c.lineTo(x + Math.cos(a) * l, y - Math.abs(Math.sin(a)) * l); c.stroke(); }
+}
+function drawBlueCrystals(c, x0, y0, w, mass, seed) { const r = rnd(seed), n = Math.round(mass * 10); c.fillStyle = '#2a7fd6'; for (let i = 0; i < n; i++) c.fillRect(x0 + r() * w, y0 - r() * 8, 4, 4); }
+
+function drawApp() {
+  const c = cx; c.clearRect(0, 0, 620, 400); c.fillStyle = '#f7fafb'; c.fillRect(0, 0, 620, 400);
+  c.fillStyle = '#d8dfe3'; c.fillRect(0, 375, 620, 25);
+  c.font = '13px sans-serif';
+  if (!S.filtered) {
+    // 수조(냉각 중이면 얼음물)
+    if (S.stage >= 2) { c.fillStyle = 'rgba(190,225,245,.6)'; c.fillRect(90, 210, 440, 160); c.strokeStyle = '#8fb3c4'; c.lineWidth = 2; c.strokeRect(90, 170, 440, 200);
+      const r = rnd(7); c.fillStyle = 'rgba(255,255,255,.85)'; for (let i = 0; i < 16; i++) { const x = 100 + r() * 420; if (x > 220 && x < 400) continue; c.fillRect(x, 212 + r() * 140, 22, 18); }
+      c.fillStyle = '#5f6f76'; c.fillText('얼음물', 100, 200); }
+    // 비커
+    const bx = 230, bw = 160, top = 150, bot = 365, lv = 250;
+    if (S.stage >= 1) { c.fillStyle = blue(.75); c.fillRect(bx, lv, bw, bot - lv); }
+    else { c.fillStyle = 'rgba(210,232,255,.7)'; c.fillRect(bx, lv, bw, bot - lv); }
+    if (S.stage === 0) { // 녹이기 전: 혼합물 가루
+      c.fillStyle = '#fff'; c.beginPath(); c.ellipse(bx + bw / 2, 120, 50, 14, 0, 0, 7); c.fill(); c.strokeStyle = '#ccd'; c.stroke();
+      drawBlueCrystals(c, bx + bw / 2 - 30, 124, 60, S.mC, 3); c.fillStyle = '#5f6f76'; c.fillText('질산 칼륨 ' + S.mK + ' g + 황산 구리(Ⅱ) ' + S.mC + ' g', bx - 40, 90);
+    }
+    if (S.crystK > 0) drawCrystals(c, bx + 8, bot - 4, bw - 16, S.crystK, 11);
+    if (S.crystC > 0) drawBlueCrystals(c, bx + 10, bot - 4, bw - 20, S.crystC, 5);
+    c.strokeStyle = '#7f9aa6'; c.lineWidth = 2.5; c.beginPath(); c.moveTo(bx, top); c.lineTo(bx, bot); c.lineTo(bx + bw, bot); c.lineTo(bx + bw, top); c.stroke();
+    c.fillStyle = '#5f6f76'; c.fillText('물 100 g', bx + bw + 8, lv + 16);
+    // 온도계
+    if (S.T !== null) { c.fillStyle = '#16303a'; c.beginPath(); c.roundRect ? c.roundRect(430, 60, 120, 44, 8) : c.rect(430, 60, 120, 44); c.fill(); c.fillStyle = '#a8f0ff'; c.font = 'bold 24px sans-serif'; c.textAlign = 'right'; c.fillText(S.T.toFixed(1) + ' ℃', 542, 91); c.textAlign = 'left';
+      c.strokeStyle = '#ccd6da'; c.lineWidth = 6; c.beginPath(); c.moveTo(370, 90); c.lineTo(370, 340); c.stroke(); c.fillStyle = '#e8455a'; c.beginPath(); c.arc(370, 342, 5, 0, 7); c.fill(); c.strokeStyle = '#16303a'; c.lineWidth = 1; c.beginPath(); c.moveTo(374, 82); c.lineTo(430, 82); c.stroke(); }
+    c.font = '13px sans-serif'; c.fillStyle = '#1f2a30';
+    if (S.stage >= 1) c.fillText(S.crystK > 0 || S.crystC > 0 ? '결정이 생겼다!' : (S.mK > sol('K', T_HOT) ? '다 녹지 않고 남아 있다' : '모두 녹았다'), bx + 30, top + 40);
+  } else {
+    // 거름 장치: 스탠드, 깔때기, 거름종이, 비커
+    c.fillStyle = '#4b555b'; c.fillRect(470, 40, 8, 335); c.fillRect(440, 368, 80, 8); c.fillRect(300, 128, 176, 6);
+    c.fillStyle = 'rgba(230,236,240,.9)'; c.strokeStyle = '#7f9aa6'; c.lineWidth = 2;
+    c.beginPath(); c.moveTo(220, 70); c.lineTo(380, 70); c.lineTo(310, 170); c.lineTo(290, 170); c.closePath(); c.fill(); c.stroke();
+    c.fillRect(294, 170, 12, 70); c.strokeRect(294, 170, 12, 70);
+    c.fillStyle = '#fbfbf6'; c.beginPath(); c.moveTo(232, 76); c.lineTo(368, 76); c.lineTo(300, 160); c.closePath(); c.fill(); c.strokeStyle = '#ddd'; c.stroke();
+    if (S.crystK > 0) drawCrystals(c, 270, 150, 60, S.crystK, 11);
+    if (S.crystC > 0) drawBlueCrystals(c, 275, 150, 50, S.crystC, 5);
+    c.fillStyle = blue(.85); c.fillRect(250, 300, 100, 65); c.strokeStyle = '#7f9aa6'; c.lineWidth = 2.5; c.beginPath(); c.moveTo(250, 230); c.lineTo(250, 365); c.lineTo(350, 365); c.lineTo(350, 230); c.stroke();
+    c.fillStyle = blue(1); c.beginPath(); c.arc(300, 250 + (performance.now() / 8) % 40, 3, 0, 7); c.fill();
+    c.fillStyle = '#1f2a30'; c.font = '13px sans-serif';
+    c.fillText('거름종이에 남은 것: ' + (S.crystK > 0 || S.crystC > 0 ? '흰색 결정' + (S.crystC > 0 ? ' + 푸른 결정' : '') : '없음'), 40, 40);
+    c.fillText('거른 용액: ' + colorName(), 40, 345);
+  }
+}
+function colorName() { return dissolvedC() > 0.01 ? '파란색' : '무색'; }
+
+function drawGraph() {
+  const c = gc, W = 460, H = 270, L = 44, R = 14, T = 14, B = 34, X = v => L + (W - L - R) * v / 60, Y = v => H - B - (H - T - B) * v / 120;
+  c.clearRect(0, 0, W, H); c.fillStyle = '#fff'; c.fillRect(0, 0, W, H);
+  c.strokeStyle = '#e8eef0'; c.lineWidth = 1; c.fillStyle = '#5f6f76'; c.font = '11px sans-serif';
+  for (let v = 0; v <= 120; v += 20) { c.beginPath(); c.moveTo(L, Y(v)); c.lineTo(W - R, Y(v)); c.stroke(); c.fillText(v, L - 26, Y(v) + 4); }
+  for (let v = 0; v <= 60; v += 10) { c.beginPath(); c.moveTo(X(v), T); c.lineTo(X(v), H - B); c.stroke(); c.fillText(v, X(v) - 6, H - B + 15); }
+  c.fillText('용해도(g/물 100 g)', 4, 10); c.fillText('온도(℃)', W - R - 44, H - 4);
+  [['K', '#e8455a', '질산 칼륨'], ['C', '#2fae84', '황산 구리(Ⅱ)']].forEach(([k, col, name]) => {
+    c.strokeStyle = col; c.lineWidth = 2.4; c.beginPath(); for (let t = 0; t <= 60; t += 1) { const p = [X(t), Y(sol(k, t))]; t ? c.lineTo(...p) : c.moveTo(...p); } c.stroke();
+    c.fillStyle = col; c.font = 'bold 12px sans-serif'; const ty = k === 'K' ? 52 : 38; c.fillText(name, X(ty) + 6, Y(sol(k, ty)) + (k === 'K' ? 0 : 16));
+  });
+  if (S.stage >= 1 && S.T !== null) {
+    [['K', dissolvedK(), '#e8455a'], ['C', dissolvedC(), '#2fae84']].forEach(([k, v, col]) => { c.fillStyle = col; c.strokeStyle = '#fff'; c.lineWidth = 2; c.beginPath(); c.arc(X(Math.min(60, S.T)), Y(v), 6, 0, 7); c.fill(); c.stroke(); });
+    c.setLineDash([4, 4]); c.strokeStyle = '#8a9aa1'; c.lineWidth = 1; c.beginPath(); c.moveTo(X(S.T), T); c.lineTo(X(S.T), H - B); c.stroke(); c.setLineDash([]);
+  }
+}
+
+function render() {
+  drawApp(); drawGraph();
+  $('#vT').innerHTML = (S.T === null ? '–' : S.T.toFixed(1)) + '<small>℃</small>';
+  $('#vF').innerHTML = (S.firstT === null ? '–' : S.firstT.toFixed(1)) + '<small>℃</small>';
+  $('#vK').innerHTML = S.crystK.toFixed(1) + '<small>g</small>';
+  $('#vC').innerHTML = S.crystC.toFixed(1) + '<small>g</small>';
+  const f = S.filtered;
+  $('#rK1').textContent = f ? S.crystK.toFixed(1) + ' g' : '–'; $('#rC1').textContent = f ? S.crystC.toFixed(1) + ' g' : '–';
+  $('#rCol1').textContent = f ? (S.crystK > 0 || S.crystC > 0 ? (S.crystC > 0 ? '흰색 + 푸른색' : '흰색') : '–') : '–';
+  $('#rK2').textContent = f ? dissolvedK().toFixed(1) + ' g' : '–'; $('#rC2').textContent = f ? dissolvedC().toFixed(1) + ' g' : '–';
+  $('#rCol2').textContent = f ? colorName() : '–';
+}
+function updateButtons() {
+  $('#b1').disabled = S.stage !== 0;
+  $('#b2').disabled = S.stage < 1 || S.filtered || (S.T !== null && S.T <= 0 && !S.cooling);
+  $('#b2').innerHTML = '<span class="n">2</span>' + (S.cooling ? '얼음물에서 꺼내기(냉각 멈춤)' : (S.stage >= 2 ? '다시 얼음물에 담가 냉각' : '얼음물에 담가 냉각'));
+  $('#b3').disabled = S.stage < 1 || S.filtered;
+  ['b1', 'b2', 'b3'].forEach((id, i) => $('#' + id).classList.toggle('pri', !$('#' + id).disabled && (i === 0 ? S.stage === 0 : i === 1 ? S.stage === 1 || S.cooling : S.stage >= 2 && !S.cooling)));
+  $('#mk').disabled = $('#mc').disabled = S.stage > 0;
+}
+let msgTimer = null;
+function say(s) { $('#msg').textContent = s; clearTimeout(msgTimer); msgTimer = setTimeout(() => $('#msg').textContent = '', 6000); }
+function fresh() { S = newState(); updateButtons(); render(); }
+$('#mk').addEventListener('input', () => { $('#mkv').textContent = $('#mk').value + ' g'; fresh(); });
+$('#mc').addEventListener('input', () => { $('#mcv').textContent = $('#mc').value + ' g'; fresh(); });
+$('#b1').addEventListener('click', () => {
+  S.stage = 1; S.T = T_HOT;
+  // 40 ℃에서 녹지 못하고 남는 양(처음부터 남아 있는 고체)
+  S.crystK = Math.max(0, S.mK - sol('K', T_HOT)); S.crystC = Math.max(0, S.mC - sol('C', T_HOT));
+  if (S.crystK > 0 || S.crystC > 0) S.firstT = T_HOT;
+  say(S.crystK > 0 ? '40 ℃ 물 100 g에는 질산 칼륨이 ' + sol('K', T_HOT).toFixed(1) + ' g까지만 녹아요. 일부가 녹지 않고 남았어요.' : '혼합물이 모두 녹았어요. 이제 얼음물에 담가 식혀 보세요.');
+  updateButtons(); render();
+});
+$('#b2').addEventListener('click', () => { if (S.cooling) { S.cooling = false; say(S.T.toFixed(1) + ' ℃에서 꺼냈어요. 지금 상태로 거를 수 있어요.'); } else { S.stage = 2; S.cooling = true; kick(); } updateButtons(); render(); });
+$('#b3').addEventListener('click', () => { S.cooling = false; S.filtered = true; S.stage = 3; say('거름종이에 남은 것과 거른 용액을 확인해 보세요.'); updateButtons(); render(); });
+document.querySelectorAll('.btn.sp').forEach(b => b.addEventListener('click', () => { speed = +b.dataset.s; document.querySelectorAll('.btn.sp').forEach(o => o.classList.toggle('on', o === b)); }));
+$('#resetBtn').addEventListener('click', () => { fresh(); say('처음 상태로 돌렸어요.'); });
+fresh();
+</script>
+</body>
+</html>

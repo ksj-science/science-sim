@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<!-- 단원ID: static_elec · 중2 Ⅶ. 전기와 자기 > 1. 전기의 발생 > 01 마찰 전기(229~231쪽) · 활동 1개: 문질러 대전시키고 전기력 관찰하기 -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>마찰 전기 실험실</title>
+<style>
+:root{--bg:#f4f3fa;--card:#fff;--ink:#211f33;--muted:#635f7a;--line:#e0ddef;--accent:#5b4fd6;--accent-d:#3e33a8;--accent-l:#ecebfd;--pos:#e0453f;--neg:#2f73d9;--ok:#1f9a62}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+header{background:linear-gradient(120deg,#5b4fd6,#9a4fd6 55%,#e0453f);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:20px;margin:0;font-weight:900}
+header .sub{font-size:13px;opacity:.95}
+header .sp{flex:1}
+header button{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+main{padding:10px 12px 24px;max-width:1320px;margin:0 auto}
+.intro{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:10px;padding:8px 14px;margin-bottom:10px;font-size:14px;line-height:1.55}
+.intro b{color:var(--accent-d)}
+.grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(320px,1fr);gap:10px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:10px}
+.card h3{margin:0 2px 8px;font-size:15px;color:var(--accent-d);display:flex;align-items:center;gap:6px}
+.card h3 .num{background:var(--accent);color:#fff;border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:13px}
+canvas{width:100%;display:block;border-radius:10px;touch-action:none}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0}
+.lbl{font-size:13px;color:var(--muted)}
+.btn{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:9px;padding:7px 11px;cursor:pointer;min-height:38px}
+.btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent-d)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.on{background:var(--accent-l);border-color:var(--accent);color:var(--accent-d)}
+.btn.done{background:#e8f6ee;border-color:#a6d9bb;color:#1d6b43}
+.msg{background:#f8f7fd;border:1px dashed #c2bdeb;border-radius:10px;padding:8px 11px;font-size:14.5px;line-height:1.5;margin-top:8px;min-height:44px}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{border:1px solid var(--line);padding:5px 6px;text-align:center}
+th{background:#f1f0fb;color:var(--accent-d)}
+.p{color:var(--pos);font-weight:900}.n{color:var(--neg);font-weight:900}
+.net{font-weight:900;font-size:15px}
+.game{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+.score{font-size:13px;color:var(--muted)}
+.big{font-size:22px;font-weight:900}
+.note{font-size:12.5px;color:var(--muted);line-height:1.55;margin:6px 2px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>마찰 전기 실험실</h1><span class="sub">마찰 · 전자의 이동 · 대전 · 대전체 · 전기력</span>
+  <span class="sp"></span><button id="resetBtn" type="button">↺ 초기화</button>
+</header>
+<main>
+  <div class="intro">① 막대를 손가락(마우스)으로 잡고 <b>털가죽 위에서 앞뒤로 문질러</b> 보세요. 어떤 입자가, 어느 쪽으로 이동할까요? ② 문지른 빨대를 받침대에 올려놓고, 다른 물체를 <b>끌어서 가까이 가져가며</b> 빨대가 어떻게 움직이는지 관찰하세요.</div>
+  <div class="grid">
+    <div>
+      <div class="card">
+        <h3><span class="num">1</span>문질러서 대전시키기</h3>
+        <div class="row" style="margin-top:0"><span class="lbl">문지를 물체</span>
+          <button class="btn" data-pair="straw" type="button">빨대 + 털가죽</button>
+          <button class="btn" data-pair="comb" type="button">빗 + 고양이 털</button>
+          <button class="btn" data-pair="glass" type="button">유리 막대 + 명주 헝겊</button>
+        </div>
+        <canvas id="rub" width="760" height="300" aria-label="막대를 끌어서 헝겊이나 털 위에서 문지르는 실험대"></canvas>
+        <div class="msg" id="msgA"></div>
+      </div>
+      <div class="card">
+        <h3><span class="num">2</span>마찰한 두 물체 사이에 작용하는 힘 관찰하기 <span class="lbl" style="font-weight:400">(위에서 본 모습)</span></h3>
+        <div class="row" style="margin-top:0"><button class="btn" id="chargeA" type="button">빨대 ㉠을 털가죽으로 문지르기</button>
+          <span class="lbl">가까이 가져갈 물체</span>
+          <button class="btn" data-hold="strawB" type="button">빨대 ㉡ (털가죽으로 문지름)</button>
+          <button class="btn" data-hold="fur" type="button">털가죽 (빨대를 문지른 것)</button>
+          <button class="btn" data-hold="plain" type="button">문지르지 않은 빨대</button>
+        </div>
+        <canvas id="force" width="760" height="330" aria-label="침핀 위에서 회전하는 빨대와 가까이 가져가는 물체"></canvas>
+        <div class="msg" id="msgB"></div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h3>전하의 수 세기</h3>
+        <table><thead><tr><th>물체</th><th>(+)전하</th><th>(−)전하<br>(전자)</th><th>띤 전하</th></tr></thead><tbody id="tb"></tbody></table>
+        <div class="row"><span class="lbl">이동한 전자</span><span class="big" id="moved">0</span><span class="lbl">개 · 최대 6개까지 이동</span></div>
+        <p class="note">원자는 원자핵의 (+)전하의 양과 전자의 (−)전하의 양이 같아서 전기적으로 <b>중성</b>이다. 마찰할 때 이동하는 것은 원자핵이 아니라 <b>전자</b>이다.</p>
+      </div>
+      <div class="card">
+        <h3>전기력의 방향 맞히기 게임</h3>
+        <canvas id="quiz" width="420" height="120" aria-label="전하를 띤 두 공"></canvas>
+        <div class="game"><div class="row" style="margin:6px 0"><button class="btn" id="qPush" type="button">⟵ 밀어낸다 ⟶</button><button class="btn" id="qPull" type="button">⟶ 끌어당긴다 ⟵</button></div><div class="score" id="qScore"></div></div>
+        <div class="msg" id="msgQ" style="min-height:30px">두 물체가 띤 전하를 보고 전기력의 방향을 맞혀 보세요.</div>
+      </div>
+      <div class="card">
+        <h3>대전된 결과 기록</h3>
+        <table><thead><tr><th>문지른 두 물체</th><th>전자를 잃은 물체</th><th>전자를 얻은 물체</th></tr></thead><tbody id="log"><tr><td colspan="3" style="color:#a29fb8">문질러서 대전시키면 기록돼요.</td></tr></tbody></table>
+        <p class="note"><b>모델의 한계</b> · 물체마다 원자 10개분의 (+)전하와 전자만 그렸고, 문지른 거리 70 px마다 전자가 1개씩(최대 6개) 이동하도록 단순화했다. 어느 쪽으로 전자가 이동하는지는 물체의 종류에 따라 정해진다. 전하를 띠지 않은 빨대에 대전체를 가져갈 때 생기는 약한 끌림(다음 시간에 배울 현상)은 생략했다. 실제 실험은 맑고 건조한 날에 해야 잘 된다.</p>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+/* ================================================================
+   마찰 전기 모형
+   - 물체마다 (+)전하 10개(원자핵, 움직이지 않음), 전자 10개 → 처음에는 전기적으로 중성
+   - 문지르기: 막대가 헝겊(털) 위를 지나간 거리가 70 px 쌓일 때마다 전자 1개 이동, 최대 6개
+       빨대 + 털가죽: 털가죽 → 빨대 (빨대 −, 털가죽 +)
+       빗 + 고양이 털: 고양이 털 → 빗 (빗 −, 털 +)
+       유리 막대 + 명주 헝겊: 유리 막대 → 명주 (유리 막대 +, 명주 −)
+   - 전기력(위에서 본 회전 빨대): 빨대 ㉠의 양 끝에 전하 q/2씩, 가까이 가져간 물체의 전하 Q
+       각 끝에 작용하는 힘 F = K·(q/2)·Q / (r² + s²) (같은 종류면 밀어냄, 다른 종류면 끌어당김), K = 15, s = 20 px
+       돌림힘 τ = Σ (끝의 위치 − 회전축) × F,  각가속도 = 0.8·τ − 2.5 × 각속도 (마찰로 느려짐)
+   ================================================================ */
+const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
+function fit(cv, w, h) { const r = Math.min(2, window.devicePixelRatio || 1); cv.width = w * r; cv.height = h * r; const x = cv.getContext('2d'); x.setTransform(r, 0, 0, r, 0, 0); return x; }
+const A = fit($('#rub'), 760, 300), B = fit($('#force'), 760, 330), Q = fit($('#quiz'), 420, 120);
+const PAIRS = {
+  straw: { rod: '빨대', cloth: '털가죽', dir: 1, rodCol: '#7fd6c2', rodEdge: '#3fa892', cloth_c: '#a8693a', type: 'fur' },
+  comb: { rod: '빗', cloth: '고양이 털', dir: 1, rodCol: '#e9a3c9', rodEdge: '#b9568c', cloth_c: '#d9a066', type: 'fur', comb: true },
+  glass: { rod: '유리 막대', cloth: '명주 헝겊', dir: -1, rodCol: '#cfe3ee', rodEdge: '#7a9fb3', cloth_c: '#efe2c4', type: 'silk' },
+};
+const MAXT = 6, STEP = 70, CLOTH = { x: 230, y: 170, rx: 150, ry: 92 };
+let S;
+function newState() { return { pair: 'straw', moved: 0, acc: 0, rod: { x: 470, y: 70 }, drag: null, hops: [], t: 0, log: {},
+  qA: 0, hold: 'strawB', P: { x: 640, y: 80 }, dragB: false, phi: 0.25, om: 0, chargedB: false,
+  game: null, right: 0, total: 0 }; }
+const P = () => PAIRS[S.pair];
+/* ---------------- 위치(입자 배치) ---------------- */
+function rng(seed) { let s = seed >>> 0 || 1; return () => { s ^= s << 13; s >>>= 0; s ^= s >> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; }; }
+function clothSpots() { const r = rng(11), out = []; while (out.length < 20) { const a = r() * 2 * Math.PI, d = Math.sqrt(r()) * .78, x = CLOTH.x + Math.cos(a) * CLOTH.rx * d, y = CLOTH.y + Math.sin(a) * CLOTH.ry * d;
+  if (out.every(p => Math.hypot(p[0] - x, p[1] - y) > 24)) out.push([x, y]); } return out; }
+const CS = clothSpots();   // 앞 10개 = (+), 뒤 10개 = 전자 자리
+const ROD_W = 270, ROD_H = 28;
+const rodSpot = i => [-ROD_W / 2 + 16 + i * 12.6, i % 2 ? 6 : -6];   // 막대 위 20자리(번갈아 + −)
+/* ---------------- 그림 1 ---------------- */
+function rr(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+function charge(c, x, y, sign, s) { s = s || 1; c.fillStyle = sign > 0 ? '#e0453f' : '#2f73d9'; c.strokeStyle = '#fff'; c.lineWidth = 1.5; c.beginPath(); c.arc(x, y, (sign > 0 ? 8 : 6.5) * s, 0, 7); c.fill(); c.stroke();
+  c.strokeStyle = '#fff'; c.lineWidth = 2 * s; c.beginPath(); c.moveTo(x - 4 * s, y); c.lineTo(x + 4 * s, y); if (sign > 0) { c.moveTo(x, y - 4 * s); c.lineTo(x, y + 4 * s); } c.stroke(); }
+function rodCharges() { const m = S.moved, d = P().dir; return { pos: 10, neg: 10 + d * m }; }
+function clothCharges() { const m = S.moved, d = P().dir; return { pos: 10, neg: 10 - d * m }; }
+function drawCloth(c) {
+  const p = P();
+  if (p.type === 'fur') { c.fillStyle = p.cloth_c; c.beginPath(); for (let k = 0; k <= 60; k++) { const a = k / 60 * 2 * Math.PI, w = 1 + .07 * Math.sin(a * 14); k ? c.lineTo(CLOTH.x + Math.cos(a) * CLOTH.rx * w, CLOTH.y + Math.sin(a) * CLOTH.ry * w) : c.moveTo(CLOTH.x + CLOTH.rx * w, CLOTH.y); } c.fill();
+    c.strokeStyle = 'rgba(80,40,10,.25)'; c.lineWidth = 1.5; const r = rng(5); for (let k = 0; k < 90; k++) { const a = r() * 6.28, d = Math.sqrt(r()) * .9, x = CLOTH.x + Math.cos(a) * CLOTH.rx * d, y = CLOTH.y + Math.sin(a) * CLOTH.ry * d; c.beginPath(); c.moveTo(x, y); c.lineTo(x + 6, y + 9); c.stroke(); } }
+  else { c.fillStyle = p.cloth_c; rr(c, CLOTH.x - CLOTH.rx, CLOTH.y - CLOTH.ry, CLOTH.rx * 2, CLOTH.ry * 2, 18); c.fill(); c.strokeStyle = 'rgba(150,120,60,.25)'; c.lineWidth = 1; for (let y = CLOTH.y - CLOTH.ry + 10; y < CLOTH.y + CLOTH.ry; y += 9) { c.beginPath(); c.moveTo(CLOTH.x - CLOTH.rx + 8, y); c.lineTo(CLOTH.x + CLOTH.rx - 8, y + 3); c.stroke(); } }
+  const cc = clothCharges(), flying = S.hops.length;
+  for (let i = 0; i < 10; i++) charge(c, CS[i][0], CS[i][1], 1);
+  const nE = cc.neg - (P().dir < 0 ? flying : 0);
+  for (let i = 0; i < Math.min(16, nE); i++) { const s = CS[10 + (i % 10)]; charge(c, s[0] + (i >= 10 ? 13 : 0), s[1] + (i >= 10 ? 9 : 0), -1); }
+  c.fillStyle = '#211f33'; c.font = 'bold 15px sans-serif'; c.textAlign = 'center'; c.fillText(p.cloth, CLOTH.x, CLOTH.y + CLOTH.ry + 24); c.textAlign = 'left';
+}
+function drawRod(c) {
+  const p = P(), { x, y } = S.rod;
+  c.save(); c.translate(x, y);
+  if (p.comb) { c.fillStyle = p.rodCol; rr(c, -ROD_W / 2, -ROD_H / 2, ROD_W, ROD_H * .55, 6); c.fill(); for (let k = 0; k < 26; k++) { c.fillRect(-ROD_W / 2 + 6 + k * 10, -ROD_H / 2 + ROD_H * .5, 5, ROD_H * .55); } }
+  else { c.fillStyle = p.rodCol; rr(c, -ROD_W / 2, -ROD_H / 2, ROD_W, ROD_H, ROD_H / 2); c.fill(); c.strokeStyle = p.rodEdge; c.lineWidth = 2; c.stroke(); c.fillStyle = 'rgba(255,255,255,.45)'; rr(c, -ROD_W / 2 + 10, -ROD_H / 2 + 4, ROD_W - 20, 5, 3); c.fill(); }
+  const rc = rodCharges(), flying = S.hops.length, nE = rc.neg - (P().dir > 0 ? flying : 0);
+  for (let i = 0; i < 10; i++) { const s = rodSpot(i * 2); charge(c, s[0], s[1], 1, .8); }
+  for (let i = 0; i < Math.min(16, nE); i++) { const s = rodSpot((i % 10) * 2 + 1); charge(c, s[0] + (i >= 10 ? 4 : 0), s[1] + (i >= 10 ? (i % 2 ? -12 : 12) : 0), -1, .8); }
+  c.restore();
+  // 손잡이
+  c.fillStyle = '#f2c9a5'; c.beginPath(); c.ellipse(x + ROD_W / 2 + 12, y + 4, 22, 17, 0, 0, 7); c.fill();
+  c.fillStyle = '#211f33'; c.font = 'bold 15px sans-serif'; c.textAlign = 'center'; c.fillText(p.rod, x, y - 24); c.textAlign = 'left';
+}
+function drawA() {
+  A.clearRect(0, 0, 760, 300); A.fillStyle = '#fbfaff'; A.fillRect(0, 0, 760, 300);
+  drawCloth(A); drawRod(A);
+  // 이동 중인 전자
+  S.hops.forEach(h => { const k = Math.min(1, (S.t - h.t0) / .45), x = h.a[0] + (h.b[0] - h.a[0]) * k, y = h.a[1] + (h.b[1] - h.a[1]) * k - Math.sin(k * Math.PI) * 30; charge(A, x, y, -1, 1.2); });
+  // 안내
+  const net = rodCharges().neg - 10;
+  A.font = 'bold 14px sans-serif'; A.fillStyle = '#635f7a'; A.textAlign = 'right';
+  if (!S.moved && !S.drag) A.fillText('막대를 끌어서 위에서 앞뒤로 문질러 보세요 ↙', 744, 260);
+  A.fillText(`문지른 거리 ${Math.round(S.acc + S.moved * STEP)} px`, 744, 284); A.textAlign = 'left';
+  // 범례
+  charge(A, 586, 24, 1); A.fillStyle = '#211f33'; A.font = '12.5px sans-serif'; A.fillText('(+)전하(원자핵)', 598, 28); charge(A, 586, 46, -1); A.fillText('(−)전하(전자)', 598, 50);
+}
+/* ---------------- 문지르기 ---------------- */
+function overCloth(x, y) { const dx = (x - CLOTH.x) / (CLOTH.rx + 40), dy = (y - CLOTH.y) / (CLOTH.ry + 10); return dx * dx + dy * dy < 1; }
+function transfer() {
+  const p = P(), slot = S.moved, fromCloth = p.dir > 0;
+  const cs = CS[10 + (9 - (slot % 10))], rs = rodSpot((slot % 10) * 2 + 1), rp = [S.rod.x + rs[0], S.rod.y + rs[1]];
+  S.hops.push({ a: fromCloth ? cs : rp, b: fromCloth ? rp : cs, t0: S.t });
+  S.moved++;
+  const lose = p.dir > 0 ? p.cloth : p.rod, gain = p.dir > 0 ? p.rod : p.cloth;
+  S.log[S.pair] = [p.rod + ' + ' + p.cloth, lose + ' → (+)전하', gain + ' → (−)전하'];
+  if (S.moved === 1) say('A', `전자가 <b>${lose}</b>에서 <b>${gain}</b>(으)로 이동했다! 계속 문질러 보세요.`);
+  else if (S.moved >= MAXT) say('A', `전자 ${MAXT}개가 이동했다. 전자를 잃은 <b>${lose}</b>${eun(lose)} <span class="p">(+)전하</span>를, 전자를 얻은 <b>${gain}</b>${eun(gain)} <span class="n">(−)전하</span>를 띤다. 이처럼 물체가 전하를 띠는 현상이 <b>대전</b>, 전하를 띤 물체가 <b>대전체</b>이다.`);
+  ui();
+}
+const cvA = $('#rub');
+function ptr(cv, e, w, h) { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * w / r.width, (e.clientY - r.top) * h / r.height]; }
+cvA.addEventListener('pointerdown', e => { const [x, y] = ptr(cvA, e, 760, 300); if (Math.abs(x - S.rod.x) < ROD_W / 2 + 34 && Math.abs(y - S.rod.y) < 30) { S.drag = { dx: x - S.rod.x, dy: y - S.rod.y, lx: x, ly: y }; cvA.setPointerCapture(e.pointerId); } });
+cvA.addEventListener('pointermove', e => { if (!S.drag) return; const [x, y] = ptr(cvA, e, 760, 300);
+  const nx = Math.max(ROD_W / 2, Math.min(760 - ROD_W / 2 - 30, x - S.drag.dx)), ny = Math.max(20, Math.min(280, y - S.drag.dy));
+  const d = Math.hypot(nx - S.rod.x, ny - S.rod.y); S.rod.x = nx; S.rod.y = ny;
+  if (overCloth(nx, ny) && S.moved < MAXT) { S.acc += d; while (S.acc >= STEP && S.moved < MAXT) { S.acc -= STEP; transfer(); } } });
+['pointerup', 'pointercancel'].forEach(ev => cvA.addEventListener(ev, () => { S.drag = null; }));
+$$('[data-pair]').forEach(b => b.onclick = () => { S.pair = b.dataset.pair; S.moved = 0; S.acc = 0; S.hops = []; S.rod = { x: 470, y: 70 }; const p = P();
+  say('A', `<b>${p.rod}</b>을(를) 끌어서 <b>${p.cloth}</b> 위에서 앞뒤로 문질러 보세요. 처음에는 두 물체 모두 (+)전하와 (−)전하의 양이 같은 <b>중성</b>이다.`); ui(); });
+/* ---------------- 그림 2: 회전하는 빨대 ---------------- */
+const PIV = { x: 330, y: 175 }, ARM = 130, HOLD = { strawB: -6, fur: 6, plain: 0 }, HNAME = { strawB: '빨대 ㉡', fur: '털가죽', plain: '문지르지 않은 빨대' };
+function ends() { return [1, -1].map(s => [PIV.x + s * ARM * Math.cos(S.phi), PIV.y + s * ARM * Math.sin(S.phi)]); }
+function torque() {
+  const Qh = HOLD[S.hold]; if (!S.qA || !Qh) return { tau: 0, F: [[0, 0], [0, 0]] };
+  let tau = 0; const F = ends().map(([x, y]) => { const rx = x - S.P.x, ry = y - S.P.y, r2 = rx * rx + ry * ry, r = Math.sqrt(r2), f = 15 * (S.qA / 2) * Qh / (r2 + 400);
+    const fx = f * rx / r, fy = f * ry / r; tau += (x - PIV.x) * fy - (y - PIV.y) * fx; return [fx, fy]; });
+  return { tau: tau * 0.8, F };
+}
+function stepB(dt) { const { tau } = torque(); S.om += (tau - 2.5 * S.om) * dt; S.phi += S.om * dt; }
+function arrowB(x, y, dx, dy, col) { const L = Math.hypot(dx, dy); if (L < 4) return; const ux = dx / L, uy = dy / L; B.strokeStyle = col; B.fillStyle = col; B.lineWidth = 3.5; B.beginPath(); B.moveTo(x, y); B.lineTo(x + dx, y + dy); B.stroke(); B.beginPath(); B.moveTo(x + dx + ux * 8, y + dy + uy * 8); B.lineTo(x + dx - uy * 6, y + dy + ux * 6); B.lineTo(x + dx + uy * 6, y + dy - ux * 6); B.fill(); }
+function drawB() {
+  B.clearRect(0, 0, 760, 330); B.fillStyle = '#f7f6fd'; B.fillRect(0, 0, 760, 330);
+  // 받침대(위에서 본)
+  B.fillStyle = '#bfe7e0'; B.beginPath(); B.arc(PIV.x, PIV.y, 26, 0, 7); B.fill(); B.fillStyle = '#5b4fd6'; B.beginPath(); B.arc(PIV.x, PIV.y, 10, 0, 7); B.fill();
+  // 빨대 ㉠
+  const [e1, e2] = ends();
+  B.strokeStyle = '#3d9fe0'; B.lineWidth = 16; B.lineCap = 'round'; B.beginPath(); B.moveTo(e1[0], e1[1]); B.lineTo(e2[0], e2[1]); B.stroke();
+  B.strokeStyle = 'rgba(255,255,255,.4)'; B.lineWidth = 4; B.beginPath(); B.moveTo(e1[0], e1[1]); B.lineTo(e2[0], e2[1]); B.stroke();
+  B.fillStyle = '#e0453f'; B.beginPath(); B.arc(PIV.x, PIV.y, 5, 0, 7); B.fill();   // 침핀 머리
+  if (S.qA) for (let k = -2; k <= 2; k++) { if (!k) continue; const f = k / 2.6; charge(B, PIV.x + f * ARM * Math.cos(S.phi), PIV.y + f * ARM * Math.sin(S.phi), -1, .9); }
+  B.fillStyle = '#211f33'; B.font = 'bold 14px sans-serif'; B.textAlign = 'center'; B.fillText('빨대 ㉠' + (S.qA ? ' (−)' : ' (중성)'), PIV.x, PIV.y + 52);
+  // 힘 화살표
+  const T = torque(), Qh = HOLD[S.hold];
+  if (S.qA && Qh) { const ix = Math.hypot(e1[0] - S.P.x, e1[1] - S.P.y) < Math.hypot(e2[0] - S.P.x, e2[1] - S.P.y) ? 0 : 1, e = [e1, e2][ix], f = T.F[ix], L = Math.hypot(f[0], f[1]), sc = Math.min(70, L * 2600) / (L || 1);
+    arrowB(e[0], e[1], f[0] * sc, f[1] * sc, Qh * S.qA > 0 ? '#9a4fd6' : '#1f9a62'); }
+  // 가까이 가져간 물체
+  const { x, y } = S.P;
+  if (S.hold === 'fur') { B.fillStyle = '#a8693a'; B.beginPath(); for (let k = 0; k <= 40; k++) { const a = k / 40 * 6.28, w = 1 + .1 * Math.sin(a * 11); k ? B.lineTo(x + Math.cos(a) * 46 * w, y + Math.sin(a) * 34 * w) : B.moveTo(x + 46 * w, y); } B.fill();
+    for (let k = 0; k < 6; k++) charge(B, x - 25 + (k % 3) * 25, y - 9 + Math.floor(k / 3) * 18, 1, .9); }
+  else { B.save(); B.translate(x, y); B.rotate(-.5); B.strokeStyle = S.hold === 'strawB' ? '#f08cc0' : '#c9c4dd'; B.lineWidth = 15; B.lineCap = 'round'; B.beginPath(); B.moveTo(0, 0); B.lineTo(150, 0); B.stroke();
+    if (S.hold === 'strawB') for (let k = 0; k < 4; k++) charge(B, 14 + k * 30, 0, -1, .85); B.restore(); B.fillStyle = '#f2c9a5'; B.beginPath(); B.ellipse(x + 140, y - 74, 22, 17, 0, 0, 7); B.fill(); }
+  B.fillStyle = '#211f33'; B.font = 'bold 14px sans-serif'; B.fillText(HNAME[S.hold] + (Qh > 0 ? ' (+)' : Qh < 0 ? ' (−)' : ' (중성)'), x, y + (S.hold === 'fur' ? 54 : 32));
+  if (!S.dragB && Math.hypot(S.P.x - 640, S.P.y - 80) < 3) { B.fillStyle = '#635f7a'; B.font = '13px sans-serif'; B.fillText('← 끌어서 빨대 ㉠에 가까이 가져가 보세요', 470, 300); }
+  B.textAlign = 'left';
+  // 범례
+  B.font = '12.5px sans-serif'; B.fillStyle = '#9a4fd6'; B.fillText('━ 밀어내는 힘', 14, 22); B.fillStyle = '#1f9a62'; B.fillText('━ 끌어당기는 힘', 14, 42);
+}
+let lastB = '';
+function msgB() {
+  const Qh = HOLD[S.hold], d = Math.min(...ends().map(e => Math.hypot(e[0] - S.P.x, e[1] - S.P.y))); let t;
+  if (!S.qA) t = '빨대 ㉠은 아직 전하를 띠지 않는다. 먼저 <b>빨대 ㉠을 털가죽으로 문질러</b> 대전시키세요.';
+  else if (d > 230) t = `${HNAME[S.hold]}을(를) 끌어서 빨대 ㉠의 한쪽 끝에 가까이 가져가 보세요.`;
+  else if (!Qh) t = '문지르지 않은 빨대는 전하를 띠지 않아 빨대 ㉠이 거의 움직이지 않는다.';
+  else if (Qh * S.qA > 0) t = `빨대 ㉠이 <b>밀려난다</b>! 빨대 ㉠(−)과 ${HNAME[S.hold]}(−)은 <b>같은 종류의 전하</b>를 띠므로 서로 밀어내는 전기력이 작용한다.`;
+  else t = `빨대 ㉠이 <b>끌려온다</b>! 빨대 ㉠(−)과 털가죽(+)은 <b>다른 종류의 전하</b>를 띠므로 서로 끌어당기는 전기력이 작용한다.`;
+  if (t !== lastB) { lastB = t; $('#msgB').innerHTML = t; }
+}
+const cvB = $('#force');
+cvB.addEventListener('pointerdown', e => { const [x, y] = ptr(cvB, e, 760, 330); if (Math.hypot(x - S.P.x - 50, y - S.P.y + 20) < 110) { S.dragB = { dx: x - S.P.x, dy: y - S.P.y }; cvB.setPointerCapture(e.pointerId); } });
+cvB.addEventListener('pointermove', e => { if (!S.dragB) return; const [x, y] = ptr(cvB, e, 760, 330); let nx = Math.max(40, Math.min(720, x - S.dragB.dx)), ny = Math.max(40, Math.min(300, y - S.dragB.dy));
+  if (Math.hypot(nx - PIV.x, ny - PIV.y) < 40) return; S.P.x = nx; S.P.y = ny; });
+['pointerup', 'pointercancel'].forEach(ev => cvB.addEventListener(ev, () => { S.dragB = false; }));
+$('#chargeA').onclick = () => { S.qA = -6; ui(); };
+$$('[data-hold]').forEach(b => b.onclick = () => { S.hold = b.dataset.hold; S.P = { x: 640, y: 80 }; ui(); });
+/* ---------------- 게임 ---------------- */
+function newRound() { const s = () => Math.random() < .5 ? 1 : -1; S.game = { a: s(), b: s(), t0: S.t, ans: null }; }
+function drawQ() {
+  Q.clearRect(0, 0, 420, 120); Q.fillStyle = '#f8f7fd'; Q.fillRect(0, 0, 420, 120); const g = S.game; if (!g) return;
+  let off = 0; if (g.ans !== null) { const k = Math.min(1, (S.t - g.ans.t) / .6), push = g.a * g.b > 0; off = (push ? 1 : -1) * 40 * k; }
+  [[140 - off, g.a], [280 + off, g.b]].forEach(([x, s]) => { Q.fillStyle = s > 0 ? '#e0453f' : '#2f73d9'; Q.beginPath(); Q.arc(x, 60, 34, 0, 7); Q.fill(); Q.strokeStyle = '#fff'; Q.lineWidth = 6; Q.beginPath(); Q.moveTo(x - 14, 60); Q.lineTo(x + 14, 60); if (s > 0) { Q.moveTo(x, 46); Q.lineTo(x, 74); } Q.stroke(); });
+}
+function answer(push) { const g = S.game; if (!g || g.ans) return; const ok = (g.a * g.b > 0) === push; g.ans = { ok, t: S.t }; S.total++; if (ok) S.right++;
+  $('#msgQ').innerHTML = (ok ? '⭕ 정답! ' : '❌ 아쉬워요. ') + (g.a * g.b > 0 ? '<b>같은 종류</b>의 전하 사이에는 <b>밀어내는</b> 전기력이 작용한다.' : '<b>다른 종류</b>의 전하 사이에는 <b>끌어당기는</b> 전기력이 작용한다.');
+  $('#qScore').innerHTML = `맞힌 수 <b>${S.right}</b> / ${S.total}`; setTimeout(() => { newRound(); }, 1300); }
+$('#qPush').onclick = () => answer(true); $('#qPull').onclick = () => answer(false);
+/* ---------------- 표·화면 ---------------- */
+const eun = w => { const c = w.charCodeAt(w.length - 1) - 0xAC00; return c >= 0 && c % 28 ? '은' : '는'; };
+const say = (k, t) => { $('#msg' + k).innerHTML = t; };
+function ui() {
+  const p = P(), rc = rodCharges(), cc = clothCharges(), nt = c => { const n = c.pos - c.neg; return n > 0 ? `<span class="p net">(+)전하 ${n}</span>` : n < 0 ? `<span class="n net">(−)전하 ${-n}</span>` : '<span class="net">중성</span>'; };
+  $('#tb').innerHTML = [[p.rod, rc], [p.cloth, cc]].map(([n, c]) => `<tr><th>${n}</th><td class="p">${c.pos}</td><td class="n">${c.neg}</td><td>${nt(c)}</td></tr>`).join('');
+  $('#moved').textContent = S.moved;
+  $$('[data-pair]').forEach(b => b.classList.toggle('on', b.dataset.pair === S.pair));
+  const L = Object.values(S.log); $('#log').innerHTML = L.length ? L.map(r => `<tr><td>${r[0]}</td><td class="p">${r[1]}</td><td class="n">${r[2]}</td></tr>`).join('') : '<tr><td colspan="3" style="color:#a29fb8">문질러서 대전시키면 기록돼요.</td></tr>';
+  $('#chargeA').disabled = !!S.qA; $('#chargeA').classList.toggle('done', !!S.qA); $('#chargeA').textContent = S.qA ? '빨대 ㉠ 대전됨 (−)' : '빨대 ㉠을 털가죽으로 문지르기';
+  $$('[data-hold]').forEach(b => b.classList.toggle('on', b.dataset.hold === S.hold));
+}
+function start() { S = newState(); say('A', '<b>빨대</b>를 끌어서 <b>털가죽</b> 위에서 앞뒤로 문질러 보세요. 처음에는 두 물체 모두 (+)전하와 (−)전하의 양이 같은 <b>중성</b>이다.'); lastB = ''; newRound(); $('#qScore').innerHTML = '맞힌 수 <b>0</b> / 0'; $('#msgQ').innerHTML = '두 물체가 띤 전하를 보고 전기력의 방향을 맞혀 보세요.'; ui(); }
+$('#resetBtn').onclick = start;
+let last = performance.now();
+function loop(ts) { let dt = Math.min(0.1, (ts - last) / 1000); last = ts; S.t += dt;
+  S.hops = S.hops.filter(h => S.t - h.t0 < .45);
+  while (dt > 1e-6) { const d = Math.min(0.01, dt); stepB(d); dt -= d; }
+  drawA(); drawB(); drawQ(); msgB(); requestAnimationFrame(loop); }
+start(); requestAnimationFrame(loop);
+// 테스트용
+window.__rub = (pair, n) => { $(`[data-pair="${pair}"]`).click(); for (let i = 0; i < n && S.moved < MAXT; i++) transfer(); S.hops = []; ui(); return { rod: rodCharges(), cloth: clothCharges(), log: S.log[pair] }; };
+window.__P = () => S.P;
+window.__spin = (hold, x, y, sec) => { S.qA = -6; S.hold = hold; S.phi = 0; S.om = 0; S.P = { x, y }; for (let k = 0; k < sec / 0.01; k++) stepB(0.01); msgB(); return { phi: +S.phi.toFixed(3), msg: $('#msgB').innerText }; };
+</script>
+</body>
+</html>

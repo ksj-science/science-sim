@@ -61,7 +61,10 @@
   if (!UNIT) {
     $('who').textContent = '단원 주소가 없어요. 선생님이 주신 링크로 다시 들어와 주세요.';
   } else {
-    $('sim').src = SIM_BASE + 'sims/' + encodeURIComponent(UNIT) + '/';
+    // chat-로 시작하는 단원 = 채팅으로 만든 시뮬레이터(chat-sims/sim_<이름>.html), 그 밖 = 클로드 코드 시뮬레이터(sims/<ID>/)
+    $('sim').src = UNIT.indexOf('chat-') === 0
+      ? SIM_BASE + 'chat-sims/sim_' + encodeURIComponent(UNIT.slice(5).replace(/-/g, '_')) + '.html'
+      : SIM_BASE + 'sims/' + encodeURIComponent(UNIT) + '/';
     google.script.run.withSuccessHandler(start).withFailureHandler(fail).getUnit(UNIT);
   }
 

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<!-- 단원ID: rocks · Ⅱ. 지권의 변화 > 2. 지각의 구성 물질 > 03 다양한 암석 · 활동 1개: 암석을 관찰하여 분류하기 -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>암석 관찰실 — 암석을 관찰하여 분류하기</title>
+<style>
+:root{--bg:#f5f4f0;--card:#fff;--ink:#1f2a30;--muted:#5f6f76;--line:#e0ddd4;--accent:#8a6a3c;--accent-d:#6b4f28;--accent-l:#f5ecdc;--ok:#2fae84;--ng:#e8455a}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+header{background:linear-gradient(120deg,#8a6a3c,#b0864a);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:20px;margin:0;font-weight:900}
+header .sub{font-size:13px;opacity:.92}
+header .sp{flex:1}
+header button{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+main{padding:10px 12px 24px;max-width:1300px;margin:0 auto}
+.intro{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:10px;padding:8px 14px;margin-bottom:10px;font-size:14px;line-height:1.55}
+.intro b{color:var(--accent-d)}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,1fr);gap:10px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}
+.card h3{margin:0 4px 8px;font-size:15px;color:var(--accent-d)}
+.tray{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.rk{border:2px solid var(--line);border-radius:10px;padding:4px;text-align:center;cursor:pointer;background:#fff;font-weight:900}
+.rk.sel{border-color:var(--accent);background:var(--accent-l)}
+.rk canvas{width:100%;height:auto;display:block;border-radius:6px}
+#lens{width:100%;display:block;border-radius:10px}
+.obs{font-size:14px;line-height:1.6;background:#faf7f0;border-radius:8px;padding:8px 10px;margin-top:8px;min-height:48px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border:1px solid var(--line);padding:4px;text-align:center}
+th{background:var(--accent-l);color:var(--accent-d)}
+td.ck{cursor:pointer;font-size:16px;color:var(--accent-d);width:44px}
+td.ck:hover{background:#fbf6ea}
+select{font:inherit;font-size:13px;padding:4px;border-radius:6px;border:1px solid var(--line);width:100%}
+.btn{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:8px;padding:8px 14px;cursor:pointer;min-height:38px}
+td.ok{background:#e6f7ef}
+td.ng{background:#fde8eb}
+.msg{min-height:22px;font-size:14px;font-weight:700;margin:6px 4px 0;color:var(--accent-d)}
+.note{font-size:12.5px;color:var(--muted);line-height:1.55;margin:6px 4px 0}
+.lbl{font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <h1>암석 관찰실</h1><span class="sub">퇴적암 · 화성암 · 변성암 분류하기</span>
+  <span class="sp"></span><button id="resetBtn" type="button">↺ 표본 다시 섞기</button>
+</header>
+<main>
+  <div class="intro">① 번호가 붙은 암석 ①~⑤를 하나씩 눌러 <b>돋보기</b>로 관찰한다. ② 특징 표에서 맞는 칸을 눌러 ○를 표시한다(기록용). ③ 각 암석의 <b>종류와 이름</b>을 골라 <b>[확인하기]</b>를 누른다.</div>
+  <div class="grid">
+    <div>
+      <div class="card">
+        <div class="tray" id="tray"></div>
+        <canvas id="lens" width="600" height="300" aria-label="돋보기로 본 암석 표면"></canvas>
+        <div class="obs" id="obs">위의 암석을 눌러 돋보기로 관찰해 보세요.</div>
+      </div>
+      <div class="card">
+        <h3>분류하기</h3>
+        <table><thead><tr><th>번호</th><th>종류</th><th>이름</th></tr></thead><tbody id="cls"></tbody></table>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:8px"><button class="btn" id="checkBtn" type="button">확인하기</button><span class="msg" id="msg"></span></div>
+        <div class="obs" id="explain" style="display:none"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>암석의 특징 기록(맞는 칸을 누르면 ○)</h3>
+      <table><thead><tr><th>암석의 특징</th><th>①</th><th>②</th><th>③</th><th>④</th><th>⑤</th></tr></thead><tbody id="feat"></tbody></table>
+      <p class="note"><b>모델의 한계</b> · 암석 표면은 실제 표본을 보고 특징만 살려 새로 그린 그림이다. 같은 이름의 암석이라도 산지에 따라 색과 알갱이 크기가 다를 수 있으므로, 여러 특징을 함께 보고 판단한다.</p>
+      <p class="note">· 퇴적암: 퇴적물이 다져지고 굳어져 생김(층리, 화석이 보이기도 함)<br>· 화성암: 마그마가 식어 굳어져 생김(지표 근처에서 빨리 식으면 결정이 작고, 지하 깊은 곳에서 천천히 식으면 결정이 큼)<br>· 변성암: 암석이 높은 열과 압력을 받아 성질이 변해 생김(엽리가 나타나기도 함)</p>
+    </div>
+  </div>
+</main>
+<script>
+/* ================================================================
+   암석 관찰 자료(교과서 탐구의 5가지 표본)
+   현무암: 화성암(화산암) — 어두운색, 결정이 매우 작음, 기공(구멍)이 많음 / 마그마가 지표 근처에서 빠르게 식음
+   화강암: 화성암(심성암) — 밝은색, 결정이 큼(석영·장석·흑운모) / 지하 깊은 곳에서 천천히 식음
+   역암: 퇴적암 — 자갈·모래·진흙이 쌓여 굳음 / 사암: 퇴적암 — 주로 모래(와 진흙)가 쌓여 굳음
+   편마암: 변성암 — 흰색·검은색 줄무늬(엽리), 화강암 등이 높은 열과 압력을 받아 생김
+   표면 그림은 의사 난수(시드 고정)로 그린 모식도이다.
+   ================================================================ */
+const ROCKS = {
+  basalt: { name: '현무암', type: '화성암', obs: '어두운 회색 바탕에 크고 작은 <b>구멍</b>이 많다. 알갱이(결정)는 <b>눈에 보이지 않을 만큼 작다</b>.', why: '마그마가 지표로 흘러나와 <b>빠르게 식어</b> 결정이 작고, 빠져나간 기체 자리가 구멍으로 남았다.' },
+  granite: { name: '화강암', type: '화성암', obs: '전체적으로 <b>밝은색</b>이고, 흰색·분홍색·검은색 알갱이(결정)가 <b>눈에 잘 보일 만큼 크다</b>.', why: '마그마가 지하 깊은 곳에서 <b>천천히 식어</b> 결정이 크게 자랐다.' },
+  conglom: { name: '역암', type: '퇴적암', obs: '둥근 <b>자갈</b>들 사이를 <b>모래와 진흙</b>이 채우고 있다. 알갱이 크기가 제각각이다.', why: '자갈, 모래, 진흙 등의 퇴적물이 쌓인 뒤 다져지고 굳어졌다.' },
+  sand: { name: '사암', type: '퇴적암', obs: '고운 <b>모래</b> 알갱이가 고르게 뭉쳐 있다. 큰 자갈이나 줄무늬는 보이지 않는다.', why: '주로 모래(와 진흙)가 쌓인 뒤 다져지고 굳어졌다.' },
+  gneiss: { name: '편마암', type: '변성암', obs: '흰색과 검은색 광물이 <b>줄무늬</b>를 이루며 늘어서 있다(엽리).', why: '화강암 등이 높은 열과 압력을 받아 광물이 한 방향으로 늘어서면서 엽리가 생겼다.' },
+};
+const FEATS = ['엽리가 있는가?', '자갈, 모래, 진흙 등으로 이루어져 있는가?', '주로 모래와 진흙으로 이루어져 있는가?', '눈에 보일 정도로 결정이 큰가?', '눈에 보이지 않을 정도로 결정이 작은가?', '암석의 색이 밝은가?', '암석의 색이 어두운가?'];
+const NUM = ['①', '②', '③', '④', '⑤'];
+const $ = s => document.querySelector(s);
+let order = [], cur = -1, marks = {}, checked = false;
+
+function shuffle() { order = Object.keys(ROCKS); for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; } }
+function rng(seed) { let s = seed; return () => (s = (s * 16807) % 2147483647) / 2147483647; }
+
+/* 암석 표면 그리기(w×h, scale: 확대 배율) */
+function paint(ctx, key, w, h, zoom) {
+  const r = rng({ basalt: 11, granite: 23, conglom: 37, sand: 41, gneiss: 53 }[key]);
+  const S = zoom || 1;
+  ctx.save(); ctx.clearRect(0, 0, w, h);
+  if (key === 'basalt') {
+    ctx.fillStyle = '#3d3f43'; ctx.fillRect(0, 0, w, h);
+    for (let i = 0; i < 900 * S; i++) { ctx.fillStyle = r() < .5 ? '#47494e' : '#33353a'; ctx.fillRect(r() * w, r() * h, 1.2, 1.2); }
+    for (let i = 0; i < 26; i++) { const x = r() * w, y = r() * h, rr = (3 + r() * 9) * S; ctx.fillStyle = '#18191b'; ctx.beginPath(); ctx.ellipse(x, y, rr, rr * (0.6 + r() * .4), r() * 3, 0, 7); ctx.fill(); ctx.strokeStyle = '#55575c'; ctx.lineWidth = 1; ctx.stroke(); }
+  } else if (key === 'granite') {
+    ctx.fillStyle = '#e6e2dc'; ctx.fillRect(0, 0, w, h);
+    const n = Math.round(160 / S);
+    for (let i = 0; i < n; i++) { const x = r() * w, y = r() * h, s = (6 + r() * 10) * S, p = r(); ctx.fillStyle = p < .22 ? '#1d1d1f' : p < .48 ? '#e7b9a8' : p < .75 ? '#f6f4ef' : '#c9c6c0';
+      ctx.beginPath(); for (let k = 0; k < 6; k++) { const a = k / 6 * Math.PI * 2 + r() * .5, rr = s * (0.6 + r() * .5); ctx.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); } ctx.closePath(); ctx.fill(); }
+  } else if (key === 'conglom') {
+    ctx.fillStyle = '#9c7466'; ctx.fillRect(0, 0, w, h);
+    for (let i = 0; i < 700 * S; i++) { ctx.fillStyle = r() < .5 ? '#a98274' : '#8d6658'; ctx.fillRect(r() * w, r() * h, 1.5, 1.5); }
+    const n = Math.round(34 / S);
+    for (let i = 0; i < n; i++) { const x = r() * w, y = r() * h, s = (6 + r() * 16) * S; ctx.fillStyle = ['#d8d2c8', '#6c6a66', '#b85c4a', '#e9e4da', '#4d4b48'][Math.floor(r() * 5)]; ctx.beginPath(); ctx.ellipse(x, y, s, s * (0.6 + r() * .35), r() * 3, 0, 7); ctx.fill(); ctx.strokeStyle = 'rgba(0,0,0,.25)'; ctx.stroke(); }
+  } else if (key === 'sand') {
+    ctx.fillStyle = '#c99a86'; ctx.fillRect(0, 0, w, h);
+    for (let i = 0; i < 2600; i++) { const p = r(); ctx.fillStyle = p < .33 ? '#d9ae9a' : p < .66 ? '#b98a78' : '#e3c4b4'; ctx.fillRect(r() * w, r() * h, 1.4 * S, 1.4 * S); }
+  } else if (key === 'gneiss') {
+    ctx.fillStyle = '#e8e8e4'; ctx.fillRect(0, 0, w, h);
+    for (let b = 0; b < 9; b++) { const y0 = (b + r() * .4) * h / 8, th = (4 + r() * 8) * S; ctx.fillStyle = r() < .55 ? '#2a2b2e' : '#8b8d91'; ctx.beginPath(); ctx.moveTo(0, y0);
+      for (let x = 0; x <= w; x += 10) ctx.lineTo(x, y0 + Math.sin(x / (40 * S) + b) * 6 * S); for (let x = w; x >= 0; x -= 10) ctx.lineTo(x, y0 + th + Math.sin(x / (40 * S) + b + .5) * 6 * S); ctx.closePath(); ctx.fill(); }
+    for (let i = 0; i < 300; i++) { ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.fillRect(r() * w, r() * h, 2 * S, 1); }
+  }
+  ctx.restore();
+}
+function renderTray() {
+  $('#tray').innerHTML = order.map((k, i) => `<div class="rk ${i === cur ? 'sel' : ''}" data-i="${i}" role="button" tabindex="0"><canvas width="120" height="80"></canvas>${NUM[i]}</div>`).join('');
+  document.querySelectorAll('#tray canvas').forEach((cv, i) => { const g = cv.getContext('2d'); paint(g, order[i], 120, 80, .5);
+    g.globalCompositeOperation = 'destination-in'; g.beginPath(); g.moveTo(10, 66); g.lineTo(16, 16); g.lineTo(60, 6); g.lineTo(108, 18); g.lineTo(114, 60); g.lineTo(70, 76); g.closePath(); g.fill(); g.globalCompositeOperation = 'source-over'; });
+}
+const lens = $('#lens'), lg = lens.getContext('2d');
+(function () { const r = Math.min(2, window.devicePixelRatio || 1); lens.width = 600 * r; lens.height = 300 * r; lg.setTransform(r, 0, 0, r, 0, 0); })();
+function showLens() {
+  lg.clearRect(0, 0, 600, 300); lg.fillStyle = '#2b2620'; lg.fillRect(0, 0, 600, 300);
+  if (cur < 0) { lg.fillStyle = '#d9cbb3'; lg.font = '15px sans-serif'; lg.textAlign = 'center'; lg.fillText('암석을 고르면 돋보기로 본 모습이 나타나요', 300, 155); lg.textAlign = 'left'; return; }
+  lg.save(); lg.beginPath(); lg.arc(300, 150, 135, 0, 7); lg.clip(); lg.translate(165, 15); paint(lg, order[cur], 270, 270, 1.6); lg.restore();
+  lg.strokeStyle = '#3a3a3a'; lg.lineWidth = 12; lg.beginPath(); lg.arc(300, 150, 141, 0, 7); lg.stroke();
+  lg.fillStyle = '#f5ecdc'; lg.font = 'bold 18px sans-serif'; lg.fillText('암석 ' + NUM[cur], 20, 34); lg.font = '13px sans-serif'; lg.fillText('돋보기로 확대', 20, 56);
+  $('#obs').innerHTML = '<b>' + NUM[cur] + ' 관찰:</b> ' + ROCKS[order[cur]].obs;
+}
+function renderFeat() {
+  $('#feat').innerHTML = FEATS.map((f, fi) => `<tr><td style="text-align:left">${f}</td>${NUM.map((n, i) => `<td class="ck" data-f="${fi}" data-i="${i}">${marks[fi + '_' + i] ? '○' : ''}</td>`).join('')}</tr>`).join('');
+}
+function renderCls() {
+  const names = Object.values(ROCKS).map(r => r.name);
+  $('#cls').innerHTML = order.map((k, i) => `<tr><td><b>${NUM[i]}</b></td>
+    <td id="ct${i}"><select data-i="${i}" class="ty"><option value="">고르기</option><option>퇴적암</option><option>화성암</option><option>변성암</option></select></td>
+    <td id="cn${i}"><select data-i="${i}" class="nm"><option value="">고르기</option>${names.map(n => `<option>${n}</option>`).join('')}</select></td></tr>`).join('');
+}
+$('#tray').addEventListener('click', e => { const el = e.target.closest('.rk'); if (!el) return; cur = +el.dataset.i; renderTray(); showLens(); });
+$('#feat').addEventListener('click', e => { const td = e.target.closest('td.ck'); if (!td) return; const key = td.dataset.f + '_' + td.dataset.i; marks[key] = !marks[key]; td.textContent = marks[key] ? '○' : ''; });
+$('#checkBtn').addEventListener('click', () => {
+  let ok = 0, filled = 0; const lines = [];
+  order.forEach((k, i) => {
+    const ty = document.querySelector(`select.ty[data-i="${i}"]`).value, nm = document.querySelector(`select.nm[data-i="${i}"]`).value;
+    if (ty && nm) filled++;
+    const a = ty === ROCKS[k].type, b = nm === ROCKS[k].name;
+    $('#ct' + i).className = ty ? (a ? 'ok' : 'ng') : ''; $('#cn' + i).className = nm ? (b ? 'ok' : 'ng') : '';
+    if (a && b) { ok++; lines.push(`<b>${NUM[i]} ${ROCKS[k].name}(${ROCKS[k].type})</b>: ${ROCKS[k].why}`); }
+  });
+  $('#msg').textContent = filled < 5 ? `아직 고르지 않은 칸이 있어요. (맞힌 암석 ${ok}/5)` : ok === 5 ? '🎉 5개 모두 맞혔어요!' : `맞힌 암석 ${ok}/5 — 빨간 칸을 다시 관찰해 보세요.`;
+  $('#explain').style.display = lines.length ? 'block' : 'none'; $('#explain').innerHTML = lines.join('<br>');
+});
+function reset() { shuffle(); cur = -1; marks = {}; renderTray(); renderFeat(); renderCls(); showLens(); $('#obs').textContent = '위의 암석을 눌러 돋보기로 관찰해 보세요.'; $('#msg').textContent = ''; $('#explain').style.display = 'none'; }
+$('#resetBtn').addEventListener('click', reset);
+reset();
+</script>
+</body>
+</html>

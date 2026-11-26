@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<!-- 단원ID: nutrients · 중2 Ⅵ. 동물과 에너지 > 1. 소화와 순환 > 01 영양소(189~191쪽) · 활동 1개: 검출 시약으로 음식 속 영양소 검출하기 -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>영양소 검출하기</title>
+<style>
+:root{--bg:#f2f5fa;--card:#fff;--ink:#1d2433;--muted:#5c6577;--line:#d9dfea;--accent:#3a78c2;--accent-d:#245592;--accent-l:#e3eefb}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+header{background:linear-gradient(120deg,#3a78c2,#e0794f);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:20px;margin:0;font-weight:900}
+header .sub{font-size:13px;opacity:.95}
+header .sp{flex:1}
+header button{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+main{padding:10px 12px 24px;max-width:1300px;margin:0 auto}
+.intro{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:10px;padding:8px 14px;margin-bottom:10px;font-size:14px;line-height:1.55}
+.intro b{color:var(--accent-d)}
+.grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(300px,1fr);gap:10px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}
+.card h3{margin:0 4px 8px;font-size:15px;color:var(--accent-d)}
+canvas{width:100%;display:block;border-radius:8px;cursor:pointer;touch-action:manipulation}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0}
+.btn{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;padding:7px 11px;cursor:pointer;min-height:38px}
+.btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent-d)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{border:1px solid var(--line);padding:4px 5px;text-align:center}
+th{background:#eaf1fb;color:var(--accent-d)}
+td.o{color:#c43b2a;font-weight:900;font-size:16px}
+.msg{background:#f6f9fd;border:1px dashed #a9c4e6;border-radius:8px;padding:7px 10px;font-size:14px;line-height:1.5;margin-top:8px}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.nc{border:1px solid var(--line);border-radius:9px;padding:6px 7px;font-size:12.5px;line-height:1.45;background:#fbfcfe}
+.nc b{display:block;font-size:14px;color:var(--accent-d)}
+.nc.big{background:#fff6ea;border-color:#f1cf9b}
+.nc.big b::after{content:" ★";color:#e0794f}
+.note{font-size:12.5px;color:var(--muted);line-height:1.55;margin:6px 4px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>영양소 검출하기</h1><span class="sub">아이오딘-아이오딘화 칼륨 · 수산화 나트륨 + 황산 구리(Ⅱ) · 수단 Ⅲ · 베네딕트 용액</span>
+  <span class="sp"></span><button id="resetBtn" type="button">↺ 초기화</button>
+</header>
+<main>
+  <div class="intro">홈 판의 <b>칸을 누르면</b> 그 줄의 시약이 떨어진다(2~3방울). 베네딕트 용액은 아래 <b>시험관을 눌러</b> 넣은 뒤 <b>뜨거운 물(약 90 ℃)에 10분</b> 담가야 색이 변한다. 색깔이 변한 칸은 표에 ○로 기록된다.</div>
+  <div class="grid">
+    <div class="card">
+      <canvas id="app" width="760" height="560" aria-label="12홈 판과 베네딕트 시험관"></canvas>
+      <div class="row">
+        <button class="btn" id="allBtn" type="button">💧 홈 판 모든 칸에 시약 넣기</button>
+        <button class="btn" id="benAllBtn" type="button">💧 시험관 4개에 베네딕트 용액 넣기</button>
+        <button class="btn pri" id="heatBtn" type="button">🔥 뜨거운 물에 10분 담그기</button>
+      </div>
+      <div class="msg" id="msg">홈 판의 칸이나 시험관을 눌러 시약을 넣어 보세요.</div>
+    </div>
+    <div>
+      <div class="card">
+        <h3>색깔 변화 기록 (○: 색이 변함)</h3>
+        <table><thead><tr><th>검출 시약</th><th>증류수</th><th>쌀 음료</th><th>두유</th><th>식용유</th></tr></thead><tbody id="tb"></tbody></table>
+        <div class="msg" id="concl" style="margin-top:6px"></div>
+      </div>
+      <div class="card">
+        <h3>영양소의 종류와 기능 (★ 3대 영양소: 에너지원)</h3>
+        <div class="cards">
+          <div class="nc big"><b>탄수화물</b>주로 에너지원(녹말, 포도당, 엿당, 설탕 등)</div>
+          <div class="nc big"><b>단백질</b>에너지원, 몸을 구성하는 성분</div>
+          <div class="nc big"><b>지방</b>에너지원, 에너지를 저장하기도 함</div>
+          <div class="nc"><b>바이타민</b>적은 양으로 몸의 기능 조절</div>
+          <div class="nc"><b>무기염류</b>뼈, 혈액 등을 구성</div>
+          <div class="nc"><b>물</b>몸의 약 60~70 %, 영양소·노폐물 운반, 체온 조절</div>
+        </div>
+        <p class="note"><b>모델의 한계</b> · 음식마다 대표 영양소만 반응하도록 정했다(쌀 음료: 녹말·당, 무가당 두유: 단백질·지방, 식용유: 지방). 실제 음식은 제품에 따라 다른 영양소가 조금씩 들어 있어 약하게 반응할 수 있다. 시약 양과 반응 시간은 단순화했다.</p>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+/* ================================================================
+   영양소 검출 모형
+   - 녹말: 아이오딘-아이오딘화 칼륨 용액 → 청람색
+   - 단백질: 5 % 수산화 나트륨 수용액 + 1 % 황산 구리(Ⅱ) 수용액(뷰렛 반응) → 보라색
+   - 지방: 수단 Ⅲ 용액 → 선홍색
+   - 포도당(엿당 등 당): 베네딕트 용액 + 가열(약 90 ℃ 물, 10분) → 황적색, 가열하지 않으면 변화 없음(파란색)
+   - 음식(대표 영양소): 증류수(없음, 대조), 쌀 음료(녹말, 당), 무가당 두유(단백질, 지방), 식용유(지방)
+   ================================================================ */
+const $ = s => document.querySelector(s);
+function fit(cv, w, h) { const r = Math.min(2, window.devicePixelRatio || 1); cv.width = w * r; cv.height = h * r; const x = cv.getContext('2d'); x.setTransform(r, 0, 0, r, 0, 0); return x; }
+const W = 760, H = 560, c = fit($('#app'), W, H);
+const FOODS = [
+  { id: 'water', name: '증류수', base: '#e9f2fa', has: [] , head: '#f6a94a' },
+  { id: 'rice', name: '쌀 음료', base: '#f4ecdc', has: ['starch', 'sugar'], head: '#e8837d' },
+  { id: 'soy', name: '두유', base: '#efe3c4', has: ['protein', 'fat'], head: '#8cbf63' },
+  { id: 'oil', name: '식용유', base: '#f2e39b', has: ['fat'], head: '#6c9ccc' },
+];
+const ROWS = [
+  { id: 'iodine', name: '아이오딘-아이오딘화 칼륨 용액', target: 'starch', neg: '#d9b46a', pos: '#1f2a6b', posName: '청람색' },
+  { id: 'biuret', name: '수산화 나트륨 + 황산 구리(Ⅱ)', target: 'protein', neg: '#9cc4ea', pos: '#7d4fae', posName: '보라색' },
+  { id: 'sudan', name: '수단 Ⅲ 용액', target: 'fat', neg: '#f4c6c0', pos: '#e0402a', posName: '선홍색' },
+];
+const BEN = { target: 'sugar', neg: '#3a8fd6', pos: '#d9531e', posName: '황적색' };
+let S;
+function newState() { return { wells: {}, ben: {}, heat: 0, heatAnim: null, anim: 0, drop: null }; }
+const PX = 250, PY = 70, CW = 112, RH = 92;   // 홈 판 위치
+const wellPos = (r, f) => [PX + f * CW + CW / 2, PY + 40 + r * RH + RH / 2];
+const TY = 470;
+const tubePos = f => [PX + f * CW + CW / 2, TY];
+function mixHex(a, b, k) { const p = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)); const A = p(a), B = p(b); return 'rgb(' + A.map((v, i) => Math.round(v + (B[i] - v) * k)).join(',') + ')'; }
+function wellColor(r, f) {
+  const R = ROWS[r], F = FOODS[f], k = S.wells[r + '_' + f]; if (!k) return F.base;
+  const t = Math.min(1, (S.anim - k) / 0.8);
+  return F.has.includes(R.target) ? mixHex(F.base, R.pos, t * 0.92) : mixHex(F.base, R.neg, t * 0.55);
+}
+function heated(f) {   // 이 시험관이 가열된 정도(0~1): 베네딕트를 넣은 뒤 가열을 시작해야 반응
+  if (!S.ben[f]) return 0;
+  if (S.heatAnim && S.ben[f] <= S.heatAnim + 1e-9) return Math.min(1, (S.anim - S.heatAnim) / 3);
+  if (S.heat && S.ben[f] <= S.heatAt + 1e-9) return 1;
+  return 0;
+}
+function tubeColor(f) {
+  const F = FOODS[f]; if (!S.ben[f]) return F.base;
+  const blue = mixHex(F.base, BEN.neg, 0.7), h = heated(f);
+  if (!F.has.includes('sugar') || h === 0) return blue;
+  return mixHex(BEN.neg, BEN.pos, h);
+}
+function rr(x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+function draw() {
+  c.clearRect(0, 0, W, H); c.fillStyle = '#f8fafd'; c.fillRect(0, 0, W, H);
+  // 음식 머리말
+  FOODS.forEach((F, f) => { const x = PX + f * CW + 6; c.fillStyle = F.head; rr(x, PY - 8, CW - 12, 30, 8); c.fill(); c.fillStyle = '#fff'; c.font = 'bold 15px sans-serif'; c.textAlign = 'center'; c.fillText(F.name, x + (CW - 12) / 2, PY + 12); });
+  // 홈 판
+  c.fillStyle = '#e8eef4'; c.strokeStyle = '#b9c7d6'; c.lineWidth = 2; rr(PX - 8, PY + 32, CW * 4 + 16, RH * 3 + 16, 14); c.fill(); c.stroke();
+  ROWS.forEach((R, r) => {
+    c.fillStyle = '#1d2433'; c.font = 'bold 13px sans-serif'; c.textAlign = 'right';
+    const words = R.name.length > 14 ? [R.name.slice(0, R.name.indexOf('+') > 0 ? R.name.indexOf('+') + 1 : 12), R.name.slice(R.name.indexOf('+') > 0 ? R.name.indexOf('+') + 1 : 12)] : [R.name];
+    words.forEach((w, i) => c.fillText(w.trim(), PX - 18, PY + 40 + r * RH + RH / 2 + 5 + (i - (words.length - 1) / 2) * 17));
+    c.textAlign = 'center';
+    FOODS.forEach((F, f) => { const [x, y] = wellPos(r, f);
+      c.fillStyle = '#ffffff'; c.beginPath(); c.arc(x, y, 34, 0, 7); c.fill(); c.strokeStyle = '#a9b8c8'; c.lineWidth = 2; c.stroke();
+      c.fillStyle = wellColor(r, f); c.beginPath(); c.arc(x, y, 29, 0, 7); c.fill();
+      if (f === 3 && S.wells[r + '_' + f]) { c.fillStyle = 'rgba(255,255,255,.35)'; c.beginPath(); c.ellipse(x - 8, y - 8, 10, 5, -.5, 0, 7); c.fill(); }
+      if (!S.wells[r + '_' + f]) { c.fillStyle = 'rgba(60,80,110,.55)'; c.font = '12px sans-serif'; c.fillText('누르기', x, y + 4); }
+    });
+  });
+  c.textAlign = 'left';
+  // 베네딕트 시험관 + 비커(뜨거운 물)
+  c.fillStyle = '#1d2433'; c.font = 'bold 13px sans-serif'; c.textAlign = 'right'; c.fillText('베네딕트 용액', PX - 18, TY + 2); c.fillText('(가열 필요)', PX - 18, TY + 20); c.textAlign = 'left';
+  const hot = S.heatAnim || S.heat;
+  c.fillStyle = hot ? 'rgba(255,170,120,.35)' : 'rgba(200,225,245,.35)'; c.strokeStyle = '#8fa8bb'; c.lineWidth = 2; rr(PX - 4, TY - 10, CW * 4 + 8, 76, 8); c.fill(); c.stroke();
+  if (S.heatAnim) { c.fillStyle = 'rgba(255,255,255,.8)'; for (let k = 0; k < 10; k++) { const ph = (S.anim * .7 + k / 10) % 1; c.beginPath(); c.arc(PX + 20 + k * 44, TY + 60 - ph * 60, 2.5, 0, 7); c.fill(); } }
+  FOODS.forEach((F, f) => { const [x] = tubePos(f), top = TY - 70, bot = TY + 52, w = 30;
+    c.fillStyle = 'rgba(255,255,255,.6)'; c.strokeStyle = '#8fa8bb'; c.beginPath(); c.moveTo(x - w / 2, top); c.lineTo(x - w / 2, bot - w / 2); c.arc(x, bot - w / 2, w / 2, Math.PI, 0, true); c.lineTo(x + w / 2, top); c.fill(); c.stroke();
+    c.fillStyle = tubeColor(f); c.beginPath(); c.moveTo(x - w / 2 + 2, TY - 10); c.lineTo(x - w / 2 + 2, bot - w / 2); c.arc(x, bot - w / 2, w / 2 - 2, Math.PI, 0, true); c.lineTo(x + w / 2 - 2, TY - 10); c.fill();
+    if (!S.ben[f]) { c.fillStyle = '#5c6577'; c.font = '12px sans-serif'; c.textAlign = 'center'; c.fillText('누르기', x, top - 6); c.textAlign = 'left'; }
+  });
+  if (S.heatAnim) { c.fillStyle = '#c4581f'; c.font = 'bold 14px sans-serif'; c.fillText('가열 중 ' + Math.round(Math.min(10, (S.anim - S.heatAnim) / 3 * 10)) + '분', 20, TY + 50); }
+  else if (S.heat) { c.fillStyle = '#c4581f'; c.font = 'bold 14px sans-serif'; c.fillText('10분 가열함', 20, TY + 50); }
+  // 스포이트 애니메이션
+  if (S.drop && S.anim - S.drop.t < 0.6) { const [x, y] = S.drop.p, k = (S.anim - S.drop.t) / 0.6;
+    c.fillStyle = '#c9d2dc'; c.fillRect(x - 4, y - 90 + k * 20, 8, 40); c.fillStyle = '#777'; c.fillRect(x - 6, y - 100 + k * 20, 12, 14);
+    c.fillStyle = S.drop.col; c.beginPath(); c.arc(x, y - 44 + k * 30, 4, 0, 7); c.fill(); }
+}
+/* ---------------- 기록 ---------------- */
+function changed(rowKey, f) {   // 색이 변했는가(관찰했을 때만)
+  if (rowKey === 'ben') return heated(f) === 1 && !S.heatAnim ? FOODS[f].has.includes('sugar') : null;
+  const r = ROWS.findIndex(R => R.id === rowKey); if (!S.wells[r + '_' + f]) return null; return FOODS[f].has.includes(ROWS[r].target);
+}
+function table() {
+  const rows = [...ROWS.map(R => [R.id, R.name]), ['ben', '베네딕트 용액(가열)']];
+  $('#tb').innerHTML = rows.map(([k, n]) => `<tr><th style="text-align:left">${n}</th>` + FOODS.map((F, f) => { const v = changed(k, f); return v === null ? '<td style="color:#b0b8c6">?</td>' : v ? '<td class="o">○</td>' : '<td>–</td>'; }).join('') + '</tr>').join('');
+  const NM = { starch: '녹말', sugar: '포도당(당)', protein: '단백질', fat: '지방' };
+  const out = FOODS.slice(1).map((F, i) => { const f = i + 1; const all = rows.every(([k]) => changed(k, f) !== null);
+    if (!all) return `<b>${F.name}</b>: 네 가지 시약을 모두 넣어 보세요.`;
+    const found = []; if (changed('iodine', f)) found.push('녹말'); if (changed('ben', f)) found.push('포도당(당)'); if (changed('biuret', f)) found.push('단백질'); if (changed('sudan', f)) found.push('지방');
+    return `<b>${F.name}</b>: ${found.join(', ') || '검출된 영양소 없음'}`; });
+  $('#concl').innerHTML = '실험 결과로 알아낸 영양소<br>' + out.join('<br>');
+}
+/* ---------------- 조작 ---------------- */
+const say = t => { $('#msg').innerHTML = t; };
+function addWell(r, f) {
+  const key = r + '_' + f; if (S.wells[key]) return;
+  S.wells[key] = S.anim; S.drop = { t: S.anim, p: wellPos(r, f), col: ROWS[r].neg };
+  const R = ROWS[r], F = FOODS[f], pos = F.has.includes(R.target);
+  say(`${F.name}에 ${R.name}을(를) 떨어뜨렸다 → ` + (pos ? `<b>${R.posName}</b>으로 변했다!` : '색깔 변화가 거의 없다(시약의 색만 보인다).'));
+}
+function addBen(f) {
+  if (S.ben[f]) return; S.ben[f] = S.anim; S.drop = { t: S.anim, p: [tubePos(f)[0], TY - 10], col: BEN.neg };
+  say(`${FOODS[f].name}에 베네딕트 용액을 3방울 넣었다. 아직은 <b>파란색</b>이다. 뜨거운 물에 담가 보세요.`);
+}
+$('#app').addEventListener('click', e => {
+  const r0 = e.target.getBoundingClientRect(), x = (e.clientX - r0.left) * W / r0.width, y = (e.clientY - r0.top) * H / r0.height;
+  for (let r = 0; r < 3; r++) for (let f = 0; f < 4; f++) { const [wx, wy] = wellPos(r, f); if ((x - wx) ** 2 + (y - wy) ** 2 < 36 * 36) { addWell(r, f); table(); return; } }
+  for (let f = 0; f < 4; f++) { const [tx] = tubePos(f); if (Math.abs(x - tx) < 26 && y > TY - 90 && y < TY + 60) { addBen(f); table(); return; } }
+});
+$('#allBtn').onclick = () => { for (let r = 0; r < 3; r++) for (let f = 0; f < 4; f++) if (!S.wells[r + '_' + f]) S.wells[r + '_' + f] = S.anim; say('홈 판 모든 칸에 시약을 넣었다. 어떤 칸의 색이 변했는지 보세요.'); table(); };
+$('#benAllBtn').onclick = () => { for (let f = 0; f < 4; f++) if (!S.ben[f]) S.ben[f] = S.anim; say('시험관 4개에 베네딕트 용액을 넣었다. 모두 파란색이다. 뜨거운 물에 담가 보세요.'); table(); };
+$('#heatBtn').onclick = () => {
+  if (!Object.keys(S.ben).length) { say('먼저 시험관에 베네딕트 용액을 넣으세요.'); return; }
+  S.heatAnim = S.anim; S.heat = 0; say('뜨거운 물(약 90 ℃)에 10분 동안 담그는 중…'); table();
+};
+$('#resetBtn').onclick = () => { S = newState(); say('홈 판의 칸이나 시험관을 눌러 시약을 넣어 보세요.'); table(); };
+let last = performance.now();
+function loop(ts) {
+  S.anim += Math.min(0.1, ((ts || last) - last) / 1000); last = ts || last;
+  if (S.heatAnim && S.anim - S.heatAnim >= 3) { S.heatAt = S.heatAnim; S.heatAnim = null; S.heat = 1;
+    const pos = FOODS.filter((F, f) => S.ben[f] && F.has.includes('sugar')).map(F => F.name);
+    say('10분 가열 완료: ' + (pos.length ? `<b>${pos.join(', ')}</b>의 베네딕트 용액이 <b>황적색</b>으로 변했다.` : '색깔이 변한 시험관이 없다.') + ' 나머지는 파란색 그대로이다.'); table(); }
+  draw(); requestAnimationFrame(loop);
+}
+S = newState(); table(); requestAnimationFrame(loop);
+window.__all = () => { $('#allBtn').click(); $('#benAllBtn').click(); S.heatAt = S.anim; S.heat = 1; table(); return $('#concl').innerText; };
+</script>
+</body>
+</html>

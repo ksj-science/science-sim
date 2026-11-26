@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<!-- 단원ID: star_distance · 중2 Ⅷ. 별과 우주 > 1. 별 > 01 별까지의 거리(271~273쪽) · 활동 1개: 시차 측정하기 → 별의 연주 시차 -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>시차와 별까지의 거리</title>
+<style>
+:root{--bg:#f2f4f9;--card:#fff;--ink:#1c2233;--muted:#5b6479;--line:#dbe0ea;--a:#e0533f;--b:#3a8fd9;--p:#4c3fb5}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+header{background:linear-gradient(120deg,#141a3a,#3b3192 55%,#6a4fd0);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:20px;margin:0;font-weight:900}
+header .sub{font-size:13px;opacity:.95}
+header .sp{flex:1}
+header button{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.55);color:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+nav{display:flex;gap:6px;padding:10px 12px 0;max-width:1320px;margin:0 auto}
+nav button{font:inherit;font-size:14.5px;font-weight:800;border:1px solid var(--line);background:#fff;border-radius:10px 10px 0 0;padding:9px 16px;cursor:pointer;color:var(--muted);border-bottom:none}
+nav button.on{color:var(--p);box-shadow:inset 0 3px 0 var(--p)}
+main{padding:0 12px 24px;max-width:1320px;margin:0 auto}
+.pane{display:none;background:var(--card);border:1px solid var(--line);border-radius:0 12px 12px 12px;padding:12px 14px}
+.pane.on{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(300px,1fr);gap:12px;align-items:start}
+@media (max-width:900px){.pane.on{grid-template-columns:1fr}}
+canvas{width:100%;display:block;border-radius:10px;touch-action:manipulation}
+.guide{font-size:13.5px;color:var(--muted);line-height:1.5;margin:6px 2px 0}
+.guide b{color:var(--p)}
+h3{margin:0 2px 6px;font-size:15px;color:#33395a}
+.row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:6px 0}
+.lbl{font-size:13px;color:var(--muted)}
+.btn{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:9px;padding:7px 11px;cursor:pointer;min-height:38px}
+.btn:hover:not(:disabled){border-color:#9aa6bb}
+.btn.on{background:#ece9fb;border-color:var(--p);color:#33287f}
+input[type=range]{flex:1;min-width:140px;accent-color:var(--p)}
+.ro{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px}
+.ro div{background:#161b30;color:#e8ebf7;border-radius:10px;padding:6px 8px}
+.ro .k{font-size:11.5px;color:#a7aed0}
+.ro .v{font-size:18px;font-weight:900}
+.msg{background:#f6f5fd;border:1px dashed #b9b0e6;border-radius:10px;padding:8px 11px;font-size:14.5px;line-height:1.55;margin-top:8px;min-height:44px}
+table{border-collapse:collapse;width:100%;font-size:13.5px;margin-top:6px}
+th,td{border:1px solid var(--line);padding:5px 6px;text-align:center}
+th{background:#efedfb;color:#33287f}
+.note{font-size:12.5px;color:var(--muted);line-height:1.55;margin:8px 2px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>시차로 거리 알아내기</h1><span class="sub">시차 측정하기 · 연주 시차 · 파섹(pc)</span>
+  <span class="sp"></span><button id="resetBtn" type="button">↺ 초기화</button>
+</header>
+<nav><button data-tab="t1" class="on" type="button">① 시차 측정하기</button><button data-tab="t2" type="button">② 별의 연주 시차</button></nav>
+<main>
+  <section class="pane on" id="t1">
+    <div>
+      <canvas id="c1" width="760" height="400" aria-label="화면 앞에서 막대 끝의 공을 왼쪽 눈과 오른쪽 눈으로 번갈아 보는 모습(위에서 본 그림)"></canvas>
+      <p class="guide">왼쪽 눈과 오른쪽 눈을 <b>번갈아 감으며</b> 공이 화면의 몇 번에 겹쳐 보이는지 확인하세요. 팔을 뻗었을 때와 구부렸을 때를 비교해 보세요.</p>
+    </div>
+    <div>
+      <h3>조작</h3>
+      <div class="row"><button class="btn" data-arm="60" type="button">💪 팔을 뻗음 (60 cm)</button><button class="btn" data-arm="30" type="button">팔을 구부림 (30 cm)</button></div>
+      <div class="row"><span class="lbl">눈과 공 사이 거리</span><input type="range" id="dSl" min="20" max="80" step="5" value="60"><b id="dTx" style="min-width:56px">60 cm</b></div>
+      <div class="row"><button class="btn" data-eye="L" type="button">👁 왼쪽 눈으로 보기</button><button class="btn" data-eye="R" type="button">오른쪽 눈으로 보기 👁</button><button class="btn" id="blinkBtn" type="button">번갈아 깜빡이기</button></div>
+      <div class="ro">
+        <div><div class="k">왼쪽 눈으로 본 번호</div><div class="v" id="vL">–</div></div>
+        <div><div class="k">오른쪽 눈으로 본 번호</div><div class="v" id="vR">–</div></div>
+        <div><div class="k">시차(두 방향의 차이)</div><div class="v" id="vP">–</div></div>
+      </div>
+      <table><thead><tr><th>공까지 거리</th><th>왼쪽 눈</th><th>오른쪽 눈</th><th>번호 차이</th><th>시차</th></tr></thead><tbody id="tb1"></tbody></table>
+      <div class="msg" id="msg1"></div>
+      <p class="note"><b>모델의 한계</b> · 두 눈 사이 거리 6.4 cm, 눈에서 화면까지 3 m, 화면 번호 간격 10 cm로 정했다. 번호는 가장 가까운 정수가 아니라 소수 첫째 자리까지 보여 준다.</p>
+    </div>
+  </section>
+  <section class="pane" id="t2">
+    <div>
+      <canvas id="c2" width="760" height="420" aria-label="태양 주위를 공전하는 지구에서 별을 바라보는 모습과 먼 배경 하늘"></canvas>
+      <p class="guide">지구를 <b>E₁ → E₂</b>로 옮기며(6개월) 별이 먼 배경 하늘에서 어디에 보이는지 확인하세요. 별까지의 거리를 바꾸면 연주 시차가 어떻게 달라질까요?</p>
+    </div>
+    <div>
+      <h3>조작</h3>
+      <div class="row"><button class="btn" data-star="A" type="button">⭐ 별 A (가까운 별)</button><button class="btn" data-star="B" type="button">별 B (먼 별)</button><button class="btn" data-star="C" type="button">직접 정하기</button></div>
+      <div class="row"><span class="lbl">별까지 거리</span><input type="range" id="pcSl" min="0.5" max="10" step="0.5" value="1.25"><b id="pcTx" style="min-width:64px">1.25 pc</b></div>
+      <div class="row"><span class="lbl">지구 위치</span><button class="btn" data-e="1" type="button">E₁</button><button class="btn" data-e="2" type="button">E₂ (6개월 뒤)</button><button class="btn" id="orbBtn" type="button">▶ 1년 공전</button></div>
+      <div class="ro">
+        <div><div class="k">연주 시차 (∠SAE)</div><div class="v" id="vPa">–</div></div>
+        <div><div class="k">E₁·E₂에서 본 시차</div><div class="v" id="vPa2">–</div></div>
+        <div><div class="k">별까지 거리</div><div class="v" id="vD">–</div></div>
+      </div>
+      <div class="msg" id="msg2"></div>
+      <p class="note"><b>모델의 한계</b> · 실제 연주 시차는 1″(1도의 1/3600)보다 작을 만큼 매우 작아서, 그림의 거리·각도는 크게 <b>과장</b>해 그렸다. 수치 칸의 값은 연주 시차(″) = 1 ÷ 거리(pc)로 계산한 실제 값이다. 1 pc ≈ 206265 AU.</p>
+    </div>
+  </section>
+</main>
+<script>
+/* ================================================================
+   ① 시차 측정(위에서 본 그림): 눈 위치 x = ±e/2 (e = 6.4 cm), 공 (0, d), 화면은 눈에서 D = 300 cm
+      눈 (xe, 0) → 공 (0, d) 직선을 화면까지 연장: x_screen = xe·(1 − D/d)
+      화면 번호: 5번이 정면(x = 0), 간격 10 cm → 번호 = 5 + x_screen/10 (오른쪽이 큰 번호)
+      시차 각 = 2·atan((e/2)/d): d = 60 cm → 6.1°, d = 30 cm → 12.2°
+   ② 연주 시차 p(″) = 1 / 거리(pc), 1 pc = 206265 AU. E₁과 E₂에서 본 방향 차이(시차) = 2p
+      그림은 과장: 거리 축을 압축해 그리고, 배경 하늘 위치는 지구 → 별 직선을 연장해 정함
+   ================================================================ */
+const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
+function fit(cv, w, h) { const r = Math.min(2, devicePixelRatio || 1); cv.width = w * r; cv.height = h * r; const x = cv.getContext('2d'); x.setTransform(r, 0, 0, r, 0, 0); return x; }
+const c1 = fit($('#c1'), 760, 400), c2 = fit($('#c2'), 760, 420), EYE = 6.4, DS = 300;
+let S;
+function newState() { return { tab: S ? S.tab : 't1', d: 60, eye: 'L', blink: false, rec: {}, star: 'A', pc: 1.25, ePos: 0, orb: false }; }
+/* ---------- ① ---------- */
+const scr = (xe, d) => xe * (1 - DS / d), num = x => 5 + x / 10;
+const nL = d => num(scr(-EYE / 2, d)), nR = d => num(scr(EYE / 2, d)), pAng = d => 2 * Math.atan(EYE / 2 / d) * 180 / Math.PI;
+function draw1() {
+  const c = c1; c.clearRect(0, 0, 760, 400); c.fillStyle = '#f7f8fc'; c.fillRect(0, 0, 760, 400);
+  // 위에서 본 그림: 화면은 왼쪽(x=60), 사람은 오른쪽. 세로 = 좌우 위치(cm), 가로 = 거리
+  const sx = 60, ex = 600, kx = (ex - sx) / DS, cy = 170, ky = 2.6;   // 1 cm → ky px(세로)
+  c.fillStyle = '#2b3550'; c.fillRect(sx - 14, cy - 140, 14, 280); c.fillStyle = '#3d9aa0'; c.fillRect(sx, cy - 140, 6, 280);
+  for (let n = 0; n <= 10; n++) { const y = cy - (n - 5) * 10 * ky; if (y < cy - 135 || y > cy + 135) continue; c.fillStyle = '#e9c43a'; c.beginPath(); c.arc(sx + 18, y, 4, 0, 7); c.fill(); c.fillStyle = '#2b3550'; c.font = 'bold 12px sans-serif'; c.fillText(n, sx + 26, y + 4); }
+  // 사람(머리)과 눈
+  c.fillStyle = '#ffd9b8'; c.beginPath(); c.arc(ex + 24, cy, 22, 0, 7); c.fill(); c.fillStyle = '#3a2a1e'; c.beginPath(); c.arc(ex + 32, cy, 20, -1.3, 1.3); c.fill();
+  const eyes = { L: [ex, cy + EYE / 2 * ky], R: [ex, cy - EYE / 2 * ky] };   // 화면을 바라보므로 왼쪽 눈이 아래쪽
+  const ball = [ex - S.d * kx, cy];
+  c.strokeStyle = '#9b8a6a'; c.lineWidth = 3; c.beginPath(); c.moveTo(ex + 6, cy + 22); c.lineTo(ball[0] + 4, cy + 22); c.lineTo(ball[0] + 4, cy + 6); c.stroke();   // 팔·막대
+  ['L', 'R'].forEach(k => { const on = S.eye === k; const e = eyes[k], ys = cy - scr(k === 'L' ? -EYE / 2 : EYE / 2, S.d) * ky;
+    c.strokeStyle = k === 'L' ? 'rgba(224,83,63,' + (on ? .9 : .25) + ')' : 'rgba(58,143,217,' + (on ? .9 : .25) + ')'; c.lineWidth = on ? 2.5 : 1.5; c.setLineDash(on ? [] : [5, 4]);
+    c.beginPath(); c.moveTo(e[0], e[1]); c.lineTo(sx + 6, ys); c.stroke(); c.setLineDash([]);
+    c.fillStyle = on ? '#fff' : '#555'; c.beginPath(); c.arc(e[0] + 6, e[1], 4, 0, 7); c.fill(); c.strokeStyle = '#333'; c.lineWidth = 1; c.stroke();
+    c.fillStyle = k === 'L' ? '#e0533f' : '#3a8fd9'; c.beginPath(); c.arc(sx + 18, ys, 7, 0, 7); c.globalAlpha = on ? 0.9 : 0.35; c.fill(); c.globalAlpha = 1; });
+  c.fillStyle = '#fff'; c.strokeStyle = '#7d8aa8'; c.lineWidth = 2; c.beginPath(); c.arc(ball[0], ball[1], 9, 0, 7); c.fill(); c.stroke();
+  // 거리 표시
+  c.strokeStyle = '#5b6479'; c.lineWidth = 1; c.beginPath(); c.moveTo(ball[0], cy + 60); c.lineTo(ex, cy + 60); c.stroke(); c.fillStyle = '#5b6479'; c.font = 'bold 12px sans-serif'; c.textAlign = 'center'; c.fillText(`공까지 ${S.d} cm`, (ball[0] + ex) / 2, cy + 76); c.fillText('화면까지 3 m (위에서 본 그림)', (sx + ex) / 2, 390); c.textAlign = 'left';
+  // 눈에 보이는 장면(오른쪽 위 작은 창)
+  const wx = 470, wy = 300, ww = 280, wh = 60; c.fillStyle = '#2b3550'; c.beginPath(); c.roundRect(wx, wy, ww, wh, 8); c.fill();
+  for (let n = 1; n <= 9; n++) { const x = wx + 20 + (n - 1) * 30; c.fillStyle = '#e9c43a'; c.beginPath(); c.arc(x, wy + 40, 4, 0, 7); c.fill(); c.fillStyle = '#e9eef8'; c.font = '11px sans-serif'; c.fillText(n, x - 3, wy + 55); }
+  const nv = S.eye === 'L' ? nL(S.d) : nR(S.d), bx = wx + 20 + (nv - 1) * 30;
+  // 화면을 바라볼 때 번호는 왼쪽부터 1~9가 아니라, 위 그림의 세로 방향(위가 큰 번호)이 오른쪽으로 보인다
+  if (bx > wx && bx < wx + ww) { c.strokeStyle = '#c9b48a'; c.lineWidth = 4; c.beginPath(); c.moveTo(bx, wy + 60); c.lineTo(bx, wy + 30); c.stroke(); c.fillStyle = '#fff'; c.beginPath(); c.arc(bx, wy + 24, 11, 0, 7); c.fill(); }
+  c.fillStyle = '#e9eef8'; c.font = 'bold 11px sans-serif'; c.fillText((S.eye === 'L' ? '왼쪽' : '오른쪽') + ' 눈에 보이는 장면', wx + 8, wy + 14);
+}
+function ui1() {
+  $$('[data-arm]').forEach(b => b.classList.toggle('on', +b.dataset.arm === S.d)); $$('[data-eye]').forEach(b => b.classList.toggle('on', b.dataset.eye === S.eye)); $('#blinkBtn').classList.toggle('on', S.blink);
+  $('#dTx').textContent = S.d + ' cm'; $('#dSl').value = S.d;
+  const l = nL(S.d), r = nR(S.d); $('#vL').textContent = l.toFixed(1) + '번'; $('#vR').textContent = r.toFixed(1) + '번'; $('#vP').textContent = pAng(S.d).toFixed(1) + '°';
+  S.rec[S.d] = [l, r];
+  $('#tb1').innerHTML = Object.keys(S.rec).map(Number).sort((a, b) => b - a).map(d => `<tr><td>${d} cm</td><td>${S.rec[d][0].toFixed(1)}</td><td>${S.rec[d][1].toFixed(1)}</td><td>${(S.rec[d][0] - S.rec[d][1]).toFixed(1)}칸</td><td>${pAng(d).toFixed(1)}°</td></tr>`).join('');
+  const m = $('#msg1'), t = `공까지 ${S.d} cm: 왼쪽 눈으로는 ${l.toFixed(1)}번, 오른쪽 눈으로는 ${r.toFixed(1)}번 쪽에 보여 <b>${(l - r).toFixed(1)}칸</b> 차이가 난다. ` +
+    (Object.keys(S.rec).length < 2 ? '공까지의 거리를 바꿔 보세요.' : '공이 <b>눈에서 가까울수록 시차가 크고, 멀어질수록 시차가 작다</b>.');
+  if (m.dataset.t !== t) { m.dataset.t = t; m.innerHTML = t; }
+}
+$$('[data-arm]').forEach(b => b.onclick = () => { S.d = +b.dataset.arm; ui1(); });
+$('#dSl').oninput = e => { S.d = +e.target.value; ui1(); };
+$$('[data-eye]').forEach(b => b.onclick = () => { S.eye = b.dataset.eye; S.blink = false; ui1(); });
+$('#blinkBtn').onclick = () => { S.blink = !S.blink; ui1(); };
+/* ---------- ② ---------- */
+const PRE = { A: 1.25, B: 5 };
+const par = () => 1 / S.pc;   // ″
+function draw2(ts) {
+  const c = c2, W = 760; c.clearRect(0, 0, W, 420); c.fillStyle = '#0d1230'; c.fillRect(0, 0, W, 420);
+  // 먼 배경 하늘(띠)
+  c.fillStyle = '#05081c'; c.fillRect(0, 0, W, 64); for (let i = 0; i < 70; i++) { const x = (i * 97) % W, y = 6 + (i * 37) % 54; c.fillStyle = 'rgba(255,255,255,' + (0.3 + (i % 5) / 8) + ')'; c.fillRect(x, y, 1.6, 1.6); }
+  c.fillStyle = '#a7aed0'; c.font = '11px sans-serif'; c.fillText('아주 먼 배경 별(움직이지 않는 것처럼 보임)', 8, 76);
+  const sun = [380, 330], R = 90, sy = sun[1] - (50 + 175 * S.pc / (S.pc + 1.5)), star = [sun[0], sy];   // 거리 축은 압축(과장) 표시
+  // 공전 궤도·태양
+  c.strokeStyle = '#4f7fd0'; c.lineWidth = 1.5; c.beginPath(); c.ellipse(sun[0], sun[1], R, R * 0.38, 0, 0, 7); c.stroke();
+  const g = c.createRadialGradient(sun[0], sun[1], 2, sun[0], sun[1], 22); g.addColorStop(0, '#fff6c0'); g.addColorStop(1, 'rgba(255,190,40,0)'); c.fillStyle = g; c.beginPath(); c.arc(sun[0], sun[1], 22, 0, 7); c.fill(); c.fillStyle = '#ffc93a'; c.beginPath(); c.arc(sun[0], sun[1], 10, 0, 7); c.fill();
+  c.fillStyle = '#ffe6a0'; c.font = 'bold 12px sans-serif'; c.fillText('태양 S', sun[0] + 14, sun[1] + 20);
+  const E1 = [sun[0] - R, sun[1]], E2 = [sun[0] + R, sun[1]], ang = S.ePos * Math.PI, E = [sun[0] - R * Math.cos(ang), sun[1] - R * 0.38 * Math.sin(ang) * (S.orb ? 1 : 0)];
+  [[E1, 'E₁'], [E2, 'E₂']].forEach(([p, n]) => { c.fillStyle = '#7fb0ff'; c.font = 'bold 12px sans-serif'; c.fillText(n, p[0] + (p[0] < sun[0] ? -26 : 10), p[1] + 4); });
+  // 별의 겉보기 위치(배경 하늘): 과장 배율, 이동량 ∝ 연주 시차
+  const skyX = e => e[0] + (star[0] - e[0]) * (40 - e[1]) / (star[1] - e[1]);   // 지구 → 별 직선을 배경 하늘까지 연장
+  const s1 = skyX(E1), s2 = skyX(E2), sNow = skyX(E);
+  [[E1, s1, 'A₁'], [E2, s2, 'A₂']].forEach(([e, sx, n]) => { c.strokeStyle = 'rgba(200,210,240,.35)'; c.lineWidth = 1; c.setLineDash([4, 4]); c.beginPath(); c.moveTo(e[0], e[1]); c.lineTo(sx, 40); c.stroke(); c.setLineDash([]); c.fillStyle = 'rgba(255,140,120,.55)'; c.beginPath(); c.arc(sx, 40, 4, 0, 7); c.fill(); c.fillStyle = '#ffb3a6'; c.font = '11px sans-serif'; c.fillText(n, sx + 6, 36); });
+  c.strokeStyle = '#ffd36b'; c.lineWidth = 2; c.beginPath(); c.moveTo(E[0], E[1]); c.lineTo(sNow, 40); c.stroke();
+  c.fillStyle = '#ff6f5a'; c.beginPath(); c.arc(sNow, 40, 6, 0, 7); c.fill();
+  // 연주 시차 각 표시(∠S A E₂)
+  c.strokeStyle = 'rgba(255,255,255,.4)'; c.setLineDash([3, 3]); c.beginPath(); c.moveTo(sun[0], sun[1]); c.lineTo(star[0], star[1]); c.stroke(); c.setLineDash([]);
+  const a1 = Math.atan2(sun[1] - star[1], sun[0] - star[0]), a2 = Math.atan2(E2[1] - star[1], E2[0] - star[0]); c.fillStyle = 'rgba(255,211,107,.45)'; c.beginPath(); c.moveTo(star[0], star[1]); c.arc(star[0], star[1], 34, Math.min(a1, a2), Math.max(a1, a2)); c.fill();
+  c.fillStyle = '#ffd36b'; c.font = 'bold 12px sans-serif'; c.fillText('연주 시차', star[0] + 26, star[1] + 40);
+  // 별·지구
+  c.fillStyle = S.star === 'B' ? '#6fb6ff' : '#ff6f5a'; c.beginPath(); c.arc(star[0], star[1], 7, 0, 7); c.fill(); c.fillStyle = '#fff'; c.font = 'bold 13px sans-serif'; c.fillText(S.star === 'C' ? '별' : '별 ' + S.star, star[0] + 10, star[1] - 6);
+  c.fillStyle = '#4f8ff0'; c.beginPath(); c.arc(E[0], E[1], 7, 0, 7); c.fill(); c.fillStyle = '#9fd36b'; c.beginPath(); c.arc(E[0] - 2, E[1] - 2, 3, 0, 7); c.fill();
+  // 거리 막대
+  c.strokeStyle = '#a7aed0'; c.lineWidth = 1; c.beginPath(); c.moveTo(130, star[1]); c.lineTo(130, sun[1]); c.moveTo(124, star[1]); c.lineTo(136, star[1]); c.moveTo(124, sun[1]); c.lineTo(136, sun[1]); c.stroke();
+  c.fillStyle = '#e8ebf7'; c.font = 'bold 13px sans-serif'; c.save(); c.translate(118, (star[1] + sun[1]) / 2); c.rotate(-Math.PI / 2); c.textAlign = 'center'; c.fillText(`${S.pc} pc`, 0, 0); c.restore();
+  c.fillStyle = '#ffb36b'; c.font = 'bold 12px sans-serif'; c.fillText('※ 그림은 실제보다 크게 과장', 590, 410);
+}
+function ui2() {
+  $$('[data-star]').forEach(b => b.classList.toggle('on', b.dataset.star === S.star)); $$('[data-e]').forEach(b => b.classList.toggle('on', !S.orb && ((b.dataset.e === '1' && S.ePos === 0) || (b.dataset.e === '2' && S.ePos === 1)))); $('#orbBtn').classList.toggle('on', S.orb);
+  $('#pcTx').textContent = S.pc + ' pc'; $('#pcSl').value = S.pc;
+  const p = par(); $('#vPa').textContent = p.toFixed(p < 0.2 ? 2 : 2).replace(/0$/, '') + '″'; $('#vPa2').textContent = (2 * p).toFixed(2).replace(/0$/, '') + '″'; $('#vD').textContent = S.pc + ' pc';
+  const m = $('#msg2'), t = `이 별까지의 거리는 <b>${S.pc} pc</b>, 연주 시차는 1 ÷ ${S.pc} = <b>${(+p.toFixed(3))}″</b>이다. 지구가 E₁에서 E₂로 가는 동안 별은 배경 하늘의 A₁에서 A₂로 옮겨 보이며, 그 시차의 절반이 연주 시차다. ` +
+    (S.pc >= 4 ? '멀리 있는 별일수록 연주 시차가 작아 거의 움직이지 않는 것처럼 보인다.' : '거리를 멀리 하면 연주 시차가 어떻게 되는지 비교해 보세요. (연주 시차 1″ ↔ 1 pc)');
+  if (m.dataset.t !== t) { m.dataset.t = t; m.innerHTML = t; }
+}
+$$('[data-star]').forEach(b => b.onclick = () => { S.star = b.dataset.star; if (PRE[S.star]) S.pc = PRE[S.star]; ui2(); });
+$('#pcSl').oninput = e => { S.pc = +e.target.value; S.star = 'C'; ui2(); };
+$$('[data-e]').forEach(b => b.onclick = () => { S.orb = false; S.ePos = b.dataset.e === '1' ? 0 : 1; ui2(); });
+$('#orbBtn').onclick = () => { S.orb = !S.orb; if (!S.orb) S.ePos = Math.round(S.ePos % 2) % 2; ui2(); };
+/* ---------- 공통 ---------- */
+$$('nav button').forEach(x => x.onclick = () => { S.tab = x.dataset.tab; $$('nav button').forEach(y => y.classList.toggle('on', y === x)); $$('.pane').forEach(p => p.classList.toggle('on', p.id === S.tab)); });
+function start() { S = newState(); ui1(); ui2(); }
+$('#resetBtn').onclick = start;
+let last = performance.now(), bt = 0;
+function loop(ts) { const dt = Math.min(0.05, (ts - last) / 1000); last = ts;
+  if (S.blink) { bt += dt; if (bt > 0.8) { bt = 0; S.eye = S.eye === 'L' ? 'R' : 'L'; ui1(); } }
+  if (S.orb) { S.ePos = (S.ePos + dt * 0.4) % 2; }
+  if (S.tab === 't1') draw1(); else draw2(ts); requestAnimationFrame(loop); }
+start(); requestAnimationFrame(loop);
+// 테스트용
+window.__p1 = d => { S.d = d; ui1(); return { L: +nL(d).toFixed(2), R: +nR(d).toFixed(2), ang: +pAng(d).toFixed(2) }; };
+window.__p2 = pc => { S.pc = pc; S.star = 'C'; ui2(); return [$('#vPa').textContent, $('#vPa2').textContent]; };
+</script>
+</body>
+</html>

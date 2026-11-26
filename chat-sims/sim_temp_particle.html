@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<!-- 단원ID: temp_particle · 원본의 퀴즈 탭(정답 포함)은 빼고 웹앱 문제 패널에서 서버 채점 -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>온도와 입자 운동 시뮬레이터</title>
+<style>
+:root{
+  --bg:#0b1428; --panel:#111f3d; --line:#26406f;
+  --text:#e9effc; --muted:#9fb1d8; --hot:#ff6b5a; --cold:#5cc8ff; --accent:#3ad1b0; --gold:#ffb23e; --ok:#4fd18b;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);
+  font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;}
+header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:12px 18px;border-bottom:1px solid var(--line);
+  background:linear-gradient(90deg,#0d1a38,#123060);}
+header h1{font-size:21px;margin:0;letter-spacing:-0.5px}
+header h1 small{font-size:13px;color:var(--muted);font-weight:400;margin-left:8px}
+.tabs{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.tab{border:1px solid var(--line);background:var(--panel);color:var(--text);padding:8px 15px;border-radius:999px;cursor:pointer;font-size:15px;font-weight:600}
+.tab.on{background:var(--accent);color:#03261f;border-color:var(--accent)}
+.view{display:none}
+.view.on{display:block}
+.grid{padding:14px;display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:14px;max-width:1500px;margin:0 auto}
+@media (max-width:1000px){.grid{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.card h2{font-size:15px;margin:0;padding:10px 14px;background:#172b55;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.card h2 .sub{font-weight:400;color:var(--muted);font-size:13px}
+canvas{display:block;width:100%;touch-action:none}
+.col{display:flex;flex-direction:column;gap:14px}
+.controls{padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:#18346a;color:var(--text);padding:8px 12px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:600}
+.btn:hover{filter:brightness(1.2)}
+.btn:disabled{opacity:.45;cursor:default;filter:none}
+.btn.primary{background:var(--accent);color:#03261f;border-color:var(--accent)}
+.btn.hot{background:#6a1e16;border-color:#a33a2b;color:#ffd6cc}
+.btn.cold{background:#123f63;border-color:#2a6fa3;color:#d4efff}
+.btn.on{outline:2px solid var(--gold)}
+input[type=range]{width:100%;height:28px}
+input.r-cold{accent-color:var(--cold)} input.r-hot{accent-color:var(--hot)}
+.ticks{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:-4px;padding:0 2px}
+label.chk{display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;user-select:none}
+.note{font-size:13.5px;color:var(--muted);padding:10px 14px;border-top:1px solid var(--line);line-height:1.6}
+.note b{color:var(--text)}
+.box{background:#0a1532;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14.5px;line-height:1.7}
+.box.hot{border-color:#a33a2b;background:#2a0f12}
+.box.cold{border-color:#2a6fa3;background:#0d2238}
+.box.good{border-color:#2c8a5c;background:#0d2a1f}
+.hide{display:none!important}
+.prompt{padding:10px 12px;border-radius:10px;font-weight:700;font-size:15px;background:#3a2a06;border:1px solid #8a6210;color:#ffe1a0}
+.steps{margin:0;padding-left:20px;font-size:14.5px;line-height:1.8;color:var(--muted)}
+.steps li.cur{color:#fff;font-weight:700}
+.steps li.done{color:#6fd3a5}
+.stat{display:grid;grid-template-columns:90px 1fr 70px;gap:8px;align-items:center;font-size:14px}
+.bar{height:14px;background:#0a1532;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+.bar i{display:block;height:100%;width:0%}
+.lbl{font-size:13px;color:var(--muted)}
+.big{font-size:26px;font-weight:800;letter-spacing:-1px}
+.scenes{display:flex;gap:6px;flex-wrap:wrap}
+.scenes .btn{font-size:13.5px;padding:7px 10px}
+.quiz{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:12px;padding:14px}
+.q{background:#0a1532;border:1px solid var(--line);border-radius:12px;padding:12px}
+.q .qt{font-weight:700;margin-bottom:8px;line-height:1.6}
+.q .opts{display:flex;gap:6px;flex-wrap:wrap}
+.q .opt{border:1px solid var(--line);background:#152a55;color:var(--text);padding:7px 12px;border-radius:9px;cursor:pointer;font-size:14px;text-align:left;line-height:1.45}
+.q .opt.right{background:#145c3a;border-color:var(--ok)}
+.q .opt.wrong{background:#5c1b1b;border-color:#e05050}
+.q .exp{margin-top:8px;font-size:13.5px;color:#cfe0ff;display:none;line-height:1.6}
+.q .exp.show{display:block}
+.q canvas{border-radius:10px;margin:4px 0 8px;max-width:660px}
+.q .go{display:block;margin:0 0 8px;font-size:13.5px;background:none;border:none;color:var(--accent);cursor:pointer;padding:0;text-decoration:underline}
+.score{margin-left:auto;font-weight:700;color:var(--accent)}
+.full{grid-column:1/-1}
+textarea{width:100%;min-height:80px;background:#0a1532;color:var(--text);border:1px solid #2f4c86;border-radius:10px;padding:10px;font-size:15px;line-height:1.6;font-family:inherit}
+</style>
+</head>
+<body>
+<header>
+  <h1>🌡️ 온도와 입자 운동 <small>중학교 과학 Ⅲ. 열 · 1. 열의 이동 · 01 온도와 입자 운동</small></h1>
+  <div class="tabs">
+    <button class="tab" data-v="ink">① 잉크 퍼짐 실험</button>
+    <button class="tab" data-v="move">② 온도와 입자 운동</button>
+    <button class="tab" data-v="life">③ 생활 속 예시</button>
+  </div>
+</header>
+
+<!-- ① 잉크 퍼짐 -->
+<section class="view" id="v-ink">
+  <div class="grid">
+    <div class="card">
+      <h2>해 보기 · 온도가 다른 물 입자의 운동 표현하기 <span class="sub">찬물과 뜨거운 물에 잉크를 동시에 떨어뜨려 보자</span></h2>
+      <canvas id="cInk" width="860" height="440"></canvas>
+      <div class="note">돋보기 원은 물 입자를 크게 확대한 모습입니다. <b>뜨거운 물 쪽 돋보기</b>는 실험을 마친 뒤 직접 예상해 보고 눌러서 확인하세요.
+        (입자 모형은 공 모양, 운동의 활발한 정도는 물결선 <b>)))</b> 개수로 나타냅니다.)</div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h2>실험 순서</h2>
+        <div class="controls">
+          <ol class="steps" id="inkSteps">
+            <li>잉크가 어느 쪽에서 더 빨리 퍼질지 예상한다.</li>
+            <li>찬물과 뜨거운 물에 잉크를 동시에 떨어뜨린다.</li>
+            <li>잉크가 퍼지는 모습을 관찰한다.</li>
+            <li>퍼지는 정도가 다른 까닭을 생각한다.</li>
+          </ol>
+          <div class="prompt" id="inkPrompt">❓ 잉크는 어느 쪽에서 더 빨리 퍼질까요?</div>
+          <div class="row" id="predRow">
+            <button class="btn cold" data-p="cold">찬물</button>
+            <button class="btn hot" data-p="hot">뜨거운 물</button>
+            <button class="btn" data-p="same">비슷하다</button>
+          </div>
+          <div class="row">
+            <button class="btn primary" id="btnDrop">💧 잉크 동시에 떨어뜨리기</button>
+            <button class="btn" id="btnInkPause" disabled>⏸ 일시정지</button>
+            <button class="btn" id="btnInkReset">↺ 다시 하기</button>
+          </div>
+          <div class="row"><span class="lbl">빠르기</span>
+            <button class="btn spd on" data-s="1">1×</button>
+            <button class="btn spd" data-s="2">2×</button>
+            <button class="btn spd" data-s="4">4×</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>물의 온도 설정 <span class="sub">준비물: 찬물(약 10 ℃), 뜨거운 물(약 60 ℃)</span></h2>
+        <div class="controls">
+          <div><div class="row"><span>찬물</span><b id="tColdV" style="color:var(--cold)">10 ℃</b></div>
+            <input type="range" class="r-cold" id="tCold" min="2" max="30" value="10"></div>
+          <div><div class="row"><span>뜨거운 물</span><b id="tHotV" style="color:var(--hot)">60 ℃</b></div>
+            <input type="range" class="r-hot" id="tHot" min="40" max="90" value="60"></div>
+          <div class="lbl">⚠️ 실제 실험에서는 뜨거운 물로 화상을 입지 않도록 내열 장갑을 낀다.</div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>관찰 결과 <span class="sub" id="inkTime">경과 시간 0.0초</span></h2>
+        <div class="controls">
+          <div class="stat"><span>찬물</span><div class="bar"><i id="barCold" style="background:var(--cold)"></i></div><b id="dCold">-</b></div>
+          <div class="stat"><span>뜨거운 물</span><div class="bar"><i id="barHot" style="background:var(--hot)"></i></div><b id="dHot">-</b></div>
+          <div class="lbl">막대: 잉크가 퍼진 지름(접시 지름 90 mm 기준)</div>
+          <div class="box" id="inkResult" style="display:none"></div>
+          <button class="btn hide" id="btnWhy">💡 까닭 알아보기</button>
+          <div class="box good hide" id="inkWhy">
+            찬물에서는 잉크가 <b>천천히</b>, 뜨거운 물에서는 <b>빨리</b> 퍼진다.<br>
+            물이 차가울 때는 물 입자가 <b>둔하게</b> 움직이지만, 뜨거울 때는 물 입자가 <b>활발하게</b> 움직여 잉크 입자와 잘 섞이기 때문이다.<br>
+            ➜ 온도가 높을수록 물질을 구성하는 입자의 운동이 활발하다.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ② 온도와 입자 운동 -->
+<section class="view" id="v-move">
+  <div class="grid">
+    <div class="card">
+      <h2>온도에 따른 물 입자의 운동 <span class="sub">두 비커의 온도를 바꾸며 비교해 보자</span></h2>
+      <canvas id="cMove" width="860" height="500"></canvas>
+      <div class="note">입자의 움직임은 눈으로 비교하기 쉽도록 <b>실제보다 빠르기 차이를 크게</b> 나타냈습니다. 온도가 달라져도 <b>입자의 크기와 개수는 변하지 않고</b>, 운동의 활발한 정도만 달라집니다.</div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h2>온도 조절</h2>
+        <div class="controls">
+          <div><div class="row"><span>비커 A</span><b id="mAV" style="color:var(--cold)">20 ℃</b><span class="lbl" id="mAL"></span></div>
+            <input type="range" class="r-cold" id="mA" min="0" max="100" value="20">
+            <div class="ticks"><span>0</span><span>25</span><span>50</span><span>75</span><span>100 ℃</span></div></div>
+          <div><div class="row"><span>비커 B</span><b id="mBV" style="color:var(--hot)">80 ℃</b><span class="lbl" id="mBL"></span></div>
+            <input type="range" class="r-hot" id="mB" min="0" max="100" value="80">
+            <div class="ticks"><span>0</span><span>25</span><span>50</span><span>75</span><span>100 ℃</span></div></div>
+          <div class="row">
+            <button class="btn cold" id="mCool">❄️ B 식히기</button>
+            <button class="btn hot" id="mHeat">🔥 B 가열하기</button>
+            <button class="btn" id="mStop">■ 멈춤</button>
+          </div>
+          <div class="row">
+            <label class="chk"><input type="checkbox" id="mWave" checked> 물결선 ))) 표시</label>
+            <label class="chk"><input type="checkbox" id="mTrail"> 입자 하나 따라가기</label>
+            <label class="chk"><input type="checkbox" id="mPause"> 일시정지</label>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>활발한 정도 비교</h2>
+        <div class="controls">
+          <div class="stat"><span>비커 A</span><div class="bar"><i id="sA" style="background:var(--cold)"></i></div><b id="sAt">-</b></div>
+          <div class="stat"><span>비커 B</span><div class="bar"><i id="sB" style="background:var(--hot)"></i></div><b id="sBt">-</b></div>
+          <div class="box" id="mSum"></div>
+          <div class="box good">
+            <b>온도</b>는 물질을 구성하는 입자의 운동이 활발한 정도를 나타낸 것으로, 단위로는 <b>℃(섭씨도)</b> 등을 사용한다.<br>
+            · 온도가 낮다 ➜ 입자 운동이 둔하다<br>· 온도가 높다 ➜ 입자 운동이 활발하다
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ③ 생활 속 예시 -->
+<section class="view" id="v-life">
+  <div class="grid">
+    <div class="card">
+      <h2>생활 속 물체의 입자 운동 비교 <span class="sub">두 물체를 골라 입자 운동을 비교해 보자</span></h2>
+      <canvas id="cLife" width="860" height="440"></canvas>
+      <div class="controls">
+        <div class="row"><b style="color:var(--cold);min-width:22px">왼쪽</b><div class="scenes" id="sceneL"></div></div>
+        <div class="row"><b style="color:var(--hot);min-width:22px">오른쪽</b><div class="scenes" id="sceneR"></div></div>
+        <div class="box" id="lifeSum"></div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h2>과학 창의성 · 보온병만으로 물의 온도 높이기</h2>
+        <canvas id="cBottle" width="460" height="380"></canvas>
+        <div class="controls">
+          <div class="lbl">물이 담긴 컵과 보온병이 있다. 보온병만 활용하여 물의 온도를 높일 수 있는 방법은? 아래 버튼을 누르거나 보온병을 마우스(손가락)로 위아래로 흔들어 보자.</div>
+          <div class="row">
+            <button class="btn hot" id="btnShake">🤲 보온병 흔들기</button>
+            <button class="btn" id="btnBottleReset">↺ 처음으로</button>
+          </div>
+          <div class="box" id="bottleMsg">흔든 횟수: 0회</div>
+          <div class="lbl">※ 실제로는 아주 많이 흔들어야 1 ℃ 정도 오르므로, 여기서는 변화를 크게 나타냈습니다.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+"use strict";
+/* ========== 공통 유틸 ========== */
+const DPR = Math.min(2, window.devicePixelRatio || 1);
+function setupCanvas(cv){
+  const W = cv.width, H = cv.height;
+  cv.width = W*DPR; cv.height = H*DPR;
+  const ctx = cv.getContext('2d');
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  cv._W = W; cv._H = H;
+  return ctx;
+}
+function toLogical(cv, e){
+  const r = cv.getBoundingClientRect();
+  return { x:(e.clientX-r.left)*cv._W/r.width, y:(e.clientY-r.top)*cv._H/r.height };
+}
+const $ = id => document.getElementById(id);
+const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp = (a,b,t)=>a+(b-a)*t;
+function mixColor(c1,c2,t){
+  const a=parseInt(c1.slice(1),16), b=parseInt(c2.slice(1),16);
+  const r=Math.round(lerp(a>>16,b>>16,t)), g=Math.round(lerp((a>>8)&255,(b>>8)&255,t)), bl=Math.round(lerp(a&255,b&255,t));
+  return `rgb(${r},${g},${bl})`;
+}
+function waterTint(T){ return mixColor('#dcefff','#ffe2dc', clamp(T/100,0,1)); }
+/* 교과서식 물결선 개수: 온도가 높을수록 많다 */
+function waveCount(T){ return T<20?1 : T<50?2 : T<80?3 : 4; }
+function activityWord(T){ return T<20?'둔함' : T<50?'보통' : T<80?'활발함' : '매우 활발함'; }
+/* 화면에서 보이는 입자 빠르기(상자 폭/초) — 차이를 과장해 표현 */
+function visSpeed(T){ return 0.035 + 0.0052*clamp(T,0,110); }
+
+/* ========== 입자 상자 ========== */
+class PBox{
+  constructor(n, T, opt={}){
+    this.T=T; this.r=opt.r||0.075; this.shape=opt.shape||'circle';
+    this.p=[]; this.trail=[];
+    const r=this.r; let tries=0;
+    while(this.p.length<n && tries<5000){
+      tries++;
+      const x=r+Math.random()*(1-2*r), y=r+Math.random()*(1-2*r);
+      if(this.shape==='circle' && Math.hypot(x-.5,y-.5)>.5-r) continue;
+      if(this.p.some(q=>Math.hypot(q.x-x,q.y-y)<2.1*r)) continue;
+      const a=Math.random()*Math.PI*2, s=visSpeed(T)*(0.6+Math.random()*0.8);
+      this.p.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,ink:false});
+    }
+  }
+  setT(T){ this.T=T; }
+  addInk(k){ const idx=[...this.p.keys()].sort(()=>Math.random()-.5); for(let i=0;i<k&&i<idx.length;i++) this.p[idx[i]].ink=true; }
+  clearInk(){ this.p.forEach(q=>q.ink=false); }
+  step(dt){
+    dt=Math.min(dt,0.05);
+    const sub=3, h=dt/sub, r=this.r, P=this.p, n=P.length;
+    for(let s=0;s<sub;s++){
+      for(const q of P){
+        q.x+=q.vx*h; q.y+=q.vy*h;
+        if(this.shape==='circle'){
+          const dx=q.x-.5, dy=q.y-.5, d=Math.hypot(dx,dy), lim=.5-r;
+          if(d>lim){ const nx=dx/d, ny=dy/d, vn=q.vx*nx+q.vy*ny;
+            if(vn>0){ q.vx-=2*vn*nx; q.vy-=2*vn*ny; }
+            q.x=.5+nx*lim; q.y=.5+ny*lim; }
+        }else{
+          if(q.x<r){q.x=r;q.vx=Math.abs(q.vx);} if(q.x>1-r){q.x=1-r;q.vx=-Math.abs(q.vx);}
+          if(q.y<r){q.y=r;q.vy=Math.abs(q.vy);} if(q.y>1-r){q.y=1-r;q.vy=-Math.abs(q.vy);}
+        }
+      }
+      for(let i=0;i<n;i++) for(let j=i+1;j<n;j++){
+        const a=P[i], b=P[j], dx=b.x-a.x, dy=b.y-a.y, d2=dx*dx+dy*dy, md=2*r;
+        if(d2<md*md && d2>1e-12){
+          const d=Math.sqrt(d2), nx=dx/d, ny=dy/d;
+          const rel=(b.vx-a.vx)*nx+(b.vy-a.vy)*ny;
+          if(rel<0){ a.vx+=rel*nx; a.vy+=rel*ny; b.vx-=rel*nx; b.vy-=rel*ny; }
+          const ov=(md-d)/2; a.x-=nx*ov; a.y-=ny*ov; b.x+=nx*ov; b.y+=ny*ov;
+        }
+      }
+    }
+    // 온도에 맞게 평균 운동 에너지를 서서히 맞춘다
+    let m=0; for(const q of P) m+=q.vx*q.vx+q.vy*q.vy; m/=Math.max(1,n);
+    const target=visSpeed(this.T);
+    if(m>1e-9){ const f=1+(target/Math.sqrt(m)-1)*Math.min(1,dt*4); for(const q of P){q.vx*=f;q.vy*=f;} }
+    else for(const q of P){const a=Math.random()*6.28;q.vx=Math.cos(a)*target;q.vy=Math.sin(a)*target;}
+    if(this.track){ const q=P[0]; this.trail.push([q.x,q.y]); if(this.trail.length>160) this.trail.shift(); }
+  }
+  meanSpeed(){ let m=0; for(const q of this.p) m+=Math.hypot(q.vx,q.vy); return m/Math.max(1,this.p.length); }
+  /* (x,y): 영역 왼쪽 위, w,h: 영역 크기 */
+  draw(ctx,x,y,w,h,o={}){
+    ctx.save();
+    if(this.shape==='circle'){ ctx.beginPath(); ctx.arc(x+w/2,y+h/2,w/2,0,Math.PI*2); ctx.clip(); }
+    else { ctx.beginPath(); ctx.rect(x,y,w,h); ctx.clip(); }
+    if(o.bg){ ctx.fillStyle=o.bg; ctx.fillRect(x,y,w,h); }
+    if(this.track && this.trail.length>1){
+      ctx.strokeStyle='rgba(255,180,40,.85)'; ctx.lineWidth=2; ctx.beginPath();
+      this.trail.forEach((t,i)=>{ const px=x+t[0]*w, py=y+t[1]*h; i?ctx.lineTo(px,py):ctx.moveTo(px,py); }); ctx.stroke();
+    }
+    const R=this.r*w, nw=waveCount(this.T);
+    this.p.forEach((q,i)=>{
+      const px=x+q.x*w, py=y+q.y*h;
+      if(o.waves!==false){
+        const ang=Math.atan2(-q.vy,-q.vx);
+        ctx.strokeStyle=q.ink?'rgba(40,80,200,.75)':'rgba(30,120,125,.7)'; ctx.lineWidth=Math.max(1.2,R*0.11);
+        for(let k=0;k<nw;k++){ ctx.beginPath(); ctx.arc(px,py,R*(1.28+k*0.32),ang-0.85,ang+0.85); ctx.stroke(); }
+      }
+      const g=ctx.createRadialGradient(px-R*.35,py-R*.4,R*.1,px,py,R);
+      if(q.ink){ g.addColorStop(0,'#9fb7ff'); g.addColorStop(.55,'#2d55d6'); g.addColorStop(1,'#152c86'); }
+      else { g.addColorStop(0,'#b9f3ee'); g.addColorStop(.55,'#3fb7b5'); g.addColorStop(1,'#1c7b80'); }
+      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(px,py,R,0,Math.PI*2); ctx.fill();
+      if(this.track && i===0){ ctx.strokeStyle='#ffb23e'; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(px,py,R+2,0,Math.PI*2); ctx.stroke(); }
+    });
+    ctx.restore();
+    if(this.shape==='circle' && o.ring!==false){
+      ctx.strokeStyle=o.ring||'rgba(255,255,255,.9)'; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(x+w/2,y+h/2,w/2,0,Math.PI*2); ctx.stroke();
+    }
+  }
+}
+function drawThermo(ctx,x,y,h,T,lo=0,hi=100){
+  const w=14, bulb=13;
+  ctx.save();
+  ctx.fillStyle='#f4f7ff'; ctx.strokeStyle='#8aa0c8'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.roundRect(x-w/2,y,w,h,7); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.arc(x,y+h+bulb-4,bulb,0,Math.PI*2); ctx.fill(); ctx.stroke();
+  const col=mixColor('#3a8dff','#ff4b3a',clamp((T-lo)/(hi-lo),0,1));
+  const fh=clamp((T-lo)/(hi-lo),0,1)*(h-10);
+  ctx.fillStyle=col;
+  ctx.beginPath(); ctx.arc(x,y+h+bulb-4,bulb-4,0,Math.PI*2); ctx.fill();
+  ctx.fillRect(x-3,y+h-fh-2,6,fh+8);
+  ctx.fillStyle='#9fb1d8'; ctx.font='11px sans-serif'; ctx.textAlign='left';
+  for(let t=lo;t<=hi;t+=(hi-lo)/4){ const ty=y+h-2-(t-lo)/(hi-lo)*(h-10); ctx.fillRect(x+w/2,ty,5,1.5); }
+  ctx.restore();
+}
+function pill(ctx,x,y,text,bg,fg='#fff',fs=17){
+  ctx.save(); ctx.font=`bold ${fs}px sans-serif`;
+  const tw=ctx.measureText(text).width+26, th=fs+14;
+  ctx.fillStyle=bg; ctx.beginPath(); ctx.roundRect(x-tw/2,y-th/2,tw,th,10); ctx.fill();
+  ctx.fillStyle=fg; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(text,x,y+1);
+  ctx.restore();
+}
+if(!CanvasRenderingContext2D.prototype.roundRect){
+  CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){ this.moveTo(x+r,y); this.arcTo(x+w,y,x+w,y+h,r); this.arcTo(x+w,y+h,x,y+h,r); this.arcTo(x,y+h,x,y,r); this.arcTo(x,y,x+w,y,r); this.closePath(); };
+}
+
+/* ========== 탭 ========== */
+let curTab='ink';
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>showTab(b.dataset.v));
+function showTab(v){
+  curTab=v;
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  document.querySelectorAll('.view').forEach(s=>s.classList.toggle('on',s.id==='v-'+v));
+}
+
+/* ========== ① 잉크 퍼짐 ========== */
+const cInk=$('cInk'), xInk=setupCanvas(cInk);
+const N_INK=1800;
+const sprite=(()=>{ const c=document.createElement('canvas'); c.width=c.height=24; const g=c.getContext('2d');
+  const gr=g.createRadialGradient(12,12,0,12,12,12); gr.addColorStop(0,'rgba(8,40,160,1)'); gr.addColorStop(.5,'rgba(20,70,200,.55)'); gr.addColorStop(1,'rgba(40,110,230,0)');
+  g.fillStyle=gr; g.fillRect(0,0,24,24); return c; })();
+class Dish{
+  constructor(cx,cy,R,T){ this.cx=cx; this.cy=cy; this.R=R; this.T=T; this.x=new Float32Array(N_INK); this.y=new Float32Array(N_INK); this.on=false;
+    this.ph1=Math.random()*6; this.ph2=Math.random()*6; this.t=0; }
+  drop(){ const ox=(Math.random()-.5)*10, oy=(Math.random()-.5)*10;
+    for(let i=0;i<N_INK;i++){ const a=Math.random()*6.283, r=Math.sqrt(-2*Math.log(Math.random()+1e-9))*3.5;
+      this.x[i]=this.cx+ox+Math.cos(a)*r; this.y[i]=this.cy+oy+Math.sin(a)*r; }
+    this.on=true; this.t=0; }
+  step(){ // 1단계 = 1/60초
+    if(!this.on) return;
+    this.t+=1/60;
+    const T=this.T, sig=0.25+T*0.018, A=0.02+T*0.0025, lim=this.R-6, cx=this.cx, cy=this.cy, t=this.t;
+    for(let i=0;i<N_INK;i++){
+      let x=this.x[i], y=this.y[i];
+      const g1=(Math.random()+Math.random()+Math.random()-1.5)*2, g2=(Math.random()+Math.random()+Math.random()-1.5)*2;
+      x+=g1*sig + A*Math.sin(0.045*(y-cy)+this.ph1+t*0.6);
+      y+=g2*sig + A*Math.cos(0.05*(x-cx)+this.ph2+t*0.5);
+      const dx=x-cx, dy=y-cy, d=Math.hypot(dx,dy);
+      if(d>lim){ const k=(2*lim-d)/d; x=cx+dx*k; y=cy+dy*k; }
+      this.x[i]=x; this.y[i]=y;
+    }
+  }
+  spreadMM(){ if(!this.on) return 0; let mx=0,my=0; for(let i=0;i<N_INK;i++){mx+=this.x[i];my+=this.y[i];} mx/=N_INK; my/=N_INK;
+    let s=0; for(let i=0;i<N_INK;i++){ const dx=this.x[i]-mx, dy=this.y[i]-my; s+=dx*dx+dy*dy; }
+    const rms=Math.sqrt(s/N_INK); return Math.min(90, 2*rms*1.2*90/(2*this.R)); }
+  draw(ctx,label,col){
+    const {cx,cy,R}=this;
+    ctx.save();
+    ctx.fillStyle='rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(cx+6,cy+10,R+14,R+12,0,0,Math.PI*2); ctx.fill();
+    const gl=ctx.createRadialGradient(cx-R*.3,cy-R*.3,R*.2,cx,cy,R+14);
+    gl.addColorStop(0,'#ffffff'); gl.addColorStop(.85,'#e3edf5'); gl.addColorStop(1,'#b9cad8');
+    ctx.fillStyle=gl; ctx.beginPath(); ctx.arc(cx,cy,R+12,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle=this.T>35?'#fbf3f1':'#eef6fb'; ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle='rgba(150,175,200,.8)'; ctx.lineWidth=2; ctx.stroke();
+    if(this.on){
+      ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2); ctx.clip();
+      ctx.globalCompositeOperation='multiply'; ctx.globalAlpha=0.085;
+      for(let i=0;i<N_INK;i++) ctx.drawImage(sprite,this.x[i]-12,this.y[i]-12);
+      ctx.globalAlpha=1; ctx.globalCompositeOperation='source-over';
+    }
+    ctx.restore();
+    ctx.save(); ctx.strokeStyle='rgba(255,255,255,.7)'; ctx.lineWidth=4; ctx.beginPath(); ctx.arc(cx,cy,R+7,Math.PI*1.1,Math.PI*1.45); ctx.stroke(); ctx.restore();
+    pill(ctx,cx+R*0.62,cy+R+6,label,col);
+  }
+}
+const dCold=new Dish(295,212,118,10), dHot=new Dish(565,212,118,60);
+const magCold=new PBox(13,10,{r:0.085}), magHot=new PBox(13,60,{r:0.085});
+const ink={running:false,paused:false,speed:1,time:0,pred:null,revealed:false,done:false};
+const MAG_R=72, magPos={cold:{x:84,y:196}, hot:{x:860-84,y:196}};
+function inkUpdateLabels(){ $('tColdV').textContent=dCold.T+' ℃'; $('tHotV').textContent=dHot.T+' ℃'; }
+$('tCold').oninput=e=>{ dCold.T=+e.target.value; magCold.setT(dCold.T); inkUpdateLabels(); };
+$('tHot').oninput=e=>{ dHot.T=+e.target.value; magHot.setT(dHot.T); inkUpdateLabels(); };
+function setStep(k){ document.querySelectorAll('#inkSteps li').forEach((li,i)=>{ li.className=i<k?'done':(i===k?'cur':''); }); }
+setStep(0);
+document.querySelectorAll('#predRow .btn').forEach(b=>b.onclick=()=>{
+  if(ink.running||ink.done) return;
+  ink.pred=b.dataset.p;
+  document.querySelectorAll('#predRow .btn').forEach(x=>x.classList.toggle('on',x===b));
+  $('inkPrompt').textContent='✅ 예상: '+b.textContent+' — 이제 잉크를 떨어뜨려 확인해 보자!';
+  setStep(1);
+});
+document.querySelectorAll('.spd').forEach(b=>b.onclick=()=>{ ink.speed=+b.dataset.s; document.querySelectorAll('.spd').forEach(x=>x.classList.toggle('on',x===b)); });
+$('btnDrop').onclick=()=>{
+  dCold.drop(); dHot.drop(); magCold.clearInk(); magHot.clearInk(); magCold.addInk(2); magHot.addInk(2);
+  ink.running=true; ink.paused=false; ink.time=0; ink.done=false;
+  $('btnDrop').disabled=true; $('btnInkPause').disabled=false; $('btnInkPause').textContent='⏸ 일시정지';
+  $('tCold').disabled=$('tHot').disabled=true;
+  $('inkPrompt').textContent='👀 두 접시에서 잉크가 퍼지는 모습을 비교해 보자.'; setStep(2);
+  $('inkResult').style.display='none'; $('btnWhy').classList.add('hide'); $('inkWhy').classList.add('hide');
+};
+$('btnInkPause').onclick=()=>{ ink.paused=!ink.paused; $('btnInkPause').textContent=ink.paused?'▶ 계속':'⏸ 일시정지'; };
+$('btnInkReset').onclick=()=>{
+  dCold.on=dHot.on=false; magCold.clearInk(); magHot.clearInk();
+  Object.assign(ink,{running:false,paused:false,time:0,pred:null,revealed:false,done:false});
+  $('btnDrop').disabled=false; $('btnInkPause').disabled=true; $('tCold').disabled=$('tHot').disabled=false;
+  document.querySelectorAll('#predRow .btn').forEach(x=>x.classList.remove('on'));
+  $('inkPrompt').textContent='❓ 잉크는 어느 쪽에서 더 빨리 퍼질까요?'; setStep(0);
+  $('inkResult').style.display='none'; $('btnWhy').classList.add('hide'); $('inkWhy').classList.add('hide');
+  $('inkTime').textContent='경과 시간 0.0초'; ['barCold','barHot'].forEach(i=>$(i).style.width='0%'); $('dCold').textContent=$('dHot').textContent='-';
+};
+$('btnWhy').onclick=()=>{ $('inkWhy').classList.remove('hide'); $('btnWhy').classList.add('hide'); setStep(4); ink.revealed=true; };
+cInk.addEventListener('pointerdown',e=>{
+  const p=toLogical(cInk,e);
+  if(Math.hypot(p.x-magPos.hot.x,p.y-magPos.hot.y)<MAG_R+6) ink.revealed=!ink.revealed;
+});
+function finishInk(){
+  ink.done=true; ink.running=false; $('btnInkPause').disabled=true;
+  const c=dCold.spreadMM(), h=dHot.spreadMM();
+  let msg=`약 ${ink.time.toFixed(0)}초 동안 찬물(${dCold.T} ℃)에서는 잉크가 지름 약 <b>${c.toFixed(0)} mm</b>, 뜨거운 물(${dHot.T} ℃)에서는 약 <b>${h.toFixed(0)} mm</b>까지 퍼졌다.<br>`;
+  msg+= h>c ? '➜ <b style="color:var(--hot)">뜨거운 물</b>에서 잉크가 더 빨리 퍼졌다.' : '➜ 두 물의 온도 차이가 작아 퍼지는 정도가 비슷하다.';
+  if(ink.pred){ const right=(ink.pred==='hot'&&h>c); msg+='<br>'+(right?'🎉 예상이 맞았어요!':'🤔 예상과 결과를 비교해 보자.'); }
+  $('inkResult').innerHTML=msg; $('inkResult').style.display='block';
+  $('btnWhy').classList.remove('hide'); setStep(3);
+  $('inkPrompt').textContent='❓ 물의 온도에 따라 잉크가 퍼지는 정도가 다른 까닭은? 뜨거운 물 돋보기를 눌러 예상과 비교해 보자.';
+}
+function inkFrame(dt){
+  if(ink.running && !ink.paused){
+    const steps=Math.round(dt*60*ink.speed);
+    for(let s=0;s<steps;s++){ dCold.step(); dHot.step(); }
+    ink.time+=dt*ink.speed;
+    if(ink.time>=40) finishInk();
+  }
+  if(!ink.paused){ magCold.step(dt); magHot.step(dt); }
+  // 표시
+  if(dCold.on){
+    const c=dCold.spreadMM(), h=dHot.spreadMM();
+    $('barCold').style.width=(c/90*100)+'%'; $('barHot').style.width=(h/90*100)+'%';
+    $('dCold').textContent=c.toFixed(0)+' mm'; $('dHot').textContent=h.toFixed(0)+' mm';
+    $('inkTime').textContent='경과 시간 '+ink.time.toFixed(1)+'초 / 40초';
+  }
+  const ctx=xInk, W=cInk._W, H=cInk._H;
+  ctx.clearRect(0,0,W,H);
+  const bg=ctx.createLinearGradient(0,0,0,H); bg.addColorStop(0,'#1a2d55'); bg.addColorStop(1,'#0e1b38'); ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+  dCold.draw(ctx,`찬물 ${dCold.T} ℃`,'#2a74d8');
+  dHot.draw(ctx,`뜨거운 물 ${dHot.T} ℃`,'#d8323a');
+  // 돋보기
+  [['cold',dCold,magCold],['hot',dHot,magHot]].forEach(([k,d,m])=>{
+    const mp=magPos[k], sx=d.cx+(k==='cold'?-62:62), sy=d.cy-30;
+    ctx.save(); ctx.strokeStyle='rgba(255,255,255,.65)'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(sx,sy); ctx.lineTo(mp.x+(k==='cold'?MAG_R:-MAG_R),mp.y); ctx.stroke();
+    ctx.strokeStyle='#ff3b3b'; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(sx,sy,10,0,Math.PI*2); ctx.stroke(); ctx.restore();
+    if(k==='hot' && !ink.revealed){
+      ctx.save(); ctx.fillStyle='#ffffff'; ctx.beginPath(); ctx.arc(mp.x,mp.y,MAG_R,0,Math.PI*2); ctx.fill();
+      ctx.strokeStyle='#c9d6e8'; ctx.lineWidth=3; ctx.stroke();
+      ctx.fillStyle='#d8323a'; ctx.font='bold 40px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('?',mp.x,mp.y-10);
+      ctx.fillStyle='#55657f'; ctx.font='13px sans-serif'; ctx.fillText('눌러서 확인',mp.x,mp.y+24); ctx.restore();
+    } else {
+      m.draw(ctx,mp.x-MAG_R,mp.y-MAG_R,MAG_R*2,MAG_R*2,{bg:waterTint(d.T)});
+    }
+    ctx.save(); ctx.fillStyle='#dfe8ff'; ctx.font='13px sans-serif'; ctx.textAlign='center';
+    ctx.fillText(k==='cold'?'찬물 속 물 입자':'뜨거운 물 속 물 입자',mp.x,mp.y+MAG_R+18); ctx.restore();
+  });
+  if(!dCold.on){
+    ctx.save(); ctx.fillStyle='rgba(255,255,255,.85)'; ctx.font='bold 17px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('잉크를 떨어뜨리기 전',W/2,30); ctx.restore();
+  }
+}
+
+/* ========== ② 온도와 입자 운동 ========== */
+const cMove=$('cMove'), xMove=setupCanvas(cMove);
+const bxA=new PBox(22,20,{shape:'rect',r:0.055}), bxB=new PBox(22,80,{shape:'rect',r:0.055});
+const mv={A:20,B:80,ramp:0,paused:false,waves:true};
+function mvLabels(){
+  $('mAV').textContent=Math.round(mv.A)+' ℃'; $('mBV').textContent=Math.round(mv.B)+' ℃';
+  $('mAL').textContent='입자 운동: '+activityWord(mv.A); $('mBL').textContent='입자 운동: '+activityWord(mv.B);
+  const d=mv.B-mv.A;
+  $('mSum').innerHTML = Math.abs(d)<3 ? '두 비커의 온도가 거의 같아 입자 운동의 활발한 정도도 비슷하다.'
+    : `<b>비커 ${d>0?'B':'A'}</b>(${Math.round(Math.max(mv.A,mv.B))} ℃)의 온도가 더 높으므로 물 입자의 운동이 더 <b>활발</b>하다.<br>비커 ${d>0?'A':'B'}(${Math.round(Math.min(mv.A,mv.B))} ℃)의 물 입자는 상대적으로 <b>둔하게</b> 움직인다.`;
+}
+$('mA').oninput=e=>{ mv.A=+e.target.value; bxA.setT(mv.A); mvLabels(); };
+$('mB').oninput=e=>{ mv.B=+e.target.value; mv.ramp=0; bxB.setT(mv.B); mvLabels(); };
+$('mHeat').onclick=()=>mv.ramp=12; $('mCool').onclick=()=>mv.ramp=-12; $('mStop').onclick=()=>mv.ramp=0;
+$('mWave').onchange=e=>mv.waves=e.target.checked;
+$('mTrail').onchange=e=>{ bxA.track=bxB.track=e.target.checked; bxA.trail=[]; bxB.trail=[]; };
+$('mPause').onchange=e=>mv.paused=e.target.checked;
+mvLabels();
+function drawBeaker(ctx,x,y,w,h,T,box,name){
+  const wy=y+h*0.12, wh=h*0.88;
+  ctx.save();
+  ctx.fillStyle=waterTint(T); ctx.fillRect(x,wy,w,wh);
+  box.draw(ctx,x,wy,w,wh,{waves:mv.waves});
+  ctx.strokeStyle='rgba(220,235,255,.9)'; ctx.lineWidth=4;
+  ctx.beginPath(); ctx.moveTo(x-10,y-6); ctx.lineTo(x,y); ctx.lineTo(x,y+h); ctx.lineTo(x+w,y+h); ctx.lineTo(x+w,y); ctx.stroke();
+  ctx.strokeStyle='rgba(220,235,255,.5)'; ctx.lineWidth=1.5;
+  for(let i=1;i<=4;i++){ const ly=y+h-i*h/5; ctx.beginPath(); ctx.moveTo(x,ly); ctx.lineTo(x+18,ly); ctx.stroke(); }
+  ctx.restore();
+  drawThermo(ctx,x+w+30,y+10,h-40,T);
+  ctx.save(); ctx.fillStyle='#fff'; ctx.font='bold 18px sans-serif'; ctx.textAlign='center';
+  ctx.fillText(`${name}  ${Math.round(T)} ℃`,x+w/2,y-18);
+  ctx.fillStyle='#9fb1d8'; ctx.font='14px sans-serif'; ctx.fillText('입자 운동: '+activityWord(T),x+w/2,y+h+26); ctx.restore();
+}
+function moveFrame(dt){
+  if(mv.ramp){ mv.B=clamp(mv.B+mv.ramp*dt,0,100); if(mv.B===0||mv.B===100) mv.ramp=0; $('mB').value=Math.round(mv.B); bxB.setT(mv.B); mvLabels(); }
+  if(!mv.paused){ bxA.step(dt); bxB.step(dt); }
+  const ctx=xMove, W=cMove._W, H=cMove._H;
+  ctx.fillStyle='#0f1d3c'; ctx.fillRect(0,0,W,H);
+  drawBeaker(ctx,40,60,320,380,mv.A,bxA,'비커 A');
+  drawBeaker(ctx,460,60,320,380,mv.B,bxB,'비커 B');
+  const sa=bxA.meanSpeed(), sb=bxB.meanSpeed(), mx=visSpeed(100);
+  $('sA').style.width=clamp(sa/mx*100,0,100)+'%'; $('sB').style.width=clamp(sb/mx*100,0,100)+'%';
+  $('sAt').textContent=activityWord(mv.A); $('sBt').textContent=activityWord(mv.B);
+}
+
+/* ========== ③ 생활 속 예시 ========== */
+const SCENES=[
+  {e:'🧊',n:'얼음물',T:2},{e:'🥛',n:'냉장고 속 우유',T:4},{e:'🧃',n:'시원한 주스',T:8},{e:'🚰',n:'수돗물',T:15},
+  {e:'🛁',n:'따뜻한 목욕물',T:40},{e:'☕',n:'따뜻한 코코아',T:60},{e:'🍵',n:'뜨거운 차',T:85},{e:'🍜',n:'끓는 국물',T:100}
+];
+const cLife=$('cLife'), xLife=setupCanvas(cLife);
+const life={L:2,R:6}; const lbL=new PBox(14,SCENES[2].T,{r:0.08}), lbR=new PBox(14,SCENES[6].T,{r:0.08});
+function buildScenes(id,side){
+  const box=$(id); box.innerHTML='';
+  SCENES.forEach((s,i)=>{ const b=document.createElement('button'); b.className='btn'; b.textContent=`${s.e} ${s.n} ${s.T}℃`;
+    b.onclick=()=>{ life[side]=i; (side==='L'?lbL:lbR).setT(s.T); refreshScenes(); }; box.appendChild(b); });
+}
+function refreshScenes(){
+  [['sceneL','L'],['sceneR','R']].forEach(([id,s])=>[...$(id).children].forEach((b,i)=>b.classList.toggle('on',i===life[s])));
+  const a=SCENES[life.L], b=SCENES[life.R];
+  let t;
+  if(a.T===b.T) t=`두 물체의 온도가 ${a.T} ℃로 같으므로 입자 운동의 활발한 정도도 같다.`;
+  else { const hi=a.T>b.T?a:b, lo=a.T>b.T?b:a;
+    t=`<b>${hi.n}(${hi.T} ℃)</b>은/는 <b>${lo.n}(${lo.T} ℃)</b>보다 온도가 높으므로, 이를 구성하는 입자의 운동이 더 <b>활발</b>하다.`; }
+  $('lifeSum').innerHTML=t;
+}
+buildScenes('sceneL','L'); buildScenes('sceneR','R'); refreshScenes();
+function lifeFrame(dt){
+  lbL.step(dt); lbR.step(dt);
+  const ctx=xLife, W=cLife._W, H=cLife._H;
+  ctx.fillStyle='#0f1d3c'; ctx.fillRect(0,0,W,H);
+  [[0,'L',lbL,'#cfeaff','#2a74d8'],[1,'R',lbR,'#ffe1dc','#d8323a']].forEach(([k,s,box,panel,col])=>{
+    const sc=SCENES[life[s]], ox=k*430+15;
+    ctx.fillStyle=k?'rgba(255,200,200,.12)':'rgba(180,220,255,.12)';
+    ctx.beginPath(); ctx.roundRect(ox,15,400,H-30,16); ctx.fill();
+    ctx.save(); ctx.font='120px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle='#000';
+    ctx.fillText(sc.e,ox+100,H/2+40); ctx.restore();
+    ctx.save(); ctx.strokeStyle='#ff3b3b'; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(ox+115,H/2+50,10,0,Math.PI*2); ctx.stroke();
+    ctx.strokeStyle='rgba(255,255,255,.6)'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(ox+125,H/2+44); ctx.lineTo(ox+180,H/2+10); ctx.stroke(); ctx.restore();
+    box.draw(ctx,ox+175,H/2-110,215,215,{bg:waterTint(sc.T)});
+    pill(ctx,ox+200,50,`${sc.n}  ${sc.T} ℃`,col,'#fff',18);
+    ctx.save(); ctx.fillStyle='#dfe8ff'; ctx.font='15px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('입자 운동: '+activityWord(sc.T),ox+282,H/2+132); ctx.restore();
+  });
+}
+/* 보온병 */
+const cBottle=$('cBottle'), xBottle=setupCanvas(cBottle);
+const bt={T:20,shakes:0,off:0,vel:0,drag:null,lastY:0,acc:0};
+const btBox=new PBox(13,20,{r:0.085});
+function shakeOnce(){ bt.shakes++; bt.T=Math.min(95,bt.T+0.5); btBox.setT(bt.T); bt.vel+=14*(bt.shakes%2?1:-1);
+  $('bottleMsg').innerHTML=`흔든 횟수: <b>${bt.shakes}회</b> · 물의 온도: <b>${bt.T.toFixed(1)} ℃</b>`+(bt.shakes>=10?'<br>➜ 보온병을 흔들면 물이 보온병 벽과 부딪치고 서로 마찰하면서 물 입자의 운동이 활발해져 온도가 높아진다. 보온병은 열이 빠져나가는 것을 막아 준다.':''); }
+$('btnShake').onclick=()=>{ for(let i=0;i<4;i++) setTimeout(shakeOnce,i*90); };
+$('btnBottleReset').onclick=()=>{ Object.assign(bt,{T:20,shakes:0,off:0,vel:0}); btBox.setT(20); $('bottleMsg').textContent='흔든 횟수: 0회'; };
+cBottle.addEventListener('pointerdown',e=>{ const p=toLogical(cBottle,e); if(p.x<230){ bt.drag=true; bt.lastY=p.y; bt.acc=0; cBottle.setPointerCapture(e.pointerId);} });
+cBottle.addEventListener('pointermove',e=>{ if(!bt.drag) return; const p=toLogical(cBottle,e); const dy=p.y-bt.lastY; bt.off=clamp(bt.off+dy,-40,40); bt.lastY=p.y; bt.acc+=Math.abs(dy); if(bt.acc>70){ bt.acc=0; shakeOnce(); } });
+['pointerup','pointercancel'].forEach(ev=>cBottle.addEventListener(ev,()=>bt.drag=false));
+function bottleFrame(dt){
+  if(!bt.drag){ bt.vel+= -bt.off*60*dt; bt.vel*=Math.pow(0.02,dt); bt.off+=bt.vel*dt*10; bt.off=clamp(bt.off,-40,40); }
+  btBox.step(dt);
+  const ctx=xBottle, W=cBottle._W, H=cBottle._H;
+  ctx.fillStyle='#0f1d3c'; ctx.fillRect(0,0,W,H);
+  const bx=80, by=70+bt.off;
+  ctx.save();
+  ctx.fillStyle='#c8ced6'; ctx.beginPath(); ctx.roundRect(bx+18,by-34,64,40,6); ctx.fill();
+  ctx.strokeStyle='#2b2f36'; ctx.lineWidth=5; ctx.beginPath(); ctx.arc(bx+10,by-14,20,Math.PI*0.5,Math.PI*1.5); ctx.stroke();
+  const g=ctx.createLinearGradient(bx,0,bx+100,0); g.addColorStop(0,'#a3141c'); g.addColorStop(.35,'#ef3a3a'); g.addColorStop(1,'#8f1018');
+  ctx.fillStyle=g; ctx.beginPath(); ctx.roundRect(bx,by,100,230,22); ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,.25)'; ctx.fillRect(bx+18,by+20,8,190);
+  ctx.restore();
+  ctx.save(); ctx.fillStyle='#fff'; ctx.font='bold 20px sans-serif'; ctx.textAlign='center';
+  ctx.fillText(bt.T.toFixed(1)+' ℃',bx+50,by+130); ctx.font='12px sans-serif'; ctx.fillStyle='#9fb1d8'; ctx.fillText('↕ 끌어서 흔들기',bx+50,H-16); ctx.restore();
+  drawThermo(ctx,215,60,230,bt.T);
+  btBox.draw(ctx,250,90,190,190,{bg:waterTint(bt.T)});
+  ctx.save(); ctx.fillStyle='#dfe8ff'; ctx.font='14px sans-serif'; ctx.textAlign='center';
+  ctx.fillText('보온병 속 물 입자',345,305); ctx.fillText('입자 운동: '+activityWord(bt.T),345,327); ctx.restore();
+}
+
+/* ========== 메인 루프 ========== */
+let last=performance.now();
+function loop(t){
+  const dt=Math.min(0.05,(t-last)/1000); last=t;
+  try{
+    if(curTab==='ink') inkFrame(dt);
+    else if(curTab==='move') moveFrame(dt);
+    else if(curTab==='life'){ lifeFrame(dt); bottleFrame(dt); }
+  }catch(err){ console.error(err); }
+  requestAnimationFrame(loop);
+}
+showTab('ink'); inkUpdateLabels();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

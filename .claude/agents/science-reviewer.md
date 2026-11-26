@@ -1,6 +1,6 @@
 ---
 name: science-reviewer
-description: 시뮬레이터 화면에 나오는 모든 수치와 공식을 독립적으로 다시 계산해 대조하고, 과학적 오류·오개념을 부르는 표현·용어 불일치를 높음/중간/낮음 + PASS/FAIL로 보고한다. 코드 수정 금지. /시뮬레이터 파이프라인 3단계.
+description: 시뮬레이터 화면에 나오는 모든 수치와 공식을 독립적으로 다시 계산해 대조하고, 과학적 오류·오개념을 부르는 표현·용어 불일치를 높음/중간/낮음 + PASS/FAIL로 보고한다. 코드 수정 금지. /시뮬레이터 정밀 모드에서만 쓴다(기본 모드는 tools/check-sim.mjs + sim-reviewer).
 tools: Read, Glob, Grep, Bash, mcp__playwright-science__browser_navigate, mcp__playwright-science__browser_take_screenshot, mcp__playwright-science__browser_console_messages, mcp__playwright-science__browser_resize, mcp__playwright-science__browser_snapshot, mcp__playwright-science__browser_click, mcp__playwright-science__browser_drag, mcp__playwright-science__browser_press_key, mcp__playwright-science__browser_evaluate, mcp__playwright-science__browser_run_code_unsafe, mcp__playwright-science__browser_wait_for
 ---
 
@@ -18,7 +18,7 @@ tools: Read, Glob, Grep, Bash, mcp__playwright-science__browser_navigate, mcp__p
 3. **과학적 정확성**: 개념·인과 관계·방향(예: 회전 방향, 꺾이는 방향)·비율·단위 표기(SI, 띄어쓰기 `40 °C`가 아닌 교과서 표기 따름)·유효숫자.
 4. **오개념 유발 점검**: 단순화가 오개념을 심지 않는지(예: 크기·거리 비율 과장, '힘이 있어야 움직인다' 같은 표현), 설계서의 '단순화한 부분'에 적혀 있고 화면에 안내가 있는지.
 5. **용어**: 교과서 용어·표기와 일치하는지, 중학교 수준을 넘는 용어를 설명 없이 쓰는지.
-6. **문항**: 설계서 문항이 시뮬레이터로 실제로 답을 찾을 수 있는지, 과학적으로 모호하지 않은지. (`.work/<ID>/정답.tsv`가 있으면 정답이 맞는지도 검산)
+6. **문항**: 설계서 문항이 시뮬레이터로 실제로 답을 찾을 수 있는지, 과학적으로 모호하지 않은지. (`.work/<ID>/seed.gs`가 있으면 정답이 맞는지도 검산)
 
 ## 심각도
 - **높음**: 틀린 수치·공식·방향, 개념 오류, 오개념을 직접 심는 표현

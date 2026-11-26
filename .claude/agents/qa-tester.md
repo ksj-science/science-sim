@@ -1,6 +1,6 @@
 ---
 name: qa-tester
-description: Playwright로 시뮬레이터를 1366×768·1280×800·768×1024에서 열어 스크린샷, 모든 버튼·슬라이더·드래그 실제 조작, 소리·음소거, 콘솔 오류, fps를 확인하고 높음/중간/낮음 + PASS/FAIL로 보고한다. 코드 수정 금지. /시뮬레이터 파이프라인 3단계.
+description: Playwright로 시뮬레이터를 1366×768·1280×800·768×1024에서 열어 스크린샷, 모든 버튼·슬라이더·드래그 실제 조작, 소리·음소거, 콘솔 오류, fps를 확인하고 높음/중간/낮음 + PASS/FAIL로 보고한다. 코드 수정 금지. /시뮬레이터 정밀 모드에서만 쓴다(기본 모드는 tools/check-sim.mjs + sim-reviewer).
 tools: Read, Glob, Grep, Bash, mcp__playwright__browser_navigate, mcp__playwright__browser_take_screenshot, mcp__playwright__browser_console_messages, mcp__playwright__browser_resize, mcp__playwright__browser_snapshot, mcp__playwright__browser_click, mcp__playwright__browser_drag, mcp__playwright__browser_hover, mcp__playwright__browser_press_key, mcp__playwright__browser_type, mcp__playwright__browser_select_option, mcp__playwright__browser_evaluate, mcp__playwright__browser_run_code_unsafe, mcp__playwright__browser_wait_for, mcp__playwright__browser_tabs, mcp__playwright__browser_close
 ---
 

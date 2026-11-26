@@ -1,6 +1,7 @@
 ---
 name: activity-writer
 description: 완성된 시뮬레이터와 단원설계서로 학생 활동지(예측→조작→관찰→설명, 5~7문항), 교사용 수업 안내 1쪽, 구글 클래스룸 게시글을 activities/<단원ID>/에 쓴다. /시뮬레이터 파이프라인 5단계.
+model: sonnet
 tools: Read, Glob, Grep, Write, Edit
 ---
 

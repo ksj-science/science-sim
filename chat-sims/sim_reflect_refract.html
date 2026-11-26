@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<!-- 단원ID: reflect_refract · Ⅲ. 빛과 파동 > 1. 빛 > 01 빛의 반사와 굴절(91~93쪽) · 활동 1개: 각도기 위에서 레이저 빛의 진행 방향 관찰하기 -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>레이저 각도기 실험대 — 빛의 반사와 굴절</title>
+<style>
+:root{--bg:#f4f3fb;--card:#fff;--ink:#1f2433;--muted:#5f6577;--line:#dcdcec;--accent:#e64a5f;--accent-d:#b8324a;--accent-l:#fde8ec;--blue:#3b6fd8}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+header{background:linear-gradient(120deg,#e64a5f,#f08a4b);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:20px;margin:0;font-weight:900}
+header .sub{font-size:13px;opacity:.92}
+header .sp{flex:1}
+header button{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+main{padding:10px 12px 24px;max-width:1300px;margin:0 auto}
+.intro{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:10px;padding:8px 14px;margin-bottom:10px;font-size:14px;line-height:1.55}
+.intro b{color:var(--accent-d)}
+.grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(290px,1fr);gap:10px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}
+.card h3{margin:0 4px 8px;font-size:15px;color:var(--accent-d)}
+canvas{width:100%;display:block;border-radius:8px;touch-action:none}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0}
+.btn{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;padding:8px 12px;cursor:pointer;min-height:38px}
+.btn:hover{border-color:var(--accent);color:var(--accent-d)}
+.btn.on{background:var(--accent-l);border-color:var(--accent);color:var(--accent-d)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.lbl{font-size:13px;color:var(--muted)}
+input[type=range]{flex:1;min-width:120px;accent-color:var(--accent)}
+.ro{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:8px}
+.ro div{background:#2a2238;color:#ffd0d8;border-radius:9px;padding:6px 10px}
+.ro .k{font-size:12px;color:#c9bfd8}
+.ro .v{font-size:22px;font-weight:900}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{border:1px solid var(--line);padding:5px 6px;text-align:center}
+th{background:var(--accent-l);color:var(--accent-d)}
+.note{font-size:12.5px;color:var(--muted);line-height:1.55;margin:6px 4px 0}
+.msg{min-height:20px;font-size:13.5px;color:var(--accent-d);font-weight:700;margin:4px 4px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>레이저 각도기 실험대</h1><span class="sub">빛의 반사와 굴절 · 입사각과 반사각, 굴절각 재기</span>
+  <span class="sp"></span><button id="resetBtn" type="button">↺ 초기화</button>
+</header>
+<main>
+  <div class="intro">실험대를 고른 뒤 <b>레이저를 끌어서</b>(또는 아래 슬라이더로) 입사각을 바꿔 보세요. 각은 모두 <b>법선(점선)</b>에서 잰다. 각도기 눈금이나 오른쪽 측정값을 읽고, <b>기록하기</b>로 표에 모아 비교해 보세요.</div>
+  <div class="grid">
+    <div class="card">
+      <div class="row" id="modes">
+        <button class="btn on" data-m="mirror" type="button">① 평면거울에서 반사</button>
+        <button class="btn" data-m="a2p" type="button">② 공기 → 플라스틱</button>
+        <button class="btn" data-m="p2a" type="button">③ 플라스틱 → 공기</button>
+      </div>
+      <canvas id="app" width="620" height="480" aria-label="각도기 위의 레이저 실험 장면"></canvas>
+      <div class="row"><span class="lbl" style="min-width:56px">입사각</span><input id="ang" type="range" min="0" max="80" step="1" value="30"><b id="angv" style="min-width:44px">30°</b></div>
+      <div class="row">
+        <button class="btn" data-a="30" type="button">30°</button><button class="btn" data-a="45" type="button">45°</button><button class="btn" data-a="60" type="button">60°</button>
+        <span class="sp" style="flex:1"></span>
+        <button class="btn" id="speedBtn" type="button">빛의 속력 비교 보기</button>
+      </div>
+      <div class="msg" id="msg"></div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="ro">
+          <div><div class="k">입사각</div><div class="v" id="vI">30°</div></div>
+          <div><div class="k" id="kO">반사각</div><div class="v" id="vO">30°</div></div>
+        </div>
+        <div class="row"><button class="btn pri" id="recBtn" type="button">기록하기</button><button class="btn" id="clrBtn" type="button">표 지우기</button></div>
+        <table><thead><tr><th>실험대</th><th>입사각</th><th>반사각</th><th>굴절각</th></tr></thead><tbody id="tb"><tr><td colspan="4" class="lbl">아직 기록이 없어요.</td></tr></tbody></table>
+      </div>
+      <div class="card">
+        <h3>빛의 속력</h3>
+        <table><tbody>
+          <tr><td>공기 중</td><td>약 30만 km/s</td></tr>
+          <tr><td>플라스틱(아크릴) 속</td><td>약 20만 km/s</td></tr>
+        </tbody></table>
+        <p class="note"><b>모델의 한계</b> · 공기의 굴절률은 1.00, 아크릴 플라스틱은 1.49로 두고 굴절 법칙(n₁ sin i = n₂ sin r)으로 계산하였다. 레이저 빛은 한 가지 색이고 폭이 없는 선으로 그렸다. 굴절할 때 경계면에서 조금 반사되는 빛은 흐리게만 나타냈다. 플라스틱 속에서 입사각이 약 42°보다 크면 빛이 공기로 나가지 못하고 모두 반사되는데, 이것은 교과서 범위 밖의 참고 내용이다.</p>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+/* ================================================================
+   레이저 각도기 모형 (각은 법선에서 잰다, 단위: 도)
+   - 반사 법칙: 반사각 = 입사각
+   - 굴절 법칙: n1·sin(i) = n2·sin(r), n공기 = 1.00, n아크릴 = 1.49
+       공기→플라스틱: r = asin(sin i / 1.49)   예) 30° → 19.6°, 45° → 28.3°, 50° → 30.9°, 60° → 35.5°
+       플라스틱→공기: r = asin(1.49·sin i)     예) 20° → 30.6°, 30° → 48.2°, 40° → 73.3°, 42.2° 넘으면 전반사
+   - 빛의 속력 v = c / n : 공기 약 30만 km/s, 아크릴 약 20.1만 km/s
+   - 반원 플라스틱의 둥근 면에서는 빛이 중심을 향하거나 중심에서 나오므로(면에 수직) 꺾이지 않는다
+   ================================================================ */
+const N_AIR = 1.00, N_PL = 1.49, DEG = Math.PI / 180;
+const $ = s => document.querySelector(s);
+const W = 620, H = 480, CX = 310, CY = 240, R = 205, RP = 145;
+const app = $('#app'), c = app.getContext('2d');
+function fit() { const r = Math.min(2, window.devicePixelRatio || 1); app.width = W * r; app.height = H * r; c.setTransform(r, 0, 0, r, 0, 0); }
+fit();
+let S;
+function newState() { return { mode: 'mirror', i: 30, speed: false, t: 0, rec: [] }; }
+function outAngle() {   // {kind:'반사'|'굴절'|'전반사', r}
+  const i = S.i * DEG;
+  if (S.mode === 'mirror') return { kind: '반사', r: S.i };
+  if (S.mode === 'a2p') return { kind: '굴절', r: Math.asin(N_AIR * Math.sin(i) / N_PL) / DEG };
+  const s = N_PL * Math.sin(i) / N_AIR;
+  return s > 1 ? { kind: '전반사', r: S.i } : { kind: '굴절', r: Math.asin(s) / DEG };
+}
+const fmt = x => (Math.round(x * 10) / 10).toFixed(Math.abs(x - Math.round(x)) < 0.05 ? 0 : 1);
+// 원 위의 점: up=true면 위쪽 반원(법선이 위), right=true면 오른쪽
+function pt(theta, rad, up, right) { const a = theta * DEG; return [CX + (right ? 1 : -1) * rad * Math.sin(a), CY + (up ? -1 : 1) * rad * Math.cos(a)]; }
+
+/* ---------- 그림 ---------- */
+function protractor() {
+  c.save();
+  c.fillStyle = '#fbfbfe'; c.beginPath(); c.arc(CX, CY, R + 8, 0, 7); c.fill();
+  c.strokeStyle = '#9aa0b8'; c.lineWidth = 1.5; c.beginPath(); c.arc(CX, CY, R, 0, 7); c.stroke();
+  c.beginPath(); c.arc(CX, CY, R - 26, 0, 7); c.strokeStyle = '#d4d6e4'; c.stroke();
+  c.fillStyle = '#6a7088'; c.font = '11px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+  for (let d = 0; d < 360; d++) {      // d: 화면 위쪽 기준 시계 방향
+    const a = d * DEG, len = d % 10 === 0 ? 12 : d % 5 === 0 ? 8 : 4;
+    const sx = Math.sin(a), sy = -Math.cos(a);
+    c.strokeStyle = '#8d93ab'; c.lineWidth = d % 10 === 0 ? 1.4 : .8;
+    c.beginPath(); c.moveTo(CX + sx * R, CY + sy * R); c.lineTo(CX + sx * (R - len), CY + sy * (R - len)); c.stroke();
+    if (d % 10 === 0) { let lab = d % 180; if (lab > 90) lab = 180 - lab; c.fillText(String(lab), CX + sx * (R - 20), CY + sy * (R - 20)); }
+  }
+  c.restore();
+}
+function arrowLine(x1, y1, x2, y2, col, w, alpha) {
+  c.save(); c.globalAlpha = alpha; c.strokeStyle = col; c.lineWidth = w; c.lineCap = 'round';
+  c.shadowColor = col; c.shadowBlur = alpha > .5 ? 8 : 0;
+  c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2); c.stroke();
+  const mx = x1 + (x2 - x1) * .55, my = y1 + (y2 - y1) * .55, a = Math.atan2(y2 - y1, x2 - x1);
+  c.shadowBlur = 0; c.fillStyle = col; c.beginPath(); c.moveTo(mx + Math.cos(a) * 9, my + Math.sin(a) * 9);
+  c.lineTo(mx + Math.cos(a + 2.5) * 9, my + Math.sin(a + 2.5) * 9); c.lineTo(mx + Math.cos(a - 2.5) * 9, my + Math.sin(a - 2.5) * 9); c.fill();
+  c.restore();
+}
+function angArc(fromDeg, toDeg, rad, col, label) {  // 캔버스 각(0=오른쪽, 90=아래) 사이 호와, 이등분선 위의 이름표
+  const a0 = Math.min(fromDeg, toDeg) * DEG, a1 = Math.max(fromDeg, toDeg) * DEG, am = (a0 + a1) / 2;
+  c.save(); c.strokeStyle = col; c.lineWidth = 2; c.beginPath(); c.arc(CX, CY, rad, a0, a1); c.stroke();
+  c.font = 'bold 14px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+  const lx = CX + Math.cos(am) * (rad + 62), ly = CY + Math.sin(am) * (rad + 62), w = c.measureText(label).width + 10;
+  c.fillStyle = 'rgba(255,255,255,.92)'; c.fillRect(lx - w / 2, ly - 11, w, 22); c.strokeStyle = col; c.lineWidth = 1; c.strokeRect(lx - w / 2, ly - 11, w, 22);
+  c.fillStyle = col; c.fillText(label, lx, ly); c.restore();
+}
+function laser(x, y, ang) {   // ang: 레이저가 향하는 방향(라디안)
+  c.save(); c.translate(x, y); c.rotate(ang);
+  c.fillStyle = '#222'; c.fillRect(-58, -9, 58, 18); c.fillStyle = '#e64a5f'; c.fillRect(-4, -4, 5, 8);
+  c.fillStyle = '#555'; c.fillRect(-58, -9, 8, 18);
+  c.restore();
+}
+function render() {
+  const o = outAngle(), i = S.i;
+  c.clearRect(0, 0, W, H); c.fillStyle = '#eef0f6'; c.fillRect(0, 0, W, H);
+  protractor();
+  // 물질 표시
+  c.save(); c.font = 'bold 14px sans-serif'; c.fillStyle = '#4b5170';
+  if (S.mode === 'mirror') {
+    c.fillStyle = 'rgba(160,190,215,.55)'; c.fillRect(CX - R - 5, CY, 2 * R + 10, 14);
+    c.fillStyle = '#7a8fa6'; c.fillRect(CX - R - 5, CY, 2 * R + 10, 3);
+    c.fillStyle = '#4b5170'; c.fillText('평면거울', CX + R - 70, CY + 32); c.fillText('공기', CX + 120, CY - 150);
+  } else {
+    c.fillStyle = 'rgba(205,225,240,.75)'; c.beginPath(); c.moveTo(CX - RP, CY); c.arc(CX, CY, RP, 0, Math.PI); c.closePath(); c.fill();
+    c.strokeStyle = '#8eaac2'; c.lineWidth = 1.5; c.stroke();
+    c.fillStyle = '#4b5170'; c.fillText('공기', CX + 120, CY - 150); c.fillText('플라스틱', CX + 40, CY + 60);
+  }
+  c.restore();
+  // 법선
+  c.save(); c.setLineDash([6, 5]); c.strokeStyle = '#5b6280'; c.lineWidth = 1.4;
+  c.beginPath(); c.moveTo(CX, CY - R + 2); c.lineTo(CX, S.mode === 'mirror' ? CY : CY + R - 2); c.stroke(); c.restore();
+  c.fillStyle = '#5b6280'; c.font = '13px sans-serif'; c.fillText('법선', CX + 6, CY - R + 40);
+
+  // 광선 경로
+  const RED = '#ff2d4a', ext = R + 40;
+  let inP, outP, refP = null, refl = null, laserAt;
+  if (S.mode === 'p2a') {
+    laserAt = pt(i, R + 40, false, false); inP = pt(i, R + 10, false, false);
+    if (o.kind === '전반사') refl = pt(i, R, false, true); else { outP = pt(o.r, R, true, true); refl = pt(i, R, false, true); }
+  } else {
+    laserAt = pt(i, R + 40, true, true); inP = pt(i, R + 10, true, true);
+    if (S.mode === 'mirror') outP = pt(i, R, true, false);
+    else { outP = pt(o.r, R, false, false); refl = pt(i, R, true, false); }
+  }
+  arrowLine(inP[0], inP[1], CX, CY, RED, 3, 1);
+  if (outP) arrowLine(CX, CY, outP[0], outP[1], RED, 3, 1);
+  if (refl) arrowLine(CX, CY, refl[0], refl[1], RED, o.kind === '전반사' ? 3 : 1.6, o.kind === '전반사' ? 1 : .28);
+  laser(laserAt[0], laserAt[1], Math.atan2(CY - laserAt[1], CX - laserAt[0]));
+
+  // 각 표시 (캔버스 각: 0=오른쪽, 90=아래)
+  if (i > 0.5) {
+    if (S.mode === 'p2a') angArc(90, 90 + i, 60, '#2f6fd6', '입사각 ' + i + '°');
+    else angArc(-90, -90 + i, 60, '#2f6fd6', '입사각 ' + i + '°');
+  }
+  if (o.kind !== '전반사' && o.r > 0.5) {
+    const lab = (o.kind === '반사' ? '반사각 ' : '굴절각 ') + fmt(o.r) + '°';
+    if (S.mode === 'mirror') angArc(-90 - o.r, -90, 76, '#0d9a6a', lab);
+    else if (S.mode === 'a2p') angArc(90, 90 + o.r, 76, '#0d9a6a', lab);
+    else angArc(-90, -90 + o.r, 76, '#0d9a6a', lab);
+  }
+  if (o.kind === '전반사') { c.fillStyle = '#b8324a'; c.font = 'bold 14px sans-serif'; c.fillText('공기로 나가지 못하고 모두 반사(전반사, 참고)', 140, 40); }
+
+  if (S.speed) drawPulses();
+}
+
+/* 빛의 속력 비교: 같은 시간 간격으로 내보낸 빛 알갱이. 플라스틱 속에서는 느려서 간격이 좁아진다 */
+function pathSegs() {
+  const o = outAngle(), i = S.i, segs = [];
+  const P = (a, b, n) => segs.push({ a, b, n, len: Math.hypot(b[0] - a[0], b[1] - a[1]) });
+  if (S.mode === 'mirror') { P(pt(i, R + 10, true, true), [CX, CY], 1); P([CX, CY], pt(i, R, true, false), 1); }
+  else if (S.mode === 'a2p') { P(pt(i, R + 10, true, true), [CX, CY], 1); const e = pt(o.r, RP, false, false); P([CX, CY], e, N_PL); P(e, pt(o.r, R, false, false), 1); }
+  else { const e = pt(i, RP, false, false); P(pt(i, R + 10, false, false), e, 1); P(e, [CX, CY], N_PL); if (o.kind !== '전반사') P([CX, CY], pt(o.r, R, true, true), 1); else P([CX, CY], pt(i, RP, false, true), N_PL); }
+  return segs;
+}
+function drawPulses() {
+  const segs = pathSegs(), GAP = 34, V = 60;   // 공기 중 속력 60 px/s (느리게 보여 줌)
+  const total = segs.reduce((s, g) => s + g.len * g.n, 0);  // 광학 거리
+  c.save(); c.fillStyle = '#fff6a0'; c.strokeStyle = '#c9a800';
+  for (let L = (S.t * V) % GAP; L < total; L += GAP) {
+    let rem = L;
+    for (const g of segs) { const opt = g.len * g.n; if (rem <= opt) { const f = rem / opt; const x = g.a[0] + (g.b[0] - g.a[0]) * f, y = g.a[1] + (g.b[1] - g.a[1]) * f; c.beginPath(); c.arc(x, y, 5, 0, 7); c.fill(); c.stroke(); break; } rem -= opt; }
+  }
+  c.restore();
+}
+let lastTs = 0, running = false;
+function loop(ts) { S.t += Math.min(.1, (ts - lastTs) / 1000 || 0); lastTs = ts; render(); if (S.speed) requestAnimationFrame(loop); else running = false; }
+function kick() { if (!running && S.speed) { running = true; lastTs = performance.now(); requestAnimationFrame(loop); } }
+
+/* ---------- 화면 갱신 ---------- */
+function say(t) { $('#msg').textContent = t || ''; }
+function refresh() {
+  const o = outAngle();
+  $('#ang').value = S.i; $('#angv').textContent = S.i + '°'; $('#vI').textContent = S.i + '°';
+  $('#kO').textContent = o.kind === '반사' ? '반사각' : '굴절각';
+  $('#vO').textContent = o.kind === '전반사' ? '없음' : fmt(o.r) + '°';
+  document.querySelectorAll('#modes .btn').forEach(b => b.classList.toggle('on', b.dataset.m === S.mode));
+  $('#speedBtn').classList.toggle('on', S.speed);
+  if (S.i === 0) say(S.mode === 'mirror' ? '법선을 따라 비추면 빛이 온 길로 되돌아가요.' : '법선을 따라 비추면 빛이 꺾이지 않고 곧게 나아가요.');
+  else if (o.kind === '전반사') say('플라스틱 속에서 입사각이 너무 크면 빛이 공기로 나가지 못해요(참고).');
+  else say('');
+  render();
+}
+function renderTable() {
+  const tb = $('#tb');
+  if (!S.rec.length) { tb.innerHTML = '<tr><td colspan="4" class="lbl">아직 기록이 없어요.</td></tr>'; return; }
+  const name = { mirror: '평면거울', a2p: '공기→플라스틱', p2a: '플라스틱→공기' };
+  tb.innerHTML = S.rec.map(r => `<tr><td>${name[r.m]}</td><td>${r.i}°</td><td>${r.k === '반사' || r.k === '전반사' ? fmt(r.r) + '°' : '–'}</td><td>${r.k === '굴절' ? fmt(r.r) + '°' : '–'}</td></tr>`).join('');
+}
+
+/* ---------- 조작 ---------- */
+function setAngle(v) { S.i = Math.max(0, Math.min(80, Math.round(v))); refresh(); }
+$('#ang').addEventListener('input', e => setAngle(+e.target.value));
+document.querySelectorAll('[data-a]').forEach(b => b.addEventListener('click', () => setAngle(+b.dataset.a)));
+document.querySelectorAll('#modes .btn').forEach(b => b.addEventListener('click', () => { S.mode = b.dataset.m; refresh(); }));
+$('#speedBtn').addEventListener('click', () => { S.speed = !S.speed; refresh(); kick(); });
+$('#recBtn').addEventListener('click', () => {
+  const o = outAngle(); if (S.rec.length >= 10) S.rec.shift();
+  S.rec.push({ m: S.mode, i: S.i, k: o.kind, r: o.r }); renderTable();
+});
+$('#clrBtn').addEventListener('click', () => { S.rec = []; renderTable(); });
+let drag = false;
+function toLocal(e) { const b = app.getBoundingClientRect(); return [(e.clientX - b.left) * W / b.width, (e.clientY - b.top) * H / b.height]; }
+function angleFrom(p) { const dx = p[0] - CX, dy = p[1] - CY; return S.mode === 'p2a' ? Math.atan2(-dx, dy) / DEG : Math.atan2(dx, -dy) / DEG; }
+app.addEventListener('pointerdown', e => { const p = toLocal(e); if (Math.hypot(p[0] - CX, p[1] - CY) > R - 60) { drag = true; app.setPointerCapture(e.pointerId); setAngle(angleFrom(p)); } });
+app.addEventListener('pointermove', e => { if (drag) setAngle(angleFrom(toLocal(e))); });
+app.addEventListener('pointerup', () => { drag = false; });
+app.addEventListener('pointercancel', () => { drag = false; });
+$('#resetBtn').addEventListener('click', () => { S = newState(); renderTable(); refresh(); });
+S = newState(); renderTable(); refresh();
+</script>
+</body>
+</html>

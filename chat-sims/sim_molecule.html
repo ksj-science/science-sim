@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<!-- 단원ID: molecule · 중2 Ⅳ. 물질의 구성 > 2. 분자와 이온 > 01 분자(143~145쪽) · 활동 1개: 여러 가지 분자 모형 만들기 -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>분자 모형 만들기 — 분자</title>
+<style>
+:root{--bg:#f6f4f9;--card:#fff;--ink:#23202c;--muted:#635f72;--line:#e0dcea;--accent:#8a55c9;--accent-d:#6a38a5;--accent-l:#f1e9fb;--ok:#1f9a62;--bad:#d4475a}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+header{background:linear-gradient(120deg,#8a55c9,#d06a8f);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:20px;margin:0;font-weight:900}
+header .sub{font-size:13px;opacity:.95}
+header .sp{flex:1}
+header button{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+main{padding:10px 12px 24px;max-width:1300px;margin:0 auto}
+.intro{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:10px;padding:8px 14px;margin-bottom:10px;font-size:14px;line-height:1.55}
+.intro b{color:var(--accent-d)}
+.grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(300px,1fr);gap:10px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}
+.card h3{margin:0 4px 8px;font-size:15px;color:var(--accent-d)}
+canvas{width:100%;display:block;border-radius:8px}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0}
+.btn{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;padding:7px 11px;cursor:pointer;min-height:36px}
+.btn:hover{border-color:var(--accent);color:var(--accent-d)}
+.btn.on{background:var(--accent-l);border-color:var(--accent);color:var(--accent-d)}
+.atomBtn{width:62px;height:62px;border-radius:50%;font-size:20px;font-weight:900;border:2px solid rgba(0,0,0,.15);cursor:pointer;color:#222}
+.lbl{font-size:13px;color:var(--muted)}
+.ro{background:#1f1a2b;color:#efe6ff;border-radius:10px;padding:10px 12px;font-size:14px;line-height:1.7}
+.ro .f{font-size:30px;font-weight:900;font-family:"Times New Roman",serif}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{border:1px solid var(--line);padding:5px;text-align:center}
+th{background:var(--accent-l);color:var(--accent-d)}
+td.ok{background:#e6f6ee;color:#14653f;font-weight:800}
+.msg{min-height:22px;font-size:14px;font-weight:700;margin:4px 2px}
+.msg.ok{color:var(--ok)}.msg.bad{color:var(--bad)}
+.note{font-size:12.5px;color:var(--muted);line-height:1.55;margin:6px 4px 0}
+sub{font-size:.7em}
+</style>
+</head>
+<body>
+<header>
+  <h1>분자 모형 만들기</h1><span class="sub">원자가 결합한 입자 · 분자식으로 나타내기</span>
+  <span class="sp"></span><button id="resetBtn" type="button">↺ 초기화</button>
+</header>
+<main>
+  <div class="intro">만들 <b>분자</b>를 고른 뒤, 아래 <b>원자</b>를 눌러 작업대에 넣어 분자 모형을 완성해 보세요. 원자를 다시 빼려면 작업대의 원자를 누른다. 완성한 분자는 오른쪽 표에 분자식과 원자 수가 기록된다.</div>
+  <div class="grid">
+    <div class="card">
+      <div class="row" id="targets"><span class="lbl">만들 분자</span></div>
+      <canvas id="app" width="620" height="360" aria-label="분자 모형 작업대"></canvas>
+      <div class="row" id="palette" style="justify-content:center;gap:16px"></div>
+      <div class="row"><button class="btn" id="clearBtn" type="button">작업대 비우기</button><button class="btn" id="manyBtn" type="button">이 물질의 입자 모습 보기</button></div>
+      <div class="msg" id="msg"></div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="ro" id="ro"></div>
+      </div>
+      <div class="card">
+        <h3>완성한 분자</h3>
+        <table><thead><tr><th>분자</th><th>분자식</th><th>원자의 종류</th><th>원자 수(합)</th></tr></thead><tbody id="tb"></tbody></table>
+        <p class="note"><b>모델의 한계</b> · 원자는 색이 다른 공으로, 크기는 대략적인 비율로만 나타냈다. 분자 모양은 평면에 그린 것이며 실제 분자는 입체 구조이다(예: 메테인은 정사면체 모양). 원자 사이의 결합은 막대로 그리지 않고 공을 붙여 나타냈다.</p>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+/* ================================================================
+   분자 모형
+   - 분자: 원자가 결합하여 만들어진, 물질의 성질을 나타내는 가장 작은 입자
+   - 분자식: 원소 기호 + 원자 수(오른쪽 아래 작은 숫자, 1은 생략)  예) H2O = 수소 원자 2 + 산소 원자 1
+   - 같은 원자로 이루어져도 원자 수·배열이 다르면 다른 물질: 산소 O2 / 오존 O3
+   - 모형 좌표는 평면 그림(단위: 원자 반지름 기준 상대값)
+   ================================================================ */
+const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
+function fit(cv, w, h) { const r = Math.min(2, window.devicePixelRatio || 1); cv.width = w * r; cv.height = h * r; const x = cv.getContext('2d'); x.setTransform(r, 0, 0, r, 0, 0); return x; }
+const W = 620, H = 360, c = fit($('#app'), W, H), U = 70;
+const AT = { H: { name: '수소', col: '#dfe5ea', r: .34 }, C: { name: '탄소', col: '#4d5257', r: .5, light: true }, N: { name: '질소', col: '#3d8ad8', r: .47, light: true }, O: { name: '산소', col: '#e0453f', r: .47, light: true } };
+const MOL = {
+  H2: { name: '수소', f: [['H', 2]], at: [['H', -.42, 0], ['H', .42, 0]] },
+  O2: { name: '산소', f: [['O', 2]], at: [['O', -.5, 0], ['O', .5, 0]] },
+  N2: { name: '질소', f: [['N', 2]], at: [['N', -.5, 0], ['N', .5, 0]] },
+  H2O: { name: '물', f: [['H', 2], ['O', 1]], at: [['O', 0, -.1], ['H', -.62, .48], ['H', .62, .48]] },
+  CO2: { name: '이산화 탄소', f: [['C', 1], ['O', 2]], at: [['O', -.98, 0], ['C', 0, 0], ['O', .98, 0]] },
+  NH3: { name: '암모니아', f: [['N', 1], ['H', 3]], at: [['N', 0, -.1], ['H', -.7, .3], ['H', .7, .3], ['H', 0, .62]] },
+  CH4: { name: '메테인', f: [['C', 1], ['H', 4]], at: [['C', 0, 0], ['H', 0, -.78], ['H', -.78, 0], ['H', .78, 0], ['H', 0, .78]] },
+  O3: { name: '오존', f: [['O', 3]], at: [['O', -.78, .3], ['O', 0, -.2], ['O', .78, .3]] },
+};
+const ORDER = ['H2', 'O2', 'N2', 'H2O', 'CO2', 'NH3', 'CH4', 'O3'];
+let S;
+function newState() { return { target: 'H2O', atoms: [], made: {}, many: false, t: 0 }; }
+const fhtml = f => f.map(([e, n]) => e + (n > 1 ? `<sub>${n}</sub>` : '')).join('');
+function counts(list) { const m = {}; list.forEach(a => m[a] = (m[a] || 0) + 1); return m; }
+function sameComp(list, f) { const m = counts(list), keys = Object.keys(m); return keys.length === f.length && f.every(([e, n]) => m[e] === n); }
+function matched() { return ORDER.find(k => sameComp(S.atoms, MOL[k].f)) || null; }
+
+function ball(x, y, a, scale) {
+  const r = AT[a].r * U * scale, g = c.createRadialGradient(x - r * .35, y - r * .4, r * .15, x, y, r);
+  g.addColorStop(0, '#fff'); g.addColorStop(.3, AT[a].col); g.addColorStop(1, AT[a].col);
+  c.fillStyle = g; c.beginPath(); c.arc(x, y, r, 0, 7); c.fill(); c.strokeStyle = 'rgba(0,0,0,.25)'; c.lineWidth = 1; c.stroke();
+  c.fillStyle = AT[a].light ? '#fff' : '#333'; c.font = `bold ${Math.round(r * .8)}px "Times New Roman",serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(a, x, y + 1);
+}
+let hit = [];   // 누를 수 있는 원자 위치
+function draw() {
+  c.clearRect(0, 0, W, H); c.fillStyle = '#f4f2f8'; c.fillRect(0, 0, W, H);
+  c.strokeStyle = '#d5cfe2'; c.setLineDash([6, 6]); c.strokeRect(10, 10, W - 20, H - 20); c.setLineDash([]);
+  hit = [];
+  const m = matched();
+  if (S.many && m) { drawMany(m); return; }
+  if (!S.atoms.length) { c.fillStyle = '#8b86a0'; c.font = '15px sans-serif'; c.textAlign = 'center'; c.fillText('아래 원자를 눌러 작업대에 넣어 보세요', W / 2, H / 2); return; }
+  if (m) {   // 완성: 정해진 모양으로 붙여 그림(큰 원자부터 그려야 겹침이 자연스러움)
+    const used = S.atoms.map(() => false), place = MOL[m].at.map(([a, x, y]) => { const i = S.atoms.findIndex((b, k) => !used[k] && b === a); used[i] = true; return { a, x: W / 2 + x * U * 1.5, y: H / 2 + y * U * 1.5, i }; });
+    place.slice().sort((p, q) => AT[q.a].r - AT[p.a].r).forEach(p => { ball(p.x, p.y, p.a, 1.5); hit.push(p); });
+  } else {   // 아직 분자가 아님: 흩어 놓기
+    const n = S.atoms.length;
+    S.atoms.forEach((a, i) => { const ang = i / n * Math.PI * 2 - Math.PI / 2, rr = n === 1 ? 0 : 110, x = W / 2 + Math.cos(ang) * rr, y = H / 2 + Math.sin(ang) * rr * .8; ball(x, y, a, 1.3); hit.push({ x, y, a, i }); });
+  }
+}
+/* 같은 분자가 많이 모인 물질의 모습(기체는 듬성듬성, 물은 촘촘히) */
+function drawMany(m) {
+  const liquid = m === 'H2O', n = liquid ? 26 : 9;
+  for (let k = 0; k < n; k++) {
+    const rx = (Math.sin(k * 91.7) * .5 + .5), ry = (Math.sin(k * 47.3 + 1) * .5 + .5);
+    const cx = 60 + rx * (W - 120) + Math.sin(S.t * (liquid ? .8 : 1.6) + k) * (liquid ? 6 : 24), cy = 50 + ry * (H - 100) + Math.cos(S.t * (liquid ? .7 : 1.3) + k * 2) * (liquid ? 6 : 24), rot = S.t * .5 + k;
+    MOL[m].at.slice().sort((p, q) => AT[q[0]].r - AT[p[0]].r).forEach(([a, x, y]) => { const X = x * Math.cos(rot) - y * Math.sin(rot), Y = x * Math.sin(rot) + y * Math.cos(rot); ball(cx + X * U * .55, cy + Y * U * .55, a, .55); });
+  }
+  c.fillStyle = '#4b4566'; c.font = 'bold 14px sans-serif'; c.textAlign = 'left'; c.fillText(`${MOL[m].name}: 같은 ${MOL[m].name} 분자가 많이 모여 있다`, 20, 30);
+}
+function say(t, cls) { const el = $('#msg'); el.textContent = t || ''; el.className = 'msg' + (cls ? ' ' + cls : ''); }
+function refresh() {
+  $$('[data-t]').forEach(b => b.classList.toggle('on', b.dataset.t === S.target));
+  const m = matched(), cnt = counts(S.atoms), tg = MOL[S.target];
+  const now = Object.keys(cnt).map(e => `${AT[e].name} 원자 ${cnt[e]}개`).join(', ') || '없음';
+  let html = `만들 분자: <b>${tg.name}</b><br>작업대: ${now}<br>`;
+  if (m) {
+    html += `<span class="f">${fhtml(MOL[m].f)}</span> &nbsp;${MOL[m].name} 분자 (원자 ${S.atoms.length}개)`;
+    if (m === S.target) { S.made[m] = true; say(`완성! ${tg.name} 분자는 ${tg.f.map(([e, n]) => `${AT[e].name} 원자 ${n}개`).join('와 ')}가 결합한 것이다.`, 'ok'); }
+    else say(`이것은 ${MOL[m].name} 분자예요. 만들려던 ${tg.name} 분자와 원자의 종류나 개수가 달라요.`, 'bad');
+  } else { html += '<span style="color:#cbbcf2">아직 알려진 분자 모양이 아니에요.</span>'; say(''); }
+  $('#ro').innerHTML = html;
+  $('#tb').innerHTML = ORDER.filter(k => S.made[k]).map(k => { const f = MOL[k].f; return `<tr><td>${MOL[k].name}</td><td class="ok">${fhtml(f)}</td><td>${f.map(([e]) => AT[e].name).join(', ')}</td><td>${f.map(([e, n]) => `${e} ${n}`).join(' + ')} = ${f.reduce((s, x) => s + x[1], 0)}</td></tr>`; }).join('') || '<tr><td colspan="4" class="lbl">아직 없어요.</td></tr>';
+  $('#manyBtn').classList.toggle('on', S.many); $('#manyBtn').disabled = !m;
+  draw();
+}
+ORDER.forEach(k => { const b = document.createElement('button'); b.className = 'btn'; b.type = 'button'; b.dataset.t = k; b.textContent = MOL[k].name; b.addEventListener('click', () => { S.target = k; S.atoms = []; S.many = false; refresh(); }); $('#targets').appendChild(b); });
+Object.keys(AT).forEach(a => { const b = document.createElement('button'); b.className = 'atomBtn'; b.type = 'button'; b.textContent = a; b.title = AT[a].name + ' 원자'; b.style.background = AT[a].col; if (AT[a].light) b.style.color = '#fff';
+  b.addEventListener('click', () => { if (S.atoms.length >= 8) return say('원자는 8개까지 넣을 수 있어요.', 'bad'); S.atoms.push(a); S.many = false; refresh(); }); $('#palette').appendChild(b); });
+$('#app').addEventListener('pointerdown', e => {
+  const b = $('#app').getBoundingClientRect(), x = (e.clientX - b.left) * W / b.width, y = (e.clientY - b.top) * H / b.height;
+  const h = hit.find(p => Math.hypot(p.x - x, p.y - y) < 32); if (!h || S.many) return; S.atoms.splice(h.i, 1); refresh();
+});
+$('#clearBtn').addEventListener('click', () => { S.atoms = []; S.many = false; refresh(); });
+$('#manyBtn').addEventListener('click', () => { S.many = !S.many; refresh(); });
+$('#resetBtn').addEventListener('click', () => { S = newState(); refresh(); });
+let last = performance.now();
+function loop(ts) { const dt = Math.min(.1, (ts - last) / 1000); last = ts; if (S.many) { S.t += dt; draw(); } requestAnimationFrame(loop); }
+S = newState(); refresh(); requestAnimationFrame(loop);
+</script>
+</body>
+</html>

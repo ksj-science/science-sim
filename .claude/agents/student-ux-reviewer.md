@@ -1,6 +1,6 @@
 ---
 name: student-ux-reviewer
-description: 중학생 입장에서 시뮬레이터 첫 화면 이해도, 글자 크기·겹침·잘림, 조작 직관성, 몰입감을 평가해 높음/중간/낮음 + PASS/FAIL로 보고한다. 코드 수정 금지. /시뮬레이터 파이프라인 3단계.
+description: 중학생 입장에서 시뮬레이터 첫 화면 이해도, 글자 크기·겹침·잘림, 조작 직관성, 몰입감을 평가해 높음/중간/낮음 + PASS/FAIL로 보고한다. 코드 수정 금지. /시뮬레이터 정밀 모드에서만 쓴다(기본 모드는 tools/check-sim.mjs + sim-reviewer).
 tools: Read, Glob, Grep, mcp__playwright-ux__browser_navigate, mcp__playwright-ux__browser_take_screenshot, mcp__playwright-ux__browser_console_messages, mcp__playwright-ux__browser_resize, mcp__playwright-ux__browser_snapshot, mcp__playwright-ux__browser_click, mcp__playwright-ux__browser_drag, mcp__playwright-ux__browser_hover, mcp__playwright-ux__browser_press_key, mcp__playwright-ux__browser_evaluate, mcp__playwright-ux__browser_run_code_unsafe, mcp__playwright-ux__browser_wait_for
 ---
 

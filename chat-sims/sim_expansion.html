@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<!-- 단원ID: expansion · 중2 Ⅷ. 별과 우주 > 2. 우주 > 02 우주 팽창(284~285쪽) · 활동 1개: 풍선 팽창으로 우주 팽창 설명하기 -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>풍선 팽창으로 우주 팽창 설명하기</title>
+<style>
+:root{--bg:#f2f3f9;--card:#fff;--ink:#1d2135;--muted:#5b6479;--line:#dce0ea;--o:#f08a24;--p:#5a3fc0}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+header{background:linear-gradient(120deg,#0c1033,#2b2a7a 50%,#f08a24);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:20px;margin:0;font-weight:900}
+header .sub{font-size:13px;opacity:.95}
+header .sp{flex:1}
+header button{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.55);color:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+nav{display:flex;gap:6px;padding:10px 12px 0;max-width:1320px;margin:0 auto}
+nav button{font:inherit;font-size:14.5px;font-weight:800;border:1px solid var(--line);background:#fff;border-radius:10px 10px 0 0;padding:9px 16px;cursor:pointer;color:var(--muted);border-bottom:none}
+nav button.on{color:var(--p);box-shadow:inset 0 3px 0 var(--p)}
+main{padding:0 12px 24px;max-width:1320px;margin:0 auto}
+.pane{display:none;background:var(--card);border:1px solid var(--line);border-radius:0 12px 12px 12px;padding:12px 14px}
+.pane.on{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(300px,1fr);gap:12px;align-items:start}
+@media (max-width:900px){.pane.on{grid-template-columns:1fr}}
+canvas{width:100%;display:block;border-radius:10px;touch-action:manipulation}
+.guide{font-size:13.5px;color:var(--muted);line-height:1.5;margin:6px 2px 0}
+.guide b{color:var(--p)}
+h3{margin:0 2px 6px;font-size:15px;color:#33395a}
+.row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:6px 0}
+.lbl{font-size:13px;color:var(--muted)}
+.btn{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:9px;padding:7px 11px;cursor:pointer;min-height:38px}
+.btn:hover:not(:disabled){border-color:#9aa6bb}
+.btn.on{background:#eeeafc;border-color:var(--p);color:#3a2689}
+.btn.main{background:var(--o);border-color:var(--o);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+input[type=range]{flex:1;min-width:140px;accent-color:var(--p)}
+.ro{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px}
+.ro div{background:#151a30;color:#eceef8;border-radius:10px;padding:6px 8px}
+.ro .k{font-size:11.5px;color:#a7aed0}
+.ro .v{font-size:18px;font-weight:900}
+.msg{background:#f7f5fe;border:1px dashed #bdb1ea;border-radius:10px;padding:8px 11px;font-size:14.5px;line-height:1.55;margin-top:8px;min-height:44px}
+table{border-collapse:collapse;width:100%;font-size:13.5px;margin-top:6px}
+th,td{border:1px solid var(--line);padding:5px 4px;text-align:center}
+th{background:#eeeafc;color:#3a2689}
+.note{font-size:12.5px;color:var(--muted);line-height:1.55;margin:8px 2px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>풍선으로 보는 우주 팽창</h1><span class="sub">붙임딱지 사이 거리 · 외부 은하 · 중심 없는 팽창</span>
+  <span class="sp"></span><button id="resetBtn" type="button">↺ 초기화</button>
+</header>
+<nav><button data-tab="t1" class="on" type="button">① 풍선 팽창 해 보기</button><button data-tab="t2" type="button">② 팽창하는 우주 모형</button></nav>
+<main>
+  <section class="pane on" id="t1">
+    <div>
+      <canvas id="c1" width="760" height="420" aria-label="붙임딱지를 붙인 고무풍선과 펌프"></canvas>
+      <p class="guide"><b>펌프질</b>로 풍선을 키우면서 붙임딱지 ①, ②, ③ 사이의 거리가 어떻게 변하는지 기록하세요. 붙임딱지 자체의 크기는 변하지 않아요.</p>
+    </div>
+    <div>
+      <h3>조작</h3>
+      <div class="row"><button class="btn main" id="pumpBtn" type="button">💨 펌프질 한 번</button><button class="btn" id="deflBtn" type="button">바람 조금 빼기</button><button class="btn" id="recBtn" type="button">📏 거리 기록</button></div>
+      <div class="ro">
+        <div><div class="k">풍선 반지름 (처음의)</div><div class="v" id="vS">–</div></div>
+        <div><div class="k">① ↔ ② 거리</div><div class="v" id="v12">–</div></div>
+        <div><div class="k">① ↔ ③ 거리</div><div class="v" id="v13">–</div></div>
+      </div>
+      <table><thead><tr><th>반지름</th><th>① ↔ ②</th><th>① ↔ ③</th><th>② ↔ ③</th></tr></thead><tbody id="tb"></tbody></table>
+      <div class="msg" id="msg1"></div>
+      <p class="note"><b>모델의 한계</b> · 풍선을 위에서 본 원으로 그렸고, 표면이 모든 곳에서 고르게 늘어난다고 보았다(거리 = 처음 거리 × 반지름 배율). 처음 거리는 ① ↔ ② 3 cm, ① ↔ ③ 6 cm.</p>
+    </div>
+  </section>
+  <section class="pane" id="t2">
+    <div>
+      <canvas id="c2" width="760" height="420" aria-label="팽창하는 우주 속 은하들. 은하를 누르면 그 은하가 기준이 된다."></canvas>
+      <p class="guide">아무 은하나 <b>눌러 기준으로 정한 뒤</b> 팽창을 시작하세요. 어느 은하에서 보아도 다른 은하들이 모두 멀어지나요? 화살표는 같은 시간 동안 멀어진 거리예요.</p>
+    </div>
+    <div>
+      <h3>조작</h3>
+      <div class="row"><button class="btn main" id="playBtn" type="button">▶ 팽창 시작</button><button class="btn" id="backBtn" type="button">처음으로</button><button class="btn" id="arrBtn" type="button">이동 화살표</button></div>
+      <div class="row"><span class="lbl">우주의 크기</span><input type="range" id="aSl" min="1" max="2.5" step="0.05" value="1"><b id="aTx" style="min-width:52px">1.00배</b></div>
+      <div class="ro">
+        <div><div class="k">기준 은하 → 가까운 은하 (가)</div><div class="v" id="vNa">–</div></div>
+        <div><div class="k">기준 은하 → 먼 은하 (나)</div><div class="v" id="vNb">–</div></div>
+        <div><div class="k">멀어진 거리 (가) : (나)</div><div class="v" id="vRat">–</div></div>
+      </div>
+      <div class="msg" id="msg2"></div>
+      <p class="note"><b>모델의 한계</b> · 은하의 거리 단위는 임의 단위(처음 크기 기준)이고, 은하 자체의 크기와 은하의 개별 운동은 무시했다. 실제 우주는 3차원 공간 전체가 팽창한다.</p>
+    </div>
+  </section>
+</main>
+<script>
+/* ================================================================
+   우주 팽창 모형
+   ① 풍선: 표면이 고르게 늘어난다 → 두 붙임딱지 사이 거리 = 처음 거리 × s (s = 반지름 배율)
+      펌프질 한 번에 s += 0.2 (1.0 ~ 2.4). 처음: ①↔② 3 cm, ①↔③ 6 cm, ②↔③ 3 cm(한 줄)
+      → 거리 변화량 = 처음 거리 × (s − 1): 멀리 있는 붙임딱지일수록 더 많이 멀어진다
+   ② 은하: 실제 거리 = a × 처음 거리(공동 좌표). 기준 은하를 화면 가운데에 두고 그린다
+      → 어느 은하를 기준으로 해도 다른 모든 은하가 거리에 비례해 멀어진다(중심 없음)
+   ================================================================ */
+const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
+function fit(cv, w, h) { const r = Math.min(2, devicePixelRatio || 1); cv.width = w * r; cv.height = h * r; const x = cv.getContext('2d'); x.setTransform(r, 0, 0, r, 0, 0); return x; }
+const c1 = fit($('#c1'), 760, 420), c2 = fit($('#c2'), 760, 420), PXCM = 13;
+// 붙임딱지(처음 위치, cm, 풍선 중심 기준)
+const STK = [['①', -3, 0.6, '#e0453f'], ['②', 0, 0.6, '#2f6fd0'], ['③', 3, 0.6, '#1f9d6a'], ['', -2.2, -3.2, '#fff'], ['', 2.4, -2.6, '#fff'], ['', -3.6, 3.4, '#fff'], ['', 1.6, 3.8, '#fff'], ['', 4.2, -0.4 - 1.9, '#fff'], ['', -4.6, -1.2, '#fff'], ['', 0.4, -4.4, '#fff']];
+// 은하(공동 좌표): 고정된 의사 난수
+const GAL = (() => { const g = [], h = n => { const v = Math.sin(n * 127.1 + 311.7) * 43758.5453; return v - Math.floor(v); }; let k = 0;   // 격자 + 흔들림으로 고르게 배치
+  for (let gx = -7; gx <= 7; gx++) for (let gy = -4; gy <= 4; gy++) { k++; g.push({ x: gx * 100 + (h(k) - 0.5) * 70, y: gy * 100 + (h(k + 50) - 0.5) * 70, r: 3 + h(k + 99) * 4, hue: h(k + 7) < 0.5 ? '#ffd9a0' : '#bcd4ff', rot: h(k + 3) * 3 }); }
+  return g; })();
+let S;
+function newState() { return { tab: S ? S.tab : 't1', s: 1, rec: { '1.0': 1 }, a: 1, play: false, ref: GAL.reduce((b, g, i) => Math.hypot(g.x, g.y) < Math.hypot(GAL[b].x, GAL[b].y) ? i : b, 0), arrows: true, tgtS: 1 }; }
+const dist = (i, j, s) => Math.hypot(STK[i][1] - STK[j][1], STK[i][2] - STK[j][2]) * s;
+/* ---------- ① 풍선 ---------- */
+let sView = 1;   // 화면에 그리는 반지름 배율(부드럽게 따라감)
+function draw1() {
+  const c = c1; c.clearRect(0, 0, 760, 420); c.fillStyle = '#f9f8fd'; c.fillRect(0, 0, 760, 420);
+  sView += (S.s - sView) * 0.12; const s = sView, cx = 330, cy = 205, R = 6.6 * PXCM * s;
+  // 풍선
+  const g = c.createRadialGradient(cx - R * 0.35, cy - R * 0.35, R * 0.1, cx, cy, R); g.addColorStop(0, '#ffc07a'); g.addColorStop(1, '#f07a14'); c.fillStyle = g; c.beginPath(); c.arc(cx, cy, R, 0, 7); c.fill();
+  c.fillStyle = 'rgba(255,255,255,.35)'; c.beginPath(); c.ellipse(cx - R * 0.42, cy - R * 0.45, R * 0.16, R * 0.09, -0.7, 0, 7); c.fill();
+  // 매듭·펌프
+  c.fillStyle = '#d96410'; c.beginPath(); c.moveTo(cx + R - 2, cy - 7); c.lineTo(cx + R + 14, cy); c.lineTo(cx + R - 2, cy + 7); c.fill();
+  c.fillStyle = '#2b2f3c'; c.beginPath(); c.roundRect(cx + R + 12, cy - 9, 120, 18, 6); c.fill(); c.fillStyle = '#5b6070'; c.fillRect(cx + R + 132, cy - 4, 60, 8);
+  // 붙임딱지(크기 일정)
+  STK.forEach(([n, x, y, col]) => { const px = cx + x * PXCM * s, py = cy - y * PXCM * s; c.fillStyle = col; c.strokeStyle = 'rgba(0,0,0,.2)'; c.lineWidth = 1; c.beginPath(); c.arc(px, py, n ? 11 : 5, 0, 7); c.fill(); c.stroke(); if (n) { c.fillStyle = '#fff'; c.font = 'bold 14px sans-serif'; c.textAlign = 'center'; c.fillText(n, px, py + 5); c.textAlign = 'left'; } });
+  // 거리 자(①-②, ①-③)
+  const p = i => [cx + STK[i][1] * PXCM * s, cy - STK[i][2] * PXCM * s];
+  [[0, 1, -24, '#2f6fd0'], [0, 2, 26, '#1f9d6a']].forEach(([i, j, dy, col]) => { const a = p(i), b = p(j); c.strokeStyle = col; c.lineWidth = 2; c.beginPath(); c.moveTo(a[0], a[1] + dy); c.lineTo(b[0], b[1] + dy); c.stroke();
+    [a, b].forEach(q => { c.beginPath(); c.moveTo(q[0], q[1] + dy - 5); c.lineTo(q[0], q[1] + dy + 5); c.stroke(); });
+    c.fillStyle = '#1d2135'; c.font = 'bold 12px sans-serif'; c.textAlign = 'center'; c.fillText(dist(i, j, S.s).toFixed(1) + ' cm', (a[0] + b[0]) / 2, a[1] + dy + (dy < 0 ? -6 : 16)); c.textAlign = 'left'; });
+  c.fillStyle = '#5b6479'; c.font = 'bold 12px sans-serif'; c.fillText('풍선 표면 = 우주 공간,  붙임딱지 = 은하', 14, 408);
+}
+function ui1() {
+  $('#vS').textContent = S.s.toFixed(1) + ' 배'; $('#v12').textContent = dist(0, 1, S.s).toFixed(1) + ' cm'; $('#v13').textContent = dist(0, 2, S.s).toFixed(1) + ' cm';
+  $('#pumpBtn').disabled = S.s >= 2.39; $('#deflBtn').disabled = S.s <= 1.01;
+  const ks = Object.keys(S.rec).map(Number).sort((a, b) => a - b);
+  $('#tb').innerHTML = ks.map(k => `<tr><td>${k.toFixed(1)} 배</td><td>${dist(0, 1, k).toFixed(1)} cm</td><td>${dist(0, 2, k).toFixed(1)} cm</td><td>${dist(1, 2, k).toFixed(1)} cm</td></tr>`).join('');
+  const m = $('#msg1'); let t;
+  if (ks.length < 2) t = '처음 풍선의 거리가 기록되었다. 펌프질을 여러 번 한 뒤 다시 기록해 보세요.';
+  else { const k = ks[ks.length - 1], d12 = dist(0, 1, k) - 3, d13 = dist(0, 2, k) - 6;
+    t = `반지름이 ${k.toFixed(1)}배가 되자 모든 붙임딱지 사이의 거리가 ${k.toFixed(1)}배로 늘었다. 그동안 ①에서 ②는 ${d12.toFixed(1)} cm, ③은 ${d13.toFixed(1)} cm 멀어져 <b>멀리 있던 붙임딱지일수록 더 많이(더 빠르게) 멀어졌다</b>. ②나 ③을 기준으로 보아도 나머지는 모두 멀어진다 — 팽창의 <b>중심이 따로 없다</b>.`; }
+  if (m.dataset.t !== t) { m.dataset.t = t; m.innerHTML = t; }
+}
+$('#pumpBtn').onclick = () => { S.s = Math.min(2.4, +(S.s + 0.2).toFixed(1)); ui1(); };
+$('#deflBtn').onclick = () => { S.s = Math.max(1, +(S.s - 0.2).toFixed(1)); ui1(); };
+$('#recBtn').onclick = () => { S.rec[S.s.toFixed(1)] = 1; ui1(); };
+/* ---------- ② 은하 ---------- */
+const near = () => { const r = GAL[S.ref]; let best = -1, bd = 1e9; GAL.forEach((g, i) => { if (i === S.ref) return; const d = Math.hypot(g.x - r.x, g.y - r.y); if (d > 60 && d < bd) { bd = d; best = i; } }); return best; };
+const farI = () => { const r = GAL[S.ref]; let best = -1, bd = 0; GAL.forEach((g, i) => { const d = Math.hypot(g.x - r.x, g.y - r.y), pos = [(g.x - r.x) * 2.5 * KV + 380, (g.y - r.y) * 2.5 * KV + 210]; if (i !== S.ref && d > bd && pos[0] > 40 && pos[0] < 720 && pos[1] > 40 && pos[1] < 380) { bd = d; best = i; } }); return best; };
+let pairCache = null;
+function pair() { if (!pairCache || pairCache.ref !== S.ref) pairCache = { ref: S.ref, n: near(), f: farI() }; return pairCache; }
+const KV = 0.5;   // 화면 배율
+const D0 = i => Math.hypot(GAL[i].x - GAL[S.ref].x, GAL[i].y - GAL[S.ref].y) / 40;   // 처음 거리(임의 단위)
+function galaxy(c, x, y, r, col, rot, hl) { c.save(); c.translate(x, y); c.rotate(rot); const g = c.createRadialGradient(0, 0, 0, 0, 0, r * 2.2); g.addColorStop(0, '#fff'); g.addColorStop(0.35, col); g.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = g; c.beginPath(); c.ellipse(0, 0, r * 2.2, r * 1.1, 0, 0, 7); c.fill(); c.restore();
+  if (hl) { c.strokeStyle = hl; c.lineWidth = 2; c.beginPath(); c.arc(x, y, r * 2.6 + 4, 0, 7); c.stroke(); } }
+function draw2() {
+  const c = c2; c.clearRect(0, 0, 760, 420); c.fillStyle = '#070a22'; c.fillRect(0, 0, 760, 420);
+  const r = GAL[S.ref], P = pair(), pos = (g, a) => [380 + (g.x - r.x) * a * KV, 210 + (g.y - r.y) * a * KV];
+  // 공간 격자(함께 늘어남)
+  c.strokeStyle = 'rgba(120,130,220,.13)'; c.lineWidth = 1; for (let k = -12; k <= 12; k++) { const x = 380 + (k * 80 - r.x) * S.a * KV, y = 210 + (k * 80 - r.y) * S.a * KV; c.beginPath(); c.moveTo(x, 0); c.lineTo(x, 420); c.stroke(); c.beginPath(); c.moveTo(0, y); c.lineTo(760, y); c.stroke(); }
+  GAL.forEach((g, i) => { const p = pos(g, S.a), p0 = pos(g, 1);
+    if (S.arrows && S.a > 1.02 && i !== S.ref) { c.strokeStyle = 'rgba(255,170,90,.65)'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(...p0); c.lineTo(...p); c.stroke(); const an = Math.atan2(p[1] - p0[1], p[0] - p0[0]); c.fillStyle = 'rgba(255,170,90,.8)'; c.beginPath(); c.moveTo(p[0], p[1]); c.lineTo(p[0] - 7 * Math.cos(an - 0.4), p[1] - 7 * Math.sin(an - 0.4)); c.lineTo(p[0] - 7 * Math.cos(an + 0.4), p[1] - 7 * Math.sin(an + 0.4)); c.fill(); }
+    galaxy(c, p[0], p[1], g.r, g.hue, g.rot, i === S.ref ? '#7dffb0' : i === P.n ? '#ffd36b' : i === P.f ? '#ff8fa3' : null); });
+  [[P.n, '(가)', '#ffd36b'], [P.f, '(나)', '#ff8fa3']].forEach(([i, t, col]) => { if (i < 0) return; const p = pos(GAL[i], S.a); c.fillStyle = col; c.font = 'bold 13px sans-serif'; c.fillText(t, p[0] + 12, p[1] - 10); });
+  c.fillStyle = '#7dffb0'; c.font = 'bold 13px sans-serif'; c.fillText('기준 은하', 392, 200);
+  c.fillStyle = '#a7aed0'; c.font = '12px sans-serif'; c.fillText('은하를 누르면 그 은하가 기준(가운데)이 된다', 12, 410);
+}
+function ui2() {
+  $('#aTx').textContent = S.a.toFixed(2) + '배'; $('#aSl').value = S.a; $('#playBtn').textContent = S.play ? '⏸ 멈춤' : '▶ 팽창 시작'; $('#arrBtn').classList.toggle('on', S.arrows);
+  const P = pair(), da = D0(P.n), db = D0(P.f);
+  $('#vNa').textContent = (da * S.a).toFixed(1); $('#vNb').textContent = (db * S.a).toFixed(1);
+  $('#vRat').textContent = S.a > 1.001 ? `${(da * (S.a - 1)).toFixed(1)} : ${(db * (S.a - 1)).toFixed(1)}` : '–';
+  const m = $('#msg2'), t = S.a < 1.02 ? '▶ 팽창 시작을 누르거나 "우주의 크기"를 키워 보세요. 처음 거리는 (가) ' + da.toFixed(1) + ', (나) ' + db.toFixed(1) + '이다.' :
+    `우주가 ${S.a.toFixed(2)}배로 커지는 동안 기준 은하에서 (가)는 ${(da * (S.a - 1)).toFixed(1)}, (나)는 ${(db * (S.a - 1)).toFixed(1)}만큼 멀어졌다. <b>멀리 있는 은하일수록 더 빨리 멀어진다.</b> 다른 은하를 눌러 기준을 바꿔도 모든 은하가 멀어진다 — 우주는 <b>특별한 중심 없이</b> 모든 방향으로 팽창한다.`;
+  if (m.dataset.t !== t) { m.dataset.t = t; m.innerHTML = t; }
+}
+$('#playBtn').onclick = () => { if (S.a >= 2.49) S.a = 1; S.play = !S.play; ui2(); };
+$('#backBtn').onclick = () => { S.a = 1; S.play = false; ui2(); };
+$('#arrBtn').onclick = () => { S.arrows = !S.arrows; ui2(); };
+$('#aSl').oninput = e => { S.a = +e.target.value; S.play = false; ui2(); };
+$('#c2').addEventListener('click', e => { const cv = e.target, rc = cv.getBoundingClientRect(), x = (e.clientX - rc.left) * 760 / rc.width, y = (e.clientY - rc.top) * 420 / rc.height, r = GAL[S.ref];
+  let best = -1, bd = 26; GAL.forEach((g, i) => { const p = [380 + (g.x - r.x) * S.a * KV, 210 + (g.y - r.y) * S.a * KV], d = Math.hypot(p[0] - x, p[1] - y); if (d < bd) { bd = d; best = i; } }); if (best >= 0) { S.ref = best; ui2(); } });
+/* ---------- 공통 ---------- */
+$$('nav button').forEach(x => x.onclick = () => { S.tab = x.dataset.tab; $$('nav button').forEach(y => y.classList.toggle('on', y === x)); $$('.pane').forEach(p => p.classList.toggle('on', p.id === S.tab)); });
+function start() { S = newState(); sView = 1; pairCache = null; ui1(); ui2(); }
+$('#resetBtn').onclick = start;
+let last = performance.now(), fr = 0;
+function loop(ts) { const dt = Math.min(0.05, (ts - last) / 1000); last = ts;
+  if (S.play) { S.a = Math.min(2.5, S.a + dt * 0.25); if (S.a >= 2.5) S.play = false; if (++fr % 6 === 0 || !S.play) ui2(); }
+  if (S.tab === 't1') draw1(); else draw2(); requestAnimationFrame(loop); }
+start(); requestAnimationFrame(loop);
+// 테스트용
+window.__bal = s => { S.s = s; S.rec[s.toFixed(1)] = 1; ui1(); return [dist(0, 1, s), dist(0, 2, s), dist(1, 2, s)].map(v => +v.toFixed(2)); };
+window.__uni = (a, ref) => { S.a = a; if (ref !== undefined) S.ref = ref; ui2(); const P = pair(); return { near: +(D0(P.n) * (a - 1)).toFixed(2), far: +(D0(P.f) * (a - 1)).toFixed(2), d0n: +D0(P.n).toFixed(2), d0f: +D0(P.f).toFixed(2) }; };
+</script>
+</body>
+</html>
