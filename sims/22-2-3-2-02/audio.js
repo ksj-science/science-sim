@@ -1,4 +1,4 @@
-// 22-2-3-2-01 악기 소리 합성 (Web Audio, lib/sound.js의 오디오 문맥·마스터 이득 위에)
+// 22-2-3-2-02 악기 소리 합성 (Web Audio, lib/sound.js의 오디오 문맥·마스터 이득 위에)
 // 분석 화면과 같은 수식(model.js)으로 합성한다. 효과음은 sound.js 쪽.
 import { sound } from '../../lib/sound.js';
 import { INST, KAL_TAU, END_AMP } from './model.js';

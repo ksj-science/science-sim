@@ -1,4 +1,4 @@
-// 22-2-3-2-01 소리 분석기 — 화면 연결·상태 관리
+// 22-2-3-2-02 소리 분석기 — 화면 연결·상태 관리
 import { sound } from '../../lib/sound.js';
 import { toast, paintRange, clamp } from '../../lib/utils.js';
 import {
@@ -6,7 +6,7 @@ import {
 } from './model.js';
 import { playKalimba, startRecorder, setRecorderAmp, releaseRecorder, stopVoice, setAir } from './audio.js';
 
-SimBridge.init('22-2-3-2-01');
+SimBridge.init('22-2-3-2-02');
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
