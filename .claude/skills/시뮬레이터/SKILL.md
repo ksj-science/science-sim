@@ -85,7 +85,7 @@ Agent(`activity-writer`)에 `<ID>`를 넘깁니다. → `activities/<ID>/활동�
 ### 6. 등록·커밋·푸시
 1. `units.json`에 항목 추가(기존 형식 그대로, id 순 정렬은 포털이 함):
    ```json
-   { "id": "<ID>", "grade": <학년>, "chapter": "<대단원 로마숫자>. <대단원 이름> · <중단원 번호>. <중단원 이름>",
+   { "id": "<ID>", "grade": <학년>, "chapter": "<대단원 로마숫자>. <대단원 이름> · <중단원 번호>. <중단원 이름>",   ← 단원설계서/_차례.md 문구 그대로
      "title": "<차시 제목>", "summary": "<한 문장, 중학생 말투>", "path": "sims/<ID>/", "status": "검토 중",
      "source": "code", "dashboard": false, "gas": null }
    ```

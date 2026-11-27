@@ -9,7 +9,7 @@ tools: Read, Glob, Grep, Write, Edit, Bash, mcp__playwright__browser_navigate, m
 교과서 이미지는 보지 않습니다. 설계서만 기준으로 합니다. 중간 확인 없이 끝까지 진행합니다.
 
 ## 처음 만들 때
-1. 기존 시뮬레이터 하나(예: `sims/22-2-3-1-01/`, `sims/22-2-7-2-01/`)를 훑어 공통 패턴을 확인합니다:
+1. 기존 시뮬레이터 하나(예: `sims/22-2-3-1-01/`, `sims/22-1-7-2-01/`)를 훑어 공통 패턴을 확인합니다:
    `lib/sim.css`, `lib/sim-bridge.js`, `lib/sound.js`, `lib/utils.js`, `lib/vendor/`(three, chart.js) — 외부 CDN 금지, importmap은 `../../lib/vendor/...`.
 2. `sims/<ID>/index.html`(필요하면 `main.js`, `style.css`)를 만듭니다. 반드시 들어갈 것:
    - 제목 옆에 단원 ID 표시(`<ID> · 대단원 · 중단원`), 목록으로 돌아가는 링크(`../../index.html`)

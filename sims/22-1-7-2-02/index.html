@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>지구 공전과 별자리 변화 | 과학 시뮬레이터</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='22' fill='%23ffb627'/><ellipse cx='50' cy='50' rx='44' ry='18' fill='none' stroke='%234a7bd0' stroke-width='5'/><circle cx='92' cy='52' r='8' fill='%232f80ed'/></svg>" />
+  <link rel="stylesheet" href="../../lib/sim.css" />
+  <link rel="stylesheet" href="./style.css" />
+  <script src="../../lib/sim-bridge.js"></script>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "../../lib/vendor/three-0.170.0/build/three.module.js",
+      "three/addons/": "../../lib/vendor/three-0.170.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+<div id="app">
+  <header id="top">
+    <a class="hbtn icon" href="../../index.html" title="목록으로" aria-label="목록으로">←</a>
+    <div class="ttl">
+      <h1>지구 공전과 별자리 변화</h1>
+      <span class="unit">22-1-7-2-02 · Ⅶ. 태양계 · 2. 지구와 달</span>
+    </div>
+    <div class="hact">
+      <button class="hbtn" id="btnReset" title="처음 상태로 (기록 표는 그대로)">↺ <span class="lbl">초기화</span></button>
+      <button class="hbtn" id="btnQuality" title="그래픽 품질 바꾸기">✦ <span class="lbl" id="qLbl">품질: 높음</span></button>
+      <button class="hbtn icon" id="btnMute" title="소리 끄기" aria-label="소리 끄기" aria-pressed="false">🔊</button>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- ① 우주에서 본 지구의 공전 -->
+    <section id="spacePanel" class="card">
+      <div class="ph">
+        <h2><span class="num">①</span> 우주에서 본 지구의 공전</h2>
+        <div class="seg sm" id="viewSeg" role="group" aria-label="보는 방향">
+          <button data-view="tilt" aria-pressed="true">비스듬히 보기</button>
+          <button data-view="top" aria-pressed="false">위에서 보기<span class="lbl2">(북극 위)</span></button>
+        </div>
+      </div>
+      <div id="space" class="stage">
+        <div class="ov tl" id="fixedNote"><span class="lock">🔒</span> 별자리는 그대로, 지구가 움직여요<span class="ratio-note"> · 크기·거리 비율은 실제와 달라요</span></div>
+        <div class="ov tr" id="orbitBox">
+          <div class="ob-row"><span>공전한 각도</span><b id="obAngle">0.0°</b></div>
+          <div class="ob-row"><span>지난 날수</span><b id="obDays">0일</b></div>
+          <div class="ob-row rate"><span>하루 평균</span><b id="obRate">–</b></div>
+          <div class="ob-sub">시작 날짜(오늘)부터</div>
+        </div>
+        <div class="ov tc" id="topNote" hidden>북극 위에서 본 모습 — 지구는 <b>시계 반대 방향</b>으로 공전</div>
+        <div class="ov bl legend" id="legend">
+          <div class="lg sunl" data-mode="noon"><i></i>지구 → 태양 쪽 (낮 12시)</div>
+          <div class="lg nightl" data-mode="midnight"><i></i>지구 → 태양 반대쪽, 정남 (밤 12시)</div>
+          <div class="lg zone"><b class="zs"></b><b class="zn"></b>시선이 닿는 별자리 구역 <span class="bd">┆</span> 경계</div>
+        </div>
+        <div class="ov br hint3d" id="hint3d">빈 곳을 끌면 회전 · 휠/두 손가락으로 확대</div>
+        <div class="ov year-done" id="yearDone" hidden role="status">
+          <div class="yd-ring" aria-hidden="true"></div>
+          <b>1년 동안 지구가 태양 둘레를 한 바퀴 돌았어요!</b>
+          <span>태양은 처음 별자리로 돌아왔나요? ② 하늘과 ③ 기록 표에서 확인해 보세요.</span>
+        </div>
+      </div>
+      <p class="foot" id="spaceFoot">크기·거리 비율은 실제와 달라요. 별자리의 별들은 훨씬 멀리 있고, 지구에서의 거리도 서로 달라요.</p>
+    </section>
+
+    <section id="right">
+      <!-- ② 지구에서 본 하늘 -->
+      <section id="skyPanel" class="card">
+        <div class="ph">
+          <h2><span class="num">②</span> 지구에서 본 남쪽 하늘</h2>
+          <div class="seg sm" id="timeSeg" role="group" aria-label="시각">
+            <button data-t="noon" aria-pressed="true">☀ 낮 12시</button>
+            <button data-t="midnight" aria-pressed="false">☾ 밤 12시</button>
+          </div>
+          <button class="chipbtn" id="btnSun" aria-pressed="false" title="실제처럼 햇빛을 켜거나 끕니다">햇빛 켜기</button>
+        </div>
+        <div id="sky" class="stage">
+          <canvas id="skyCanvas" aria-label="남쪽 하늘. 별자리를 누르면 기록 표에 기록됩니다"></canvas>
+          <div class="ov tl skytime" id="skyTime"></div>
+          <div class="ov bc skynote" id="skyNote" hidden></div>
+          <div class="ov tr predict-tag" id="predTag" hidden></div>
+          <div class="sky-bubble" id="skyBubble" hidden role="status"></div>
+        </div>
+        <p class="foot sky-foot" id="skyFoot">
+          <span class="it"><b class="k bd">┆</b> 별자리 구역의 경계</span>
+          <span class="it noon-only"><b class="k zs">▮</b> 태양이 들어 있는 구역</span>
+          <span class="it noon-only"><b class="k tr">●</b> 지난 날의 태양(태양의 연주 운동)</span>
+          <span class="it night-only"><b class="k zn">▮</b> 지금 정남에 있는 구역</span>
+          <span class="it night-only"><b class="k mr">┊</b> 정남(남쪽 한가운데) 선</span>
+        </p>
+      </section>
+
+      <!-- ③ 관측 기록 표 -->
+      <section id="recPanel" class="card">
+        <div class="ph">
+          <h2><span class="num">③</span> 관측 기록 표</h2>
+          <div class="ph-act">
+            <button class="chipbtn" id="btnAstro" aria-expanded="false">ⓘ 점성술 날짜와 달라요</button>
+            <button class="chipbtn ghost" id="btnClear">기록 지우기</button>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table id="rec">
+            <thead><tr><th class="rh corner" id="recHint">하늘의 별자리나 빈칸을 눌러 기록해요</th></tr></thead>
+            <tbody>
+              <tr data-row="noon"><th class="rh">☀ 낮 12시<br><small>태양과 가장 가까운 별자리</small></th></tr>
+              <tr data-row="midnight"><th class="rh">☾ 밤 12시<br><small>남쪽 하늘 별자리</small></th></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pop" id="astroPop" hidden>
+          <b>점성술 날짜는 실제 하늘과 달라요</b>
+          <p>점성술 날짜는 약 2000년 전 별자리 위치에 맞춰, 똑같은 크기로 나눠 정한 날짜예요.</p>
+          <p>그동안 지구 자전축이 가리키는 방향이 조금씩 바뀌었고 실제 별자리는 크기도 제각각이라, 지금 하늘과 한 달 가까이 차이 나요.</p>
+          <p>이 시뮬레이터는 실제 별자리 구역(하늘의 점선)을 써요.</p>
+          <button class="chipbtn" id="astroClose">닫기</button>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <!-- 아래 조작판 -->
+  <footer id="ctrl">
+    <div class="cg base">
+      <label class="cap" for="baseInput">시작 날짜(오늘)</label>
+      <input type="date" id="baseInput" />
+      <button class="cbtn sm" id="btnExample" title="교과서 예시 화면의 날짜(2025년 11월 3일)로 시작 날짜 바꾸기">교과서 예시<span class="long"> 2025-11-03</span></button>
+    </div>
+
+    <div class="cg nav">
+      <div class="navrow">
+        <button class="cbtn" id="m3" title="3개월 전으로 (Shift+←)">◀ 3개월</button>
+        <button class="cbtn" id="m1" title="하루 전으로 (←)">◀ 1일</button>
+        <output id="dateOut" aria-live="polite">—</output>
+        <button class="cbtn" id="p1" title="하루 뒤로 (→)">1일 ▶</button>
+        <button class="cbtn" id="p3" title="3개월 뒤로 (Shift+→)">3개월 ▶<span class="pdot">예측</span></button>
+      </div>
+      <div class="slider-wrap">
+        <div class="ssn-row" id="ssnRow" aria-hidden="true"></div>
+        <div class="season" id="seasonBand" aria-hidden="true"></div>
+        <input type="range" id="daySlider" min="0" max="365" step="1" value="0" aria-label="날짜 (시작 날짜부터 지난 날수)" />
+        <div class="ticks" id="ticks" aria-hidden="true"></div>
+      </div>
+    </div>
+
+    <div class="cg play">
+      <button class="cbtn primary" id="btnPlay" aria-pressed="false">▶ 재생</button>
+      <div class="speed">
+        <span class="cap">1초에</span>
+        <div class="seg xs" id="speedSeg" role="group" aria-label="재생 속도">
+          <button data-sp="5" aria-pressed="false">5일</button>
+          <button data-sp="15" aria-pressed="true">15일</button>
+          <button data-sp="30" aria-pressed="false">30일</button>
+        </div>
+      </div>
+      <label class="switch" title="켜면 3개월 ▶ 를 누를 때 먼저 예측해요">
+        <input type="checkbox" id="predictToggle" />
+        <span class="track"><span class="knob"></span></span>
+        <span class="sw-lbl">예측하기<small>3개월 ▶ 전에</small></span>
+      </label>
+    </div>
+  </footer>
+</div>
+
+<!-- 별자리 고르기 창 (기록 칸·예측) -->
+<div class="picker" id="picker" hidden role="dialog" aria-modal="true" aria-labelledby="pickTitle">
+  <div class="picker-box">
+    <div class="pk-title" id="pickTitle">별자리 고르기</div>
+    <div class="pk-sub" id="pickSub"></div>
+    <div class="pk-grid" id="pickGrid"></div>
+    <div class="pk-act">
+      <button class="chipbtn ghost" id="pickErase">칸 비우기</button>
+      <button class="chipbtn" id="pickCancel">취소</button>
+    </div>
+  </div>
+</div>
+
+<!-- 확인 창 -->
+<div class="picker" id="confirmBox" hidden role="dialog" aria-modal="true" aria-labelledby="confirmMsg">
+  <div class="picker-box narrow">
+    <div class="pk-title" id="confirmMsg"></div>
+    <div class="pk-act">
+      <button class="chipbtn" id="confirmNo">취소</button>
+      <button class="chipbtn danger" id="confirmYes">확인</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="./main.js"></script>
+</body>
+</html>
