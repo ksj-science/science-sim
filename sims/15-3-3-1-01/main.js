@@ -346,7 +346,9 @@ function drawNote(ctx, g) {
   const top = 44, bottom = g.tableBack - 10;
   if (bottom - top < 34) return;
   const text = S.mode === 'textbook'
-    ? '1초마다 남은 잔상의 뒤 끝을 확대경으로 읽어 표에 써 보세요.'
+    ? (TB.t < 1 && !TB.ran4
+      ? '▶ 출발을 누르면 1초마다 자동차의 흐린 자국(잔상)이 남아요.'
+      : '잔상(흐린 자국)의 뒤 끝을 확대경으로 읽어 표에 써 보세요.')
     : '속력을 바꿔 가며 달려 보고, 그래프 선의 기울기와 높이를 비교해 보세요.';
   ctx.save();
   ctx.font = `600 13px ${getFont()}`;
