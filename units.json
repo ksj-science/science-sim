@@ -1060,7 +1060,7 @@
     "path": "sims/15-3-3-1-01/",
     "status": "검토 중",
     "source": "code",
-    "dashboard": false,
+    "dashboard": true,
     "gas": null
   }
 ]
