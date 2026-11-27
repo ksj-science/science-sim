@@ -953,6 +953,9 @@ function updateCubeUI() {
   ['aMinus', 'aPlus', 'bMinus', 'bPlus'].forEach(id => $(id).disabled = lk);
   $('btnReact').hidden = lk; $('btnUndo').hidden = lk;
   $('cardTray').hidden = !lk;
+  $('lockNote').hidden = !lk;
+  $('cubeGuideText').innerHTML = lk ? '분자 모형 <b>카드</b>를 반응 후의 빈 상자에 넣어 보자.'
+    : '반응을 고르고 상자 수를 바꾼 뒤 <b>반응시키기</b>를 눌러 보자.';
   document.querySelectorAll('.card').forEach(b => b.classList.toggle('sel', +b.dataset.i === cube.sel));
   const n = st.reacted ? st.n : 0;
   const before = st.A + st.B;
@@ -960,9 +963,11 @@ function updateCubeUI() {
   $('sumBefore').textContent = `${before} 부피`;
   $('sumAfter').textContent = after == null ? '–' : `${after} 부피`;
   const sign = $('sumSign');
-  sign.textContent = after == null ? '?' : after === before ? '=' : '≠';
-  sign.className = after == null ? '' : after === before ? 'eq' : 'ne';
+  const noRx = after != null && n === 0;
+  sign.textContent = after == null ? '?' : noRx ? '–' : after === before ? '=' : '≠';
+  sign.className = after == null || noRx ? '' : after === before ? 'eq' : 'ne';
   $('sumNote').textContent = after == null ? '반응시킨 뒤 비교해 보자.'
+    : noRx ? '반응이 일어나지 않아 비교할 수 없어요.'
     : after === before ? '이 반응은 반응 전후 기체 부피 합이 같아요. 다른 반응과 비교해 보자.'
     : '질량은 보존되지만 기체의 부피 합은 반응에 따라 달라질 수 있어요.';
   // 비 표

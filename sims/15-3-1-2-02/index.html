@@ -45,7 +45,7 @@
     <li>① 주입구 열기</li><li>② 산소 6 mL</li><li>③ 수소 6 mL</li><li>④ 주입구 닫기</li><li>⑤ 점화</li><li>⑥ 눈금 읽기</li><li>⑦ 수소 6 mL 더 넣고 다시 점화</li>
   </ol>
   <span class="safe" id="labSafe">넣는 기체의 종류와 순서가 바뀌지 않게 해요</span>
-  <p id="cubeGuide" hidden>반응을 고르고 상자 수를 바꾼 뒤 <b>반응시키기</b>를 눌러 보자. 상자 1개 = 기체 1 부피 = 분자 모형 1개</p>
+  <p id="cubeGuide" hidden><span id="cubeGuideText">반응을 고르고 상자 수를 바꾼 뒤 <b>반응시키기</b>를 눌러 보자.</span> 상자 1개 = 기체 1 부피 = 분자 모형 1개</p>
 </div>
 
 <main class="layout">
@@ -117,6 +117,7 @@
           <button id="btnReact" class="primary">반응시키기</button>
           <button id="btnUndo">반응 전으로</button>
         </div>
+        <p id="lockNote" class="locknote" hidden>적용하기 카드를 마치면 상자 수를 바꿀 수 있어요</p>
       </div>
       <div class="panel cards" id="cardTray" hidden>
         <p class="ctext"><b>적용하기</b> 빈 상자 2개에 들어갈 암모니아 분자 모형 카드를 끌어 놓거나, 카드를 누른 뒤 빈 상자를 눌러요. (같은 카드를 한 번 더 눌러도 넣어져요)</p>

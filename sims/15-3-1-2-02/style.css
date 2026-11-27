@@ -124,6 +124,7 @@ table.log td.empty { color: var(--muted); font-size: 13px; }
 .cnt span { font-weight: 600; min-width: 34px; }
 .cnt b { min-width: 26px; text-align: center; font-size: 18px; font-variant-numeric: tabular-nums; }
 .acts { display: flex; gap: 8px; margin-left: auto; }
+.locknote { margin: 0 0 0 auto; font-size: 14px; color: #8a5a00; background: #fff4d6; border-radius: 8px; padding: 6px 10px; }
 .cards { flex: none; display: flex; gap: 10px; align-items: center; padding: 6px 10px; }
 .ctext { margin: 0; font-size: 13px; line-height: 1.4; flex: 1; min-width: 140px; }
 .clist { display: flex; gap: 8px; flex: none; }
