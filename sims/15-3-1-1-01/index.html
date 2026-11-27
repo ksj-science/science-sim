@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>화학 반응식 만들기 | 과학 시뮬레이터</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚗️</text></svg>" />
+  <link rel="stylesheet" href="../../lib/sim.css" />
+  <link rel="stylesheet" href="../../lib/vendor/jua-5.3.0/jua.css" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <header id="top">
+    <a class="btn icon back" href="../../index.html" title="목록으로" aria-label="목록으로">←</a>
+    <div class="title">
+      <h1>화학 반응식 만들기</h1>
+      <p>15-3-1-1-01 · Ⅰ. 화학 반응의 규칙과 에너지 변화 · 1. 물질의 변화</p>
+    </div>
+    <div class="acts">
+      <button class="btn" id="btnPlay" title="반응 애니메이션 일시정지/재생">⏸<span class="lbl">일시정지</span></button>
+      <button class="btn icon" id="btnMute" title="소리 켜기/끄기" aria-label="소리 켜기/끄기">🔊</button>
+      <button class="btn" id="btnQuality" title="그래픽 품질 (높음/낮음)">✨<span class="lbl" id="qualityLbl">품질 높음</span></button>
+      <button class="btn" id="btnReset" title="지금 반응을 1단계 처음으로 (길게 누르면 모든 반응을 처음부터)">↺<span class="lbl">초기화</span></button>
+    </div>
+  </header>
+
+  <main id="app">
+    <!-- 왼쪽: 반응 목록 · 단계 · 상황 -->
+    <aside id="left">
+      <section id="list" class="card" aria-label="반응 목록"></section>
+      <section id="info">
+        <ol id="steps" class="card" aria-label="단계"></ol>
+        <div id="situation" class="card">
+          <div class="sit-h">상황</div>
+          <p id="sitText"></p>
+          <p id="sitTip" class="tip"></p>
+        </div>
+      </section>
+    </aside>
+
+    <!-- 가운데: 반응식 줄 · 모형 상자 · 조작 줄 -->
+    <section id="center">
+      <div id="eqPanel" class="card">
+        <div id="eqHead"><b id="eqStep"></b><span id="eqMsg" aria-live="polite"></span></div>
+        <div id="eqBody"></div>
+      </div>
+      <div id="stageWrap" class="card">
+        <canvas id="stage" aria-label="반응 전과 반응 후의 분자 모형"></canvas>
+      </div>
+      <div id="ctrl" class="card">
+        <span class="ctrl-l">반응 횟수</span>
+        <div class="seg" id="runSeg" role="group" aria-label="반응 횟수">
+          <button data-n="1" aria-pressed="true">1</button><button data-n="2" aria-pressed="false">2</button><button data-n="3" aria-pressed="false">3</button><button data-n="4" aria-pressed="false">4</button>
+        </div>
+        <span class="ctrl-note" id="runNote">번</span>
+        <button class="btn primary" id="btnRun">⚡<span class="lbl">반응시키기</span></button>
+        <button class="btn" id="btnBack">⟲<span class="lbl">반응 전으로</span></button>
+      </div>
+    </section>
+
+    <!-- 오른쪽: 원자 수 세기 · 분자 수 합계 · 표 · 완성된 반응식 -->
+    <aside id="right">
+      <div id="ra" class="col">
+        <section id="atomsPanel" class="card">
+          <h2>원자 수 세기 <small>반응 전 · 반응 후</small></h2>
+          <div id="atomRows"></div>
+          <div id="atomDim" class="dim-note">3단계에서 세어요</div>
+        </section>
+        <section id="totals" class="card">
+          <div class="tot"><span id="totLabel">분자 수 합계</span>
+            <span class="tv"><i class="bl">반응 전</i> <b id="totL">-</b> <i class="or">반응 후</i> <b id="totR">-</b></span></div>
+          <div id="totNote" class="hint"></div>
+        </section>
+      </div>
+      <div id="rb" class="col">
+        <section id="tablePanel" class="card">
+          <h2 id="tableTitle">계수비와 분자 수의 비</h2>
+          <div id="tableBox"></div>
+        </section>
+        <section id="resultPanel" class="card">
+          <h2>완성된 반응식</h2>
+          <div id="finalEq" class="final-eq"></div>
+          <div id="verdict" class="verdict" aria-live="polite"></div>
+          <div class="res-btns">
+            <button class="btn warn" id="btnRevert" hidden>↩<span class="lbl">화학식 되돌리기</span></button>
+            <button class="btn" id="btnHint">💡<span class="lbl">도움말</span></button>
+          </div>
+          <div id="hintText" class="hint"></div>
+        </section>
+      </div>
+    </aside>
+  </main>
+
+  <!-- 아래 첨자 바꿔 보기 작은 창 -->
+  <div id="subPop" role="dialog" aria-label="아래 첨자 바꿔 보기" hidden>
+    <div class="sp-q">이 원자 수를 바꿔 볼까요?</div>
+    <div class="sp-row">
+      <span id="spEl" class="sp-el"></span>
+      <button class="btn icon" id="spMinus" aria-label="원자 수 줄이기">−</button>
+      <b id="spVal">1</b>
+      <button class="btn icon" id="spPlus" aria-label="원자 수 늘리기">+</button>
+      <button class="btn" id="spClose">닫기</button>
+    </div>
+  </div>
+
+  <div id="dragGhost" aria-hidden="true"></div>
+
+  <script src="../../lib/sim-bridge.js"></script>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
