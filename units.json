@@ -1059,7 +1059,7 @@
     "summary": "이름 카드 → 화학식 → 계수 맞추기 3단계로 화학 반응식을 완성하고, 계수비가 분자 수의 비와 같은지 분자 모형으로 확인해요",
     "path": "sims/15-3-1-1-01/",
     "source": "code",
-    "dashboard": false,
+    "dashboard": true,
     "gas": null
   }
 ]
