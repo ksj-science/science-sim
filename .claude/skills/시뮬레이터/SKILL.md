@@ -86,9 +86,10 @@ Agent(`activity-writer`)에 `<ID>`를 넘깁니다. → `activities/<ID>/활동�
 1. `units.json`에 항목 추가(기존 형식 그대로, id 순 정렬은 포털이 함):
    ```json
    { "id": "<ID>", "grade": <학년>, "chapter": "<대단원 로마숫자>. <대단원 이름> · <중단원 번호>. <중단원 이름>",   ← 단원설계서/_차례.md 문구 그대로
-     "title": "<차시 제목>", "summary": "<한 문장, 중학생 말투>", "path": "sims/<ID>/", "status": "검토 중",
+     "title": "<차시 제목>", "summary": "<한 문장, 중학생 말투>", "path": "sims/<ID>/",
      "source": "code", "dashboard": false, "gas": null }
    ```
+   `status`는 넣지 않습니다. 4단계에서 2회 수정 뒤에도 FAIL로 끝난 경우에만 `"status": "검토 중"`을 더합니다(포털·대시보드에 라벨로 보임). 나중에 남은 문제를 고치면 이 줄을 지웁니다.
    `dashboard: false`라 아직 포털·대시보드에 안 보입니다(6-1단계에서 허락받으면 반영).
 2. `http://localhost:5173/sims/<ID>/`가 열리는지만 확인(포털 카드 확인은 반영할 때 한 번에).
 3. 커밋(한국어 메시지, 끝에 Co-Authored-By 줄): 설계서, `sims/<ID>/`, `activities/<ID>/`, `units.json`.
