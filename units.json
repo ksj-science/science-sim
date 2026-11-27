@@ -33,7 +33,7 @@
     "summary": "마그네슘을 태워 생긴 산화 마그네슘의 질량을 재고, 그래프로 마그네슘과 산소의 질량비가 일정함을 찾아본다",
     "path": "sims/15-3-1-2-02/",
     "source": "code",
-    "dashboard": false,
+    "dashboard": true,
     "gas": null
   },
   {
