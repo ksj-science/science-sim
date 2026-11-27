@@ -1,4 +1,4 @@
-/* 15-3-1-2-02 기체 반응 법칙 */
+/* 15-3-1-2-03 기체 반응 법칙 */
 :root { --o2: #e04848; --h2: #8a99aa; --water: #2f80ed; }
 html, body { height: 100%; overflow: hidden; }
 body { display: flex; flex-direction: column; height: 100dvh; font-size: 14px; }

@@ -1,9 +1,9 @@
-// 15-3-1-2-02 기체 반응 법칙 — ① 물 합성 장치 실험, ② 부피 상자 모형
+// 15-3-1-2-03 기체 반응 법칙 — ① 물 합성 장치 실험, ② 부피 상자 모형
 // 단순화: 반응은 항상 완전히 일어나고, 생긴 수증기는 실온에서 물(액체)이 되어 부피를 0으로 본다(설계서 참고).
 import { sound } from '../../lib/sound.js';
 import { clamp, lerp, ease, damp, toast } from '../../lib/utils.js';
 
-const UNIT = '15-3-1-2-02';
+const UNIT = '15-3-1-2-03';
 const SB = window.SimBridge;
 SB.init(UNIT);
 
