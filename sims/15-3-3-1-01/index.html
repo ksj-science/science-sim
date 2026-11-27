@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>빠르기가 일정하다는 것은 — 등속 운동</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="../../lib/sim.css">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<header class="top">
+  <a class="back" href="../../index.html" title="목록으로" aria-label="목록으로">←</a>
+  <div class="titles">
+    <h1>빠르기가 일정하다는 것은</h1>
+    <span class="unit">15-3-3-1-01 · Ⅲ. 운동과 에너지 · 1. 운동</span>
+  </div>
+  <div class="seg tabs" role="tablist" aria-label="활동 고르기">
+    <button id="tabTextbook" role="tab" aria-pressed="true">교과서 실험</button>
+    <button id="tabVary" role="tab" aria-pressed="false">속력 바꾸기</button>
+  </div>
+  <div class="hdr-right">
+    <button id="btnQuality" title="그래픽 품질 바꾸기">품질: 높음</button>
+    <button id="btnReset" title="시간·잔상·확대경·손잡이를 처음으로 (표와 점은 남아요)">↺ 초기화</button>
+    <button id="btnMute" class="icon" title="소리 켜기/끄기" aria-label="소리 켜기/끄기">🔊</button>
+  </div>
+</header>
+
+<main class="app">
+  <section class="panel scene-panel" id="scenePanel">
+    <canvas id="scene" tabindex="0" aria-label="실험 장면: 자 위를 달리는 장난감 자동차. 확대경을 끌거나 왼쪽·오른쪽 화살표 키로 1 cm씩 옮겨요."></canvas>
+  </section>
+
+  <section class="panel ctrl" id="ctrl">
+    <button id="btnPlay" class="primary">▶ 출발</button>
+    <button id="btnStep">1초씩 ▶</button>
+    <label class="timebox">
+      <span>시간</span>
+      <input type="range" id="timeRange" min="0" max="4" step="0.1" value="0" aria-label="시간 막대">
+      <output id="timeOut">0.0 s</output>
+    </label>
+    <div class="vary-only speedbox">
+      <label for="speedRange">속력</label>
+      <input type="range" id="speedRange" min="10" max="30" step="5" value="25" aria-label="속력">
+      <output id="speedOut">25 cm/s</output>
+    </div>
+    <div class="vary-only readout">이동 거리 <b id="distOut">0.0 cm</b></div>
+  </section>
+
+  <section class="panel tables" id="tables">
+    <div class="steps" id="steps">
+      <span class="steps-title">활동 순서</span>
+      <span class="chip" data-step="1">① 달려서 잔상 남기기</span>
+      <span class="chip" data-step="2">② 표 1</span>
+      <span class="chip" data-step="3">③ 표 2</span>
+      <span class="chip" data-step="4">④ 그래프</span>
+      <span class="chip" data-step="5">⑤ 기울기·넓이</span>
+    </div>
+    <div class="vary-note vary-only" id="varyNote">속력을 고르고 출발해 보세요. 표와 그래프가 저절로 채워져요.</div>
+    <div class="tbl-grid">
+      <div class="tbl-box" id="box1">
+        <div class="cap">표 1. 처음 위치를 기준으로 한 이동 거리</div>
+        <table class="grid-table" id="table1">
+          <tr><th scope="row">시간(초)</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th></tr>
+          <tr><th scope="row">이동 거리(cm)</th>
+            <td><input class="cell" data-t="1" data-i="0" inputmode="numeric" maxlength="3" aria-label="0초 이동 거리"></td>
+            <td><input class="cell" data-t="1" data-i="1" inputmode="numeric" maxlength="3" aria-label="1초 이동 거리"></td>
+            <td><input class="cell" data-t="1" data-i="2" inputmode="numeric" maxlength="3" aria-label="2초 이동 거리"></td>
+            <td><input class="cell" data-t="1" data-i="3" inputmode="numeric" maxlength="3" aria-label="3초 이동 거리"></td>
+            <td><input class="cell" data-t="1" data-i="4" inputmode="numeric" maxlength="3" aria-label="4초 이동 거리"></td>
+          </tr>
+        </table>
+        <div class="tbl-actions">
+          <button id="btnCheck1" class="tb-only">표 확인</button>
+          <button id="btnClear1" class="tb-only ghost">표 비우기</button>
+          <span class="confirm" id="confirm1" hidden>표 1을 비울까요? <button id="yes1" class="warn">비우기</button><button id="no1">취소</button></span>
+        </div>
+        <p class="tmsg" id="msg1"></p>
+      </div>
+      <div class="tbl-box" id="box2">
+        <div class="cap">표 2. 시간 구간마다의 이동 거리와 속력</div>
+        <table class="grid-table" id="table2">
+          <tr><th scope="row">시간 구간</th><th>0초~1초</th><th>1초~2초</th><th>2초~3초</th><th>3초~4초</th></tr>
+          <tr><th scope="row">각 시간 구간에서의 이동 거리(cm)</th>
+            <td><input class="cell" data-t="2d" data-i="0" inputmode="numeric" maxlength="3" aria-label="0초~1초 구간 이동 거리"></td>
+            <td><input class="cell" data-t="2d" data-i="1" inputmode="numeric" maxlength="3" aria-label="1초~2초 구간 이동 거리"></td>
+            <td><input class="cell" data-t="2d" data-i="2" inputmode="numeric" maxlength="3" aria-label="2초~3초 구간 이동 거리"></td>
+            <td><input class="cell" data-t="2d" data-i="3" inputmode="numeric" maxlength="3" aria-label="3초~4초 구간 이동 거리"></td>
+          </tr>
+          <tr><th scope="row">속력(cm/s)</th>
+            <td><input class="cell" data-t="2s" data-i="0" inputmode="numeric" maxlength="3" aria-label="0초~1초 구간 속력"></td>
+            <td><input class="cell" data-t="2s" data-i="1" inputmode="numeric" maxlength="3" aria-label="1초~2초 구간 속력"></td>
+            <td><input class="cell" data-t="2s" data-i="2" inputmode="numeric" maxlength="3" aria-label="2초~3초 구간 속력"></td>
+            <td><input class="cell" data-t="2s" data-i="3" inputmode="numeric" maxlength="3" aria-label="3초~4초 구간 속력"></td>
+          </tr>
+        </table>
+        <div class="tbl-actions">
+          <button id="btnCheck2" class="tb-only">표 확인</button>
+          <button id="btnClear2" class="tb-only ghost">표 비우기</button>
+          <span class="confirm" id="confirm2" hidden>표 2를 비울까요? <button id="yes2" class="warn">비우기</button><button id="no2">취소</button></span>
+        </div>
+        <p class="tmsg" id="msg2"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="graphs" id="graphs">
+    <div class="panel gpanel" id="gpST">
+      <div class="ghead"><h2>시간에 따른 이동 거리 그래프</h2></div>
+      <div class="gwrap"><canvas id="cvST" tabindex="0" aria-label="시간-이동 거리 그래프. 눌러서 점을 찍어요. 화살표 키로 위치를 고르고 Enter로 찍어요. 기울기 보기 중에는 Shift+화살표로 오른쪽 손잡이, Alt+화살표로 왼쪽 손잡이를 옮겨요."></canvas></div>
+      <p class="gmsg" id="gmsgST"></p>
+      <div class="gtools">
+        <div class="seg tb-only">
+          <button id="stDraw" aria-pressed="true">점 찍기</button>
+          <button id="stErase" aria-pressed="false">점 지우기</button>
+        </div>
+        <button id="stCheck" class="tb-only">그래프 확인</button>
+        <button id="stSlope" class="tool" aria-pressed="false" disabled title="그래프를 맞게 그리면 열려요">기울기 보기</button>
+        <button id="stClear" class="tb-only icon ghost" title="점 모두 지우기" aria-label="점 모두 지우기">🗑</button>
+        <span class="confirm pop" id="confirmST" hidden>점을 모두 지울까요? <button id="yesST" class="warn">지우기</button><button id="noST">취소</button></span>
+      </div>
+    </div>
+    <div class="panel gpanel" id="gpVT">
+      <div class="ghead"><h2>시간에 따른 속력 그래프</h2></div>
+      <div class="gwrap"><canvas id="cvVT" tabindex="0" aria-label="시간-속력 그래프. 눌러서 점을 찍어요. 화살표 키로 위치를 고르고 Enter로 찍어요. 넓이 보기 중에는 Shift+화살표로 손잡이를 옮겨요."></canvas></div>
+      <p class="gmsg" id="gmsgVT"></p>
+      <div class="gtools">
+        <div class="seg tb-only">
+          <button id="vtDraw" aria-pressed="true">점 찍기</button>
+          <button id="vtErase" aria-pressed="false">점 지우기</button>
+        </div>
+        <button id="vtCheck" class="tb-only">그래프 확인</button>
+        <button id="vtArea" class="tool" aria-pressed="false" disabled title="그래프를 맞게 그리면 열려요">넓이 보기</button>
+        <button id="vtClear" class="tb-only icon ghost" title="점 모두 지우기" aria-label="점 모두 지우기">🗑</button>
+        <span class="confirm pop" id="confirmVT" hidden>점을 모두 지울까요? <button id="yesVT" class="warn">지우기</button><button id="noVT">취소</button></span>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="../../lib/sim-bridge.js"></script>
+<script type="module" src="./main.js"></script>
+</body>
+</html>
