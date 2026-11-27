@@ -613,7 +613,7 @@ function renderTable() {
   const g = gcdAll(t.counts);
   $('#tableBox').innerHTML = `<table class="rt"><thead><tr><th>물질</th>${t.formulas.map((f, i) => (i ? '<th></th>' : '') + `<th>${f}</th>`).join('')}</tr></thead><tbody>
     ${row('계수비', t.coefs)}${row(`${unit} 수(개)`, t.counts)}${row(`${unit} 수의 비`, t.counts.map(c => c / g))}</tbody></table>
-    <div class="tb-note">반응 ${t.n}번 했을 때의 ${unit} 수예요.${unit === '입자' ? " 구리·염화 마그네슘처럼 분자가 아닌 물질은 '입자'로 세어요." : ''}</div>`;
+    <div class="tb-note">반응 ${t.n}번 했을 때의 ${unit} 수예요.${unit === '입자' ? " 구리·마그네슘·염화 마그네슘처럼 분자가 아닌 물질이 섞인 반응은 모두 '입자'로 세어요. (염산은 염화 수소(HCl)가 물에 녹은 것이에요.)" : ''}</div>`;
 }
 
 function updateResult() {
