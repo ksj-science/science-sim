@@ -34,7 +34,7 @@
     "path": "sims/15-3-1-2-02/",
     "source": "code",
     "dashboard": true,
-    "gas": null
+    "gas": "2026-11-28"
   },
   {
     "id": "22-2-3-1-01",
@@ -1060,7 +1060,7 @@
     "path": "sims/15-3-3-1-01/",
     "source": "code",
     "dashboard": true,
-    "gas": null
+    "gas": "2026-11-28"
   },
   {
     "id": "15-3-1-1-01",
@@ -1071,7 +1071,7 @@
     "path": "sims/15-3-1-1-01/",
     "source": "code",
     "dashboard": true,
-    "gas": null
+    "gas": "2026-11-28"
   },
   {
     "id": "15-3-1-2-03",
@@ -1082,7 +1082,7 @@
     "path": "sims/15-3-1-2-03/",
     "source": "code",
     "dashboard": true,
-    "gas": null
+    "gas": "2026-11-28"
   },
   {
     "id": "15-3-2-2-01",
@@ -1092,7 +1092,7 @@
     "summary": "밀폐 용기 속 물이 포화되는 모습을 보고, 공기를 식혀 이슬점과 응결량을 그래프로 찾아봐요",
     "path": "sims/15-3-2-2-01/",
     "source": "code",
-    "dashboard": false,
+    "dashboard": true,
     "gas": null
   }
 ]
