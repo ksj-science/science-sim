@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>대기 중의 수증기 — 포화 수증기량과 이슬점 | 과학 시뮬레이터</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💧</text></svg>" />
+  <link rel="stylesheet" href="../../lib/sim.css" />
+  <link rel="stylesheet" href="../../lib/vendor/jua-5.3.0/jua.css" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div id="app">
+    <header id="top">
+      <div id="brand">
+        <a class="btn icon" href="../../index.html" title="목록으로" aria-label="목록으로">←</a>
+        <div class="title">
+          <h1>대기 중의 수증기 — 포화 수증기량과 이슬점</h1>
+          <p>15-3-2-2-01 · Ⅱ. 기권과 날씨 · 2. 대기 중의 물</p>
+        </div>
+      </div>
+      <nav id="tabs" role="tablist" aria-label="활동 고르기">
+        <button class="tab" role="tab" data-mode="saturate" aria-selected="true">① 포화 상태 만들기</button>
+        <button class="tab" role="tab" data-mode="dew" aria-selected="false">② 이슬점과 응결량</button>
+        <button class="tab" role="tab" data-mode="judge" aria-selected="false">③ 공기 판정하기</button>
+      </nav>
+      <div id="actions">
+        <button class="btn" id="btnPlay" title="일시정지/재생 (스페이스바)">⏸<span class="lbl" id="playLbl">일시정지</span></button>
+        <button class="btn" id="btnQuality" title="그래픽 품질 (높음/낮음)">✨<span class="lbl" id="qualityLbl">품질 높음</span></button>
+        <button class="btn icon" id="btnMute" title="소리 켜기/끄기" aria-label="소리 켜기/끄기">🔊</button>
+        <button class="btn" id="btnReset" title="지금 활동의 장면을 처음 상태로">↺<span class="lbl">초기화</span></button>
+      </div>
+    </header>
+
+    <main id="main">
+      <section id="left">
+        <div id="sceneCard" class="card scene">
+          <canvas id="scene" aria-label="유리 덮개 속 공기와 물 분자 장면"></canvas>
+          <div id="bubble" class="bubble" aria-live="polite"></div>
+          <div id="legend" class="legend"></div>
+        </div>
+        <div id="leftSide">
+          <div id="barsCard" class="card bars">
+            <div class="bar-row">
+              <span class="bl"><i class="sw blue"></i>지금 수증기량</span>
+              <b id="valW">3.0 g/kg</b>
+              <div class="track"><div id="barW" class="fill"></div></div>
+            </div>
+            <div class="bar-row">
+              <span class="bl"><i class="sw cup"></i>포화 수증기량</span>
+              <b id="valWs" class="red">14.0 g/kg</b>
+              <div class="track"><div id="barWs" class="cupbar"></div></div>
+            </div>
+          </div>
+          <div id="modeCard" class="card">
+            <div class="mpane" data-pane="saturate">
+              <div class="ec-row"><span>증발하는 양</span><div class="track"><div id="barE" class="fill red"></div></div></div>
+              <div class="ec-row"><span>응결하는 양</span><div class="track"><div id="barC" class="fill"></div></div></div>
+              <p class="note">막대 길이는 1초 동안 나가고 들어오는 물 분자 양을 비교한 것이에요.</p>
+            </div>
+            <div class="mpane" data-pane="dew" hidden>
+              <b class="mp-title">💧 물 장부 <small>(공기 1 kg당)</small></b>
+              <div class="ledger">
+                <span class="lg-a">공기 속 수증기 <b id="lgW">14.0 g</b></span>
+                <span class="op">+</span>
+                <span class="lg-b">맺힌 물 <b id="lgC">0.0 g</b></span>
+                <span class="op">=</span>
+                <span class="lg-t"><b id="lgT">14.0 g</b></span>
+              </div>
+            </div>
+            <div class="mpane" data-pane="judge" hidden>
+              <b class="mp-title" id="jCardTitle">공기 (가)</b>
+              <p class="note" id="jCardInfo">장면의 분자 수는 이 공기의 수증기량, 빨간 테두리는 이 기온의 포화 수증기량이에요.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="right">
+        <div id="graphCard" class="card">
+          <div class="card-h"><b>포화 수증기량 곡선</b><small>공기 1 kg에 들어 있는 수증기의 양</small><small id="graphTip" class="tip"></small></div>
+          <div class="cv"><canvas id="graph" tabindex="0" aria-label="포화 수증기량 곡선 그래프 (③에서는 화살표 키로 점 옮기기)"></canvas></div>
+        </div>
+
+        <div id="ctrlCard" class="card">
+          <!-- ① 포화 상태 만들기 -->
+          <div class="ctrl c1" data-pane="saturate">
+            <div class="col">
+              <div class="field">
+                <label for="t1">기온 <output id="t1Out">20 °C</output></label>
+                <input type="range" id="t1" min="-10" max="35" step="1" value="20" aria-label="기온" />
+                <div class="scale"><span>−10 °C</span><span>5</span><span>20</span><span>35 °C</span></div>
+              </div>
+              <p class="hint">기온을 올리거나 내려 보세요. 공기가 품을 수 있는 수증기의 양이 어떻게 달라지나요?</p>
+            </div>
+            <div class="col">
+              <button class="btn primary big" id="btnEvap">▶ 증발 시작</button>
+              <div class="ro"><span>흐른 시간</span><b id="time1">0.0 초</b></div>
+              <div class="ro"><span>포화 상태를 만든 기온</span><b id="satList">—</b></div>
+            </div>
+          </div>
+
+          <!-- ② 이슬점과 응결량 -->
+          <div class="ctrl c2" data-pane="dew" hidden>
+            <div class="col">
+              <div class="field">
+                <label for="t2s">처음 기온 <output id="t2sOut">30 °C</output></label>
+                <input type="range" id="t2s" min="0" max="35" step="1" value="30" aria-label="처음 기온" />
+              </div>
+              <div class="field">
+                <label for="w2s">처음 수증기량 <output id="w2sOut">14.0 g/kg</output></label>
+                <input type="range" id="w2s" min="1" max="26.5" step="0.5" value="14" aria-label="처음 수증기량" />
+              </div>
+              <button class="btn" id="btnExample">📘 교과서 예: 30 °C·14.0 g/kg</button>
+            </div>
+            <div class="col">
+              <button class="btn primary big cool" id="btnCool">❄ 냉각 시작</button>
+              <div class="row3">
+                <button class="btn" id="btnDown">−1 °C</button>
+                <button class="btn" id="btnUp">+1 °C</button>
+              </div>
+              <div class="field">
+                <label for="t2">지금 기온 <output id="t2Out">30 °C</output></label>
+                <input type="range" id="t2" min="-10" max="30" step="1" value="30" aria-label="지금 기온" />
+              </div>
+            </div>
+            <div class="col">
+              <b class="tbl-title">이슬점 기록</b>
+              <table class="data small" id="dewTable">
+                <thead><tr><th>처음 기온</th><th>수증기량</th><th>이슬점</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ③ 공기 판정하기 -->
+          <div class="ctrl c3" data-pane="judge" hidden>
+            <div class="col">
+              <div class="cardline"><b id="jName">공기 (가)</b><span id="jVals">수증기량 7.0 g/kg · 기온 10 °C</span><small id="jProg">1 / 6</small></div>
+              <p class="hint">그래프의 <b class="orange">●</b> 점을 끌어 이 공기의 자리에 놓고, 상태를 고른 뒤 확인하세요.</p>
+              <div class="row2" role="group" aria-label="상태 고르기">
+                <button class="btn" id="btnSat" aria-pressed="false">포화 상태</button>
+                <button class="btn" id="btnUnsat" aria-pressed="false">불포화 상태</button>
+              </div>
+              <div class="row2">
+                <button class="btn primary" id="btnCheck">✔ 확인</button>
+                <button class="btn" id="btnNext">다음 공기 ▶</button>
+              </div>
+              <p class="fb" id="fb3" aria-live="polite"></p>
+            </div>
+            <div class="col">
+              <table class="data small" id="judgeTable">
+                <thead><tr><th>공기</th><th>수증기량(g/kg)</th><th>기온(°C)</th><th>상태</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="../../lib/sim-bridge.js"></script>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
