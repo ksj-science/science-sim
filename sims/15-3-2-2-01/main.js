@@ -49,7 +49,6 @@ const fT = v => (Math.abs(v - Math.round(v)) < 1e-6 ? f0(v) : f1(v)); // 기온:
 const $ = s => document.querySelector(s);
 
 /* ═════════════ 상태 ═════════════ */
-const K = 0.25; // 증발·응결 비례 상수 (/s, 화면용)
 const app = { mode: 'saturate', paused: false, quality: 'high', locked: false, wasPaused: false };
 const S1 = { T: 20, w: 3, time: 0, running: false, saturated: false, satTemps: [], runs: 0, trail: [], popT: 0, overDrop: 0 };
 const S2 = { startT: 30, W: 14, Td: 20, T: 30, cooling: false, hold: 0, dewReached: false, minT: 30, dripStep: 0, log: [], end: '', flash: 0 };
@@ -125,109 +124,148 @@ function geom() {
   const x0 = cx - jw / 2, x1 = cx + jw / 2, top = base - jh;
   const ry = jw * 0.42, yS = top + ry;
   const ix0 = x0 + 5, ix1 = x1 - 5, irx = (ix1 - ix0) / 2, iry = ry - 5;
-  const r = clamp(jw * 0.024, 4, 8);
+  const r = clamp(jw * 0.017, 3.5, 6);
   const G = { W, H, base, jh, jw, cx, x0, x1, top, ry, yS, ix0, ix1, irx, iry, r };
   if (app.mode === 'saturate') {
-    const bw = jw * 0.62, bh = jh * 0.2;
+    const bw = jw * 0.78, bh = jh * 0.2;
     const drop = clamp((S1.w - 3) * 0.55, -4, 18) * (jh / 330);
     G.bowl = { x0: cx - bw / 2, x1: cx + bw / 2, top: base - bh, bot: base - 3, surf: base - bh + bh * 0.2 + drop };
-    G.airBot = G.bowl.top - 2;
+    G.floor = base - 3;
   } else if (app.mode === 'dew') {
     const pt = clamp(jh * 0.05, 8, 14);
     G.plate = { top: base - pt, h: pt };
-    G.airBot = G.plate.top - 1;
-  } else G.airBot = base - 4;
+    G.floor = G.plate.top - 1;
+  } else G.floor = base - 4;
   return G;
 }
 const topAt = (G, x) => { const q = (x - G.cx) / G.irx; return G.yS - G.iry * Math.sqrt(Math.max(0, 1 - q * q)); };
 
-/* ═════════════ 물 분자 ═════════════ */
-const air = [], moving = [], drops = [], ripples = [];
-const MAXMOL = 36, MAXMOVE = 20;
-function newAir(G, x, y) {
-  const a = Math.random() * Math.PI * 2;
-  return { x: x ?? (G.ix0 + G.r + Math.random() * (G.ix1 - G.ix0 - 2 * G.r)), y: y ?? (G.yS + Math.random() * Math.max(4, G.airBot - G.yS - G.r)), vx: Math.cos(a), vy: Math.sin(a) };
+/* ═════════════ 물 분자 (입자 모형) ═════════════
+ * 분자 1개 = 수증기 Q g/kg.
+ * - 공기 속 분자는 기온이 높을수록 빠르게, 방향을 수시로 바꾸며 무작위로 움직인다.
+ * - 우연히 물 표면(①: 그릇 입구로 들어가 수면, ②: 물방울이 맺힌 냉각 판)에 닿으면 응결해 사라진다.
+ * - 증발은 수면의 무작위 위치에서 무작위 위쪽 방향으로 튀어 나온다.
+ * 분자 하나가 1초 동안 물 표면에 닿을 확률 λ = v·L/(π·A) (2차원 기체의 벽 충돌 빈도, L=물 표면 길이, A=공기 넓이).
+ * 증발 빈도 E = λ·Nsat(T) 로 두면 응결 빈도 λ·N 과 N = Nsat 에서 같아져 평형(포화)이 된다.
+ * 기온이 높을수록 v·Nsat 가 커져 증발과 응결이 모두 많아진다. 화면 수치는 이 평균(dw/dt = λ(ws − w))을 쓴다. */
+const Q = 0.25, MAXMOL = 150;
+const mols = [], ripples = [], drops = [];
+const RATE = { e: 0, c: 0, ne: 0, nc: 0 }; // 최근 증발·응결 빈도(개/초, 지수 평균)
+const vMol = (G, T) => G.jh * (0.33 + 0.6 * (T - TMIN) / (TMAX - TMIN)); // 화면용(실제보다 차이를 키움)
+function bottomAt(G, x) { // 공기 영역의 바닥(분자 중심 기준)
+  if (app.mode === 'saturate') {
+    const b = G.bowl;
+    if (x > b.x0 - G.r && x < b.x1 + G.r) return b.top - (x > b.x0 && x < b.x1 ? 0 : G.r);
+  }
+  return G.floor - G.r;
+}
+function airArea(G) {
+  const a = G.ix0 + G.r, z = G.ix1 - G.r, n = 60, h = (z - a) / n;
+  let A = 0;
+  for (let i = 0; i < n; i++) { const x = a + (i + 0.5) * h; A += Math.max(0, bottomAt(G, x) - (topAt(G, x) + G.r)) * h; }
+  return Math.max(1, A);
+}
+function sinkLen(G) { return app.mode === 'saturate' ? G.bowl.x1 - G.bowl.x0 : app.mode === 'dew' ? G.ix1 - G.ix0 - 2 * G.r : 0; }
+const lamOf = (G, T) => vMol(G, T) * sinkLen(G) / (Math.PI * airArea(G));
+function newAir(G) {
+  for (let k = 0; k < 30; k++) {
+    const x = G.ix0 + G.r + Math.random() * (G.ix1 - G.ix0 - 2 * G.r);
+    const y0 = topAt(G, x) + G.r, y1 = bottomAt(G, x);
+    if (y1 - y0 < 2) continue;
+    const a = Math.random() * Math.PI * 2;
+    return { ph: 'air', x, y: y0 + Math.random() * (y1 - y0), vx: Math.cos(a), vy: Math.sin(a), tag: 0 };
+  }
+  return { ph: 'air', x: G.cx, y: (G.yS + G.floor) / 2, vx: 1, vy: 0, tag: 0 };
 }
 function targetCount() {
   const w = app.mode === 'saturate' ? S1.w : app.mode === 'dew' ? vapor2() : CARDS[S3.idx].w;
-  return Math.min(MAXMOL, Math.round(w));
+  return Math.min(MAXMOL, Math.round(w / Q));
 }
 function snapMolecules() { // 애니메이션 없이 바로 맞춤
-  const G = geom(); moving.length = 0; drops.length = 0; ripples.length = 0;
+  const G = geom(); mols.length = 0; drops.length = 0; ripples.length = 0;
   const n = targetCount();
-  while (air.length > n) air.pop();
-  while (air.length < n) air.push(newAir(G));
-  for (const m of air) { if (m.y > G.airBot - G.r) m.y = G.airBot - G.r - Math.random() * 20; }
+  for (let i = 0; i < n; i++) mols.push(newAir(G));
+  RATE.e = RATE.c = RATE.ne = RATE.nc = 0; evAcc = 0;
 }
-function sourceY(G) { return app.mode === 'saturate' ? G.bowl.surf : G.plate ? G.plate.top : G.airBot; }
-function sourceX(G) {
-  if (app.mode === 'saturate') return G.bowl.x0 + 12 + Math.random() * (G.bowl.x1 - G.bowl.x0 - 24);
-  return G.ix0 + 14 + Math.random() * (G.ix1 - G.ix0 - 28);
-}
-function spawnRise(G) { // 물(또는 냉각 판)에서 공기로
-  if (moving.length >= MAXMOVE) { air.push(newAir(G)); return; }
-  moving.push({ kind: 'up', x: sourceX(G), y: sourceY(G) - 2, vx: (Math.random() - 0.5) * 16, vy: -70 - Math.random() * 25, life: 0 });
-}
-function spawnFall(G) { // 공기에서 물(또는 냉각 판)로
-  if (!air.length) return;
-  const m = air.splice(Math.floor(Math.random() * air.length), 1)[0];
-  if (moving.length >= MAXMOVE) return;
-  const tx = sourceX(G), ty = sourceY(G);
-  moving.push({ kind: 'down', x: m.x, y: m.y, tx, ty, life: 0 });
-}
-function updateMolecules(G, dt, Tnow) {
-  const speed = 46 * Math.sqrt((Tnow + 273) / 293) * (G.jh / 330);
-  for (const m of air) {
-    const a = (Math.random() - 0.5) * 3 * dt; // 작은 흔들림
-    const c = Math.cos(a), s = Math.sin(a), vx = m.vx * c - m.vy * s, vy = m.vx * s + m.vy * c;
-    m.vx = vx; m.vy = vy;
-    m.x += m.vx * speed * dt; m.y += m.vy * speed * dt;
-    const r = G.r;
-    if (m.x < G.ix0 + r) { m.x = G.ix0 + r; m.vx = Math.abs(m.vx); }
-    if (m.x > G.ix1 - r) { m.x = G.ix1 - r; m.vx = -Math.abs(m.vx); }
-    if (m.y > G.airBot - r) { m.y = G.airBot - r; m.vy = -Math.abs(m.vy); }
-    const ty = topAt(G, m.x) + r;
-    if (m.y < ty) { m.y = ty; m.vy = Math.abs(m.vy); m.vx += (G.cx - m.x) / G.irx * 0.3; const L = Math.hypot(m.vx, m.vy); m.vx /= L; m.vy /= L; }
+const waterWall = (G, y) => { const b = G.bowl, ins = (b.x1 - b.x0) * 0.07 * clamp((y - b.top) / (b.bot - b.top), 0, 1); return [b.x0 + ins + G.r, b.x1 - ins - G.r]; };
+function evaporate(G) {
+  if (mols.length >= MAXMOL) return;
+  const a = (Math.random() - 0.5) * Math.PI * 0.85; // 위쪽 ±76° 안의 무작위 방향
+  const vx = Math.sin(a), vy = -Math.cos(a);
+  if (app.mode === 'saturate') {
+    const b = G.bowl, [l, r] = waterWall(G, b.surf);
+    mols.push({ ph: 'up', x: l + Math.random() * Math.max(1, r - l), y: b.surf - 1, vx, vy, tag: 0.8 });
+    const now = performance.now(); if (now - S1.popT > 250) { S1.popT = now; sfx.pop(); }
+  } else {
+    mols.push({ ph: 'air', x: G.ix0 + G.r + Math.random() * (G.ix1 - G.ix0 - 2 * G.r), y: G.floor - G.r - 1, vx, vy, tag: 0.8 });
   }
-  for (let i = moving.length - 1; i >= 0; i--) {
-    const p = moving[i]; p.life += dt;
-    if (p.kind === 'up') {
-      p.x += p.vx * dt; p.y += p.vy * dt;
-      const lim = G.airBot - (G.airBot - G.yS) * 0.45;
-      if (p.y < lim || p.life > 2.5) { moving.splice(i, 1); const a = newAir(G, clamp(p.x, G.ix0 + G.r, G.ix1 - G.r), p.y); a.vy = -Math.abs(a.vy); air.push(a); }
-    } else {
-      const dx = p.tx - p.x, dy = p.ty - p.y, L = Math.hypot(dx, dy), v = 85 * (G.jh / 330) * dt;
-      if (L <= v || p.life > 3) { moving.splice(i, 1); if (app.mode === 'saturate') ripples.push({ x: p.tx, y: p.ty, t: 0 }); }
-      else { p.x += dx / L * v; p.y += dy / L * v; }
+  RATE.ne++;
+}
+let evAcc = 0, evThr = 1;
+/** 증발 과정(포아송): 평균 빈도 = λ·N목표 (+ 분자 수를 평균값 근처로 붙잡는 작은 보정) */
+function exchange(G, dt, Ntarget, sinkOn, lam) {
+  const corr = 0.6 * (Ntarget - mols.length);
+  const rate = Math.max(0, (sinkOn ? lam * Ntarget : 0) + corr);
+  evAcc += rate * dt;
+  while (evAcc >= evThr) { evAcc -= evThr; evThr = -Math.log(1 - Math.random()); evaporate(G); }
+}
+function condenseAt(x, y) { RATE.nc++; if (ripples.length < 40) ripples.push({ x, y, t: 0 }); }
+function updateMolecules(G, dt, Tnow, sinkOn) {
+  const v = vMol(G, Tnow), r = G.r, st = v * dt, b = G.bowl;
+  for (let i = mols.length - 1; i >= 0; i--) {
+    const m = mols[i];
+    if (m.tag > 0) m.tag -= dt;
+    const py = m.y;
+    m.x += m.vx * st; m.y += m.vy * st;
+    if (m.ph === 'air') {
+      // 공기·다른 분자와 부딪혀 방향이 바뀜(무작위)
+      if (Math.random() < 1.8 * dt) { const a = Math.random() * Math.PI * 2; m.vx = Math.cos(a); m.vy = Math.sin(a); }
+      if (m.x < G.ix0 + r) { m.x = G.ix0 + r; m.vx = Math.abs(m.vx); }
+      if (m.x > G.ix1 - r) { m.x = G.ix1 - r; m.vx = -Math.abs(m.vx); }
+      const ty = topAt(G, m.x) + r;
+      if (m.y < ty) { m.y = ty; m.vy = Math.abs(m.vy); m.vx += (G.cx - m.x) / G.irx * 0.3; const L = Math.hypot(m.vx, m.vy); m.vx /= L; m.vy /= L; }
+      if (app.mode === 'saturate') {
+        const inOpen = m.x > b.x0 && m.x < b.x1;
+        if (inOpen && m.y >= b.top) {
+          if (sinkOn) { m.ph = 'down'; if (m.vy < 0.35) { m.vy = 0.35; const L = Math.hypot(m.vx, m.vy); m.vx /= L; m.vy /= L; } RATE.nc++; continue; }
+          m.y = b.top; m.vy = -Math.abs(m.vy);
+        } else if (!inOpen && m.x > b.x0 - r && m.x < b.x1 + r && m.y > b.top - r) { // 그릇 가장자리·바깥 벽
+          if (py <= b.top - r + 0.5) { m.y = b.top - r; m.vy = -Math.abs(m.vy); }
+          else if (m.x <= b.x0) { m.x = b.x0 - r; m.vx = -Math.abs(m.vx); }
+          else { m.x = b.x1 + r; m.vx = Math.abs(m.vx); }
+        }
+        if (m.y > G.floor - r) { m.y = G.floor - r; m.vy = -Math.abs(m.vy); }
+      } else if (m.y > G.floor - r) {
+        if (sinkOn) { mols.splice(i, 1); condenseAt(m.x, G.floor); continue; } // 물방울 맺힌 판에 닿음 → 응결
+        m.y = G.floor - r; m.vy = -Math.abs(m.vy);
+      }
+    } else { // 그릇 안: 'down' 수면으로 떨어짐, 'up' 수면에서 튀어 나옴
+      const [l, rr] = waterWall(G, m.y);
+      if (m.x < l) { m.x = l; m.vx = Math.abs(m.vx); }
+      if (m.x > rr) { m.x = rr; m.vx = -Math.abs(m.vx); }
+      if (m.ph === 'down' && m.y >= b.surf - r * 0.4) { mols.splice(i, 1); if (ripples.length < 40) ripples.push({ x: m.x, y: b.surf, t: 0 }); continue; }
+      if (m.ph === 'up' && m.y < b.top - r) m.ph = 'air';
     }
   }
   for (let i = ripples.length - 1; i >= 0; i--) { ripples[i].t += dt; if (ripples[i].t > 0.6) ripples.splice(i, 1); }
-}
-function reconcile(G) {
-  const n = targetCount();
-  const projected = air.length + moving.filter(p => p.kind === 'up').length;
-  if (projected < n - 1) spawnRise(G);
-  else if (projected > n + 1) spawnFall(G);
+  if (dt > 0) {
+    const k = 1 - Math.exp(-dt / 2.5);
+    RATE.e += (RATE.ne / dt - RATE.e) * k; RATE.c += (RATE.nc / dt - RATE.c) * k;
+    RATE.ne = RATE.nc = 0;
+  }
 }
 
 /* ═════════════ ① 포화 상태 만들기 ═════════════ */
-let evNext = 0.3, cdNext = 0.3;
-const expRand = rate => (rate > 1e-6 ? -Math.log(1 - Math.random()) / rate : 1e9);
 function update1(dt, G) {
   if (!S1.running) return;
   S1.time += dt;
-  const sat = ws(S1.T);
-  const E = K * sat, C = K * S1.w;
+  const sat = ws(S1.T), lam = lamOf(G, S1.T);
   const was = S1.saturated;
-  S1.w = sat + (S1.w - sat) * Math.exp(-K * dt);
+  S1.w = sat + (S1.w - sat) * Math.exp(-lam * dt);
   if (Math.abs(sat - S1.w) < 0.05) S1.w = sat;
   S1.saturated = S1.w === sat;
   if (S1.saturated && !was) onSaturated();
-  // 분자 하나 = 1 g/kg 이므로 증발·응결 빈도(개/초) = E, C
-  evNext -= dt; cdNext -= dt;
-  while (evNext <= 0) { spawnRise(G); evNext += expRand(E); const now = performance.now(); if (now - S1.popT > 250) { S1.popT = now; sfx.pop(); } }
-  while (cdNext <= 0) { spawnFall(G); cdNext += expRand(C); }
-  reconcile(G);
+  exchange(G, dt, S1.w / Q, true, lam);
   // 기온을 내려 과포화 → 벽에 물방울이 맺혔다 흘러내림
   if (S1.w > sat + 0.05) {
     S1.overDrop += (S1.w - sat) * dt * 2.2;
@@ -263,7 +301,7 @@ function setT1(v) {
 }
 function toggleEvap(force) {
   S1.running = force ?? !S1.running;
-  if (S1.running) { S1.runs++; if (app.paused) setPaused(false); sound.on(); evNext = 0.05; cdNext = expRand(K * S1.w); }
+  if (S1.running) { S1.runs++; if (app.paused) setPaused(false); sound.on(); }
   else sound.off();
   mark();
 }
@@ -271,6 +309,7 @@ function toggleEvap(force) {
 /* ═════════════ ② 이슬점과 응결량 ═════════════ */
 const vapor2 = () => Math.min(S2.W, ws(S2.T));
 const condensed2 = () => Math.max(0, S2.W - ws(S2.T));
+const dewSat2 = () => S2.dewReached && S2.T <= S2.Td + 1e-6; // 냉각 판에 물방울이 맺힌(포화) 상태
 const wMax2 = T => Math.floor(ws(T) * 2 + 1e-9) / 2;
 function setStart2(T, W, silent) {
   S2.startT = clamp(Math.round(T), 0, 35);
@@ -354,15 +393,15 @@ function nextCard() {
 
 /* ═════════════ 화면 갱신 (HTML) ═════════════ */
 const el = {
-  valW: $('#valW'), valWs: $('#valWs'), barW: $('#barW'), barWs: $('#barWs'), barE: $('#barE'), barC: $('#barC'),
+  valW: $('#valW'), valWs: $('#valWs'), barW: $('#barW'), barWs: $('#barWs'), barE: $('#barE'), barC: $('#barC'), numE: $('#numE'), numC: $('#numC'),
   bubble: $('#bubble'), legend: $('#legend'), t1: $('#t1'), t1Out: $('#t1Out'), time1: $('#time1'), satList: $('#satList'), btnEvap: $('#btnEvap'),
   t2s: $('#t2s'), t2sOut: $('#t2sOut'), w2s: $('#w2s'), w2sOut: $('#w2sOut'), t2: $('#t2'), t2Out: $('#t2Out'), btnCool: $('#btnCool'),
   lgW: $('#lgW'), lgC: $('#lgC'), lgT: $('#lgT'), graphTip: $('#graphTip'),
 };
 const LEG = {
-  saturate: '<span><i class="dot"></i>물 분자 1개 = 수증기 1 g/kg</span><span><i class="red">↑</i>물 → 공기 (증발)</span><span><i class="blue">↓</i>공기 → 물 (응결)</span>',
-  dew: '<span><i class="dot"></i>물 분자 1개 = 수증기 1 g/kg</span><span><i class="blue">↓</i>수증기 → 물방울 (응결)</span><span>❄ 냉각 판</span>',
-  judge: '<span><i class="dot"></i>물 분자 1개 = 수증기 1 g/kg</span><span>빨간 테두리 = 이 기온의 포화 수증기량</span>',
+  saturate: '<span><i class="dot"></i>물 분자 1개 = 수증기 0.25 g/kg</span><span>🌡 기온이 높을수록 분자가 빨라요</span><span><i class="red">↑</i>물 → 공기 (증발)</span><span><i class="blue">↓</i>공기 → 물 (응결)</span>',
+  dew: '<span><i class="dot"></i>물 분자 1개 = 수증기 0.25 g/kg</span><span>판에 닿은 분자 → 물방울 (응결)</span><span>❄ 냉각 판</span>',
+  judge: '<span><i class="dot"></i>물 분자 1개 = 수증기 0.25 g/kg</span><span>🌡 기온이 높을수록 분자가 빨라요</span>',
 };
 let lastBubble = '', lastBubbleCls = '';
 function setBubble(html, cls = '') {
@@ -381,15 +420,20 @@ function renderHTML() {
   if (app.mode === 'saturate') {
     const s = ws(S1.T);
     setBars(S1.w, s);
-    el.barE.style.width = (s / WMAX * 100).toFixed(2) + '%';
-    el.barC.style.width = (S1.w / WMAX * 100).toFixed(2) + '%';
+    // 실제로 일어난 증발·응결 개수(최근 몇 초 평균). 기준: 30 °C 포화 때의 증발 빈도
+    const G = geom(), ref = lamOf(G, 30) * ws(30) / Q;
+    el.barE.style.width = clamp(RATE.e / ref * 100, 0, 100).toFixed(2) + '%';
+    el.barC.style.width = clamp(RATE.c / ref * 100, 0, 100).toFixed(2) + '%';
+    const ne = S1.running ? Math.round(RATE.e) + '개/초' : '—', nc = S1.running ? Math.round(RATE.c) + '개/초' : '—';
+    if (el.numE.textContent !== ne) el.numE.textContent = ne;
+    if (el.numC.textContent !== nc) el.numC.textContent = nc;
     el.t1Out.textContent = f0(S1.T) + ' °C';
     el.time1.textContent = S1.time.toFixed(1) + ' 초';
     el.satList.textContent = S1.satTemps.length ? S1.satTemps.map(t => sgn(t) + ' °C').join(', ') : '—';
     el.btnEvap.textContent = S1.running ? '⏸ 증발 멈춤' : (S1.time > 0 ? '▶ 증발 다시 시작' : '▶ 증발 시작');
     el.btnEvap.classList.toggle('on', S1.running);
     if (!S1.running && S1.time === 0) setBubble('▶ <b>증발 시작</b>을 눌러 덮개 속 물이 어떻게 되는지 지켜보세요.');
-    else if (S1.saturated) setBubble('<b>포화 상태</b> — 증발은 멈추지 않았어요. 나가는 양 = 들어오는 양', 'sat');
+    else if (S1.saturated) setBubble('<b>포화 상태</b> — 증발도 응결도 계속 일어나요. 나가는 분자 수 ≈ 들어오는 분자 수', 'sat');
     else if (S1.w > s) setBubble('응결하는 양 > 증발하는 양 — 수증기가 물로 돌아가요', 'warn');
     else setBubble('<b>불포화 상태</b> — 공기가 수증기를 더 포함할 수 있어요' + (S1.running ? '' : ' (멈춤)'));
   } else if (app.mode === 'dew') {
@@ -465,12 +509,11 @@ function drawScene(dt, now) {
   if (app.mode === 'saturate') drawBowl(g, G, hq);
   if (app.mode === 'dew') drawPlate(g, G);
   // 분자
-  const half = !hq;
-  air.forEach((m, i) => { if (!half || i % 2 === 0) drawMol(g, m.x, m.y, G.r, hq); });
-  for (const p of moving) {
-    drawMol(g, p.x, p.y, G.r, hq);
-    if (p.kind === 'up') arrow(g, p.x + G.r + 5, p.y + G.r * 2.2, p.x + G.r + 5, p.y - G.r * 1.6, '#d8452f');
-    else arrow(g, p.x + G.r + 5, p.y - G.r * 2.2, p.x + G.r + 5, p.y + G.r * 1.6, '#2a78d6');
+  const spr = molSprite(G.r, hq), sz = (G.r + 1) * 2;
+  for (const m of mols) g.drawImage(spr, m.x - G.r - 1, m.y - G.r - 1, sz, sz);
+  for (const m of mols) {
+    if (m.ph === 'down') arrowAlong(g, m, G.r, '#2a78d6');
+    else if (m.tag > 0) arrowAlong(g, m, G.r, '#d8452f');
   }
   for (const r of ripples) {
     g.strokeStyle = `rgba(255,255,255,${0.8 * (1 - r.t / 0.6)})`; g.lineWidth = 1.5;
@@ -484,6 +527,19 @@ function drawScene(dt, now) {
   // 유리 덮개
   drawJar(g, G, hq);
   drawThermo(g, G);
+}
+let sprC = null, sprKey = '';
+function molSprite(r, hq) { // 분자 그림을 한 번만 그려 두고 찍어 냄(분자가 많아도 가볍게)
+  const key = r.toFixed(2) + '|' + dpr + '|' + hq;
+  if (key === sprKey) return sprC;
+  const n = Math.ceil((r + 1) * 2 * dpr);
+  sprC = document.createElement('canvas'); sprC.width = sprC.height = n;
+  const c = sprC.getContext('2d'); c.scale(n / ((r + 1) * 2), n / ((r + 1) * 2));
+  drawMol(c, r + 1, r + 1, r, hq); sprKey = key; return sprC;
+}
+function arrowAlong(g, m, r, col) { // 분자가 움직이는 방향 화살표
+  const d0 = r + 2, d1 = r + 2 + r * 2.6;
+  arrow(g, m.x + m.vx * d0, m.y + m.vy * d0, m.x + m.vx * d1, m.y + m.vy * d1, col);
 }
 function drawMol(g, x, y, r, hq) {
   if (hq) {
@@ -849,9 +905,10 @@ function frame(now) {
   const run = !app.paused && !app.locked;
   if (run) {
     if (app.mode === 'saturate') update1(dt, G);
-    else if (app.mode === 'dew') { update2(dt); reconcile(G); }
+    else if (app.mode === 'dew') { update2(dt); exchange(G, dt, vapor2() / Q, dewSat2(), lamOf(G, S2.T)); }
     const Tn = app.mode === 'saturate' ? S1.T : app.mode === 'dew' ? S2.T : CARDS[S3.idx].T;
-    updateMolecules(G, dt, Tn);
+    const sinkOn = app.mode === 'saturate' ? S1.running : app.mode === 'dew' ? dewSat2() : false;
+    updateMolecules(G, dt, Tn, sinkOn);
   }
   drawScene(run ? dt : 0, now);
   drawGraph();
@@ -868,4 +925,4 @@ resize(); snapMolecules(); flush();
 requestAnimationFrame(frame);
 
 // 콘솔 검산용 (정답 아님: 모형 함수와 현재 상태만)
-window.__sim = { ws, dewPoint, S1, S2, S3, app, bridgeState };
+window.__sim = { ws, dewPoint, S1, S2, S3, app, bridgeState, mols, RATE, Q };
